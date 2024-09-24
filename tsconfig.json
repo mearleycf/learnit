@@ -1,0 +1,27 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "allowJs": true,
+    "rootDir": ".",
+    "paths": {
+      "@assets/*": ["src/assets/*"],
+      "@components/*": ["src/components/*"],
+      "@endpoints/*": ["src/endpoints/*"],
+      "@icons/*": ["src/icons/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@pages/*": ["src/pages/*"],
+      "@scripts/*": ["src/scripts/*"],
+      "@styles/*": ["src/styles/*"],
+      "@utils/*": ["src/utils/*"],
+    }
+  },
+  "include": [
+    "src/**/*",
+    ".eslintrc.cjs",
+    "astro.config.mjs",
+    "tailwind.config.mjs"
+  ],
+  "exclude": ["node_modules", "dist", ".yarn", ".vscode", "public"]
+}
