@@ -5,6 +5,7 @@
     "baseUrl": ".",
     "allowJs": true,
     "rootDir": ".",
+    "strictNullChecks": true,
     "paths": {
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
