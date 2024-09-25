@@ -1,5 +1,5 @@
+import { defineConfig, envField } from 'astro/config'
 import vercel from '@astrojs/vercel/serverless'
-import { defineConfig } from 'astro/config'
 import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
 import icon from 'astro-icon'
@@ -15,6 +15,13 @@ export default defineConfig({
     }),
     icon(),
   ],
+  env: {
+    schema: {
+      CLIENT_API_URL: envField.string({ context: 'client', access: 'public' }),
+      SERVER_API_URL: envField.string({ context: 'server', access: 'public' }),
+      API_SECRET: envField.string({ context: 'server', access: 'secret' }),
+    },
+  },
   output: 'server',
   adapter: vercel(),
 })

@@ -21,3 +21,36 @@ const courseCollection = defineCollection({
     isFeatured: z.boolean().optional(),
   }),
 })
+
+const chapterCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    courseId: z.string(),
+    order: z.number(),
+    content: z.string(),
+  }),
+})
+
+const exerciseCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    chapterId: z.string(),
+    order: z.number(),
+    initialCode: z.string(),
+    solution: z.string(),
+    tests: z.array(
+      z.object({
+        name: z.string(),
+        test: z.string(),
+      }),
+    ),
+  }),
+})
+
+export const collections = {
+  courses: courseCollection,
+  chapters: chapterCollection,
+  exercises: exerciseCollection,
+}
