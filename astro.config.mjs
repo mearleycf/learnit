@@ -15,11 +15,14 @@ export default defineConfig({
     }),
     icon(),
   ],
+  // prettier-ignore
   env: {
     schema: {
-      CLIENT_API_URL: envField.string({ context: 'client', access: 'public' }),
-      SERVER_API_URL: envField.string({ context: 'server', access: 'public' }),
-      API_SECRET: envField.string({ context: 'server', access: 'secret' }),
+      PUBLIC_ASTRO_CLIENT_API_URL: envField.string({ context: 'client', access: 'public' }),
+      PUBLIC_ASTRO_SERVER_API_URL: envField.string({ context: 'server', access: 'public' }),
+      PUBLIC_SUPABASE_URL: envField.string({ context: 'client', access: 'public' }),
+      PUBLIC_SUPABASE_ANON_KEY: envField.string({ context: 'client', access: 'public' }),
+      SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: 'server', access: 'secret' }),
     },
   },
   output: 'server',
