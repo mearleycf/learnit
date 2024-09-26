@@ -16,13 +16,9 @@
       "@scripts/*": ["src/scripts/*"],
       "@styles/*": ["src/styles/*"],
       "@utils/*": ["src/utils/*"],
+      "@lib/*": ["src/lib/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    ".eslintrc.cjs",
-    "astro.config.mjs",
-    "tailwind.config.mjs"
-  ],
+  "include": ["src/**/*", ".eslintrc.cjs", "astro.config.mjs", "tailwind.config.mjs"],
   "exclude": ["node_modules", "dist", ".yarn", ".vscode", "public"]
 }
