@@ -27,7 +27,7 @@
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.2"
   },
-  "packageManager": "yarn@4.4.0",
+  "packageManager": "yarn@4.5.0",
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.11.1",

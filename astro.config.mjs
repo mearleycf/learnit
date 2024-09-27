@@ -21,6 +21,18 @@ export default defineConfig({
   vite: {
     envDir: '.',
     envPrefix: ['PUBLIC_', 'SUPABASE_'],
+    server: {
+      hmr: {
+        overlay: false,
+      },
+      watch: {
+        usePolling: true,
+      },
+    },
+    // Add this ssr configuration
+    ssr: {
+      noExternal: ['@supabase/supabase-js'],
+    },
   },
   // prettier-ignore
   env: {
