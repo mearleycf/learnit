@@ -1,0 +1,32 @@
+name: Supabase Manual Deploy
+
+  on:
+    workflow_dispatch:
+      inputs:
+        environment:
+          description: 'Environment to deploy to'
+          required: true
+          default: 'production'
+          type: choice
+          options:
+          - production
+          - staging
+  
+  jobs: 
+    deploy:
+      runs-on: ubuntu-latest
+
+      env:
+        SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+      steps:
+        - uses: actions/checkout@v3
+
+        - uses: supabase/setup-cli@v1
+          with:
+            version: latest
+          
+        - run: supabase link --project-ref ${{ env.SUPABASE_PROJECT_ID }}
+        - run: supabase db push
