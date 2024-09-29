@@ -1,56 +1,32 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
     "jsx": "react-jsx",
     "baseUrl": ".",
     "allowJs": true,
     "rootDir": ".",
     "strictNullChecks": true,
+    "types": ["astro/client"],
     "paths": {
-      "@assets/*": [
-        "src/assets/*"
-      ],
-      "@components/*": [
-        "src/components/*"
-      ],
-      "@endpoints/*": [
-        "src/endpoints/*"
-      ],
-      "@icons/*": [
-        "src/icons/*"
-      ],
-      "@layouts/*": [
-        "src/layouts/*"
-      ],
-      "@pages/*": [
-        "src/pages/*"
-      ],
-      "@scripts/*": [
-        "src/scripts/*"
-      ],
-      "@styles/*": [
-        "src/styles/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@lib/*": [
-        "src/lib/*"
-      ]
+      "@assets/*": ["src/assets/*"],
+      "@components/*": ["src/components/*"],
+      "@endpoints/*": ["src/endpoints/*"],
+      "@icons/*": ["src/icons/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@pages/*": ["src/pages/*"],
+      "@scripts/*": ["src/scripts/*"],
+      "@styles/*": ["src/styles/*"],
+      "@utils/*": ["src/utils/*"],
+      "@lib/*": ["src/lib/*"]
     },
     "jsxImportSource": "react"
   },
-  "include": [
-    "src/**/*",
-    ".eslintrc.cjs",
-    "astro.config.mjs",
-    "tailwind.config.mjs"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".yarn",
-    ".vscode",
-    "public"
-  ]
+  "include": ["src/**/*", ".eslintrc.cjs", "astro.config.mjs", "tailwind.config.mjs"],
+  "exclude": ["node_modules", "dist", ".yarn", ".vscode", "public"]
 }
