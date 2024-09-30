@@ -4,9 +4,9 @@ import { supabase } from '@lib/supabase'
 
 interface AuthContextType {
   user: User | null
-  signUp: (email: string, password: string) => Promise<void>
-  signIn: (email: string, password: string) => Promise<void>
-  signOut: () => Promise<void>
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signOut: () => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -27,16 +27,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     user,
     signUp: async (email: string, password: string) => {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      const { error } = await supabase.auth.signUp({ email, password })
+      return { error }
     },
     signIn: async (email: string, password: string) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
+      return { error }
     },
     signOut: async () => {
       const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      return { error }
     },
   }
 
