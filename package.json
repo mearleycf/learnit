@@ -1,12 +1,16 @@
 {
   "name": "astro-base",
-  "type": "module",
   "version": "1.0.1",
+  "type": "module",
   "scripts": {
     "astro": "astro",
-    "dev": "astro dev",
     "build": "astro check && astro build",
-    "preview": "astro preview"
+    "dev": "astro dev",
+    "preview": "astro preview",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.3",
@@ -27,17 +31,18 @@
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.2"
   },
-  "packageManager": "yarn@4.5.0",
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.11.1",
     "@iconify-json/simple-icons": "^1.2.4",
     "@iconify-json/solar": "^1.2.0",
+    "@playwright/test": "^1.47.2",
     "@stylistic/eslint-plugin": "^2.8.0",
     "@tailwindcss/forms": "^0.5.9",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.7.4",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
     "eslint": "^9.11.1",
@@ -53,5 +58,6 @@
     "prettier-plugin-tailwindcss": "^0.6.8",
     "typescript-eslint": "^8.7.0",
     "vitest": "^2.1.1"
-  }
+  },
+  "packageManager": "yarn@4.5.0"
 }
