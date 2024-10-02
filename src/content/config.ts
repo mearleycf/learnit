@@ -1,5 +1,6 @@
 import { defineCollection, z } from 'astro:content'
-import { glob, file } from 'astro/loaders'
+import fs from 'fs/promises'
+import path from 'path'
 
 // define a schema for common fields across all collections
 const commonFields = {
@@ -10,7 +11,7 @@ const commonFields = {
 }
 
 const courseCollection = defineCollection({
-  loader: glob({ pattern: 'courses/*.md' }),
+  type: 'content',
   schema: z.object({
     ...commonFields,
     slug: z.string(),
@@ -20,6 +21,16 @@ const courseCollection = defineCollection({
     price: z.number(),
     isFeatured: z.boolean().optional(),
   }),
+  loader: async () => {
+    const coursesDir = path.join(process.cwd(), 'src/content/courses')
+    const courseFiles = await fs.readdir(coursesDir)
+    return Promise.all(
+      courseFiles.map(async file => {
+        const content = await fs.readFile(path.join(coursesDir, file), 'utf-8')
+        return { id: path.parse(file).name, content }
+      }),
+    )
+  },
 })
 
 const chapterCollection = defineCollection({
