@@ -1,5 +1,6 @@
+import { docsVersionsSchema } from 'starlight-versions/schema'
+import { docsSchema } from '@astrojs/starlight/schema'
 import { defineCollection, z } from 'astro:content'
-import { glob, file } from 'astro/loaders'
 
 // define a schema for common fields across all collections
 const commonFields = {
@@ -10,10 +11,9 @@ const commonFields = {
 }
 
 const courseCollection = defineCollection({
-  loader: glob({ pattern: 'courses/*.md' }),
+  type: 'content',
   schema: z.object({
     ...commonFields,
-    slug: z.string(),
     language: z.enum(['python', 'javascript', 'typescript', 'react']),
     level: z.enum(['beginner', 'intermediate', 'advanced']),
     tags: z.array(z.string()),
@@ -21,3 +21,86 @@ const courseCollection = defineCollection({
     isFeatured: z.boolean().optional(),
   }),
 })
+
+const chapterCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    courseId: z.string(),
+    order: z.number(),
+    content: z.string(),
+  }),
+})
+
+const exerciseCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    chapterId: z.string(),
+    order: z.number(),
+    initialCode: z.string(),
+    solution: z.string(),
+    tests: z.array(
+      z.object({
+        name: z.string(),
+        test: z.string(),
+      }),
+    ),
+  }),
+})
+
+const userCollection = defineCollection({
+  type: 'data',
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string().email(),
+    role: z.enum(['student', 'instructor', 'admin']),
+    enrolledCourses: z.array(z.string()),
+    progress: z.record(z.string(), z.number()),
+  }),
+})
+
+const feedbackCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    userId: z.string(),
+    contentId: z.string(),
+    contentType: z.enum(['course', 'chapter', 'exercise']),
+    rating: z.number().min(1).max(5).optional(),
+    status: z.enum(['open', 'in-progress', 'resolved']),
+  }),
+})
+
+const noteCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    userId: z.string(),
+    contentId: z.string(),
+    contentType: z.enum(['chapter', 'exercise']),
+    highlightedText: z.string().optional(),
+    noteText: z.string(),
+  }),
+})
+
+const docsCollection = defineCollection({
+  schema: docsSchema(),
+})
+
+const versionsCollection = defineCollection({
+  type: 'data',
+  schema: docsVersionsSchema,
+})
+
+export const collections = {
+  courses: courseCollection,
+  chapters: chapterCollection,
+  exercises: exerciseCollection,
+  users: userCollection,
+  feedback: feedbackCollection,
+  notes: noteCollection,
+  docs: docsCollection,
+  versions: versionsCollection,
+}

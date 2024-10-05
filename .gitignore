@@ -80,6 +80,8 @@ web_modules/
 .env.production.local
 .env.local
 .env.production
+.env.development
+*.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -146,3 +148,7 @@ dist
 
 # jetbrains setting folder
 .idea/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

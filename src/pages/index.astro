@@ -1,5 +1,9 @@
 ---
-
+import Layout from '@layouts/Layout.astro'
+// import LoginFormWrapper from '@components/react/LoginFormWrapper.tsx'
+import SignUpForm from '@components/react/SignUpForm'
 ---
 
-<h1>Hello World</h1>
+<Layout title="Login">
+  <SignUpForm client:load />
+</Layout>
