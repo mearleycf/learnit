@@ -14,7 +14,6 @@ const courseCollection = defineCollection({
   type: 'content',
   schema: z.object({
     ...commonFields,
-    slug: z.string(),
     language: z.enum(['python', 'javascript', 'typescript', 'react']),
     level: z.enum(['beginner', 'intermediate', 'advanced']),
     tags: z.array(z.string()),
@@ -60,8 +59,47 @@ const exerciseCollection = defineCollection({
   }),
 })
 
+const userCollection = defineCollection({
+  type: 'data',
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string().email(),
+    role: z.enum(['student', 'instructor', 'admin']),
+    enrolledCourses: z.array(z.string()),
+    progress: z.record(z.string(), z.number()),
+  }),
+})
+
+const feedbackCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    userId: z.string(),
+    contentId: z.string(),
+    contentType: z.enum(['course', 'chapter', 'exercise']),
+    rating: z.number().min(1).max(5).optional(),
+    status: z.enum(['open', 'in-progress', 'resolved']),
+  }),
+})
+
+const noteCollection = defineCollection({
+  type: 'content',
+  schema: z.object({
+    ...commonFields,
+    userId: z.string(),
+    contentId: z.string(),
+    contentType: z.enum(['chapter', 'exercise']),
+    highlightedText: z.string().optional(),
+    noteText: z.string(),
+  }),
+})
+
 export const collections = {
   courses: courseCollection,
   chapters: chapterCollection,
   exercises: exerciseCollection,
+  users: userCollection,
+  feedback: feedbackCollection,
+  notes: noteCollection,
 }
