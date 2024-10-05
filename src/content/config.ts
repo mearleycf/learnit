@@ -1,4 +1,5 @@
 import { docsVersionsSchema } from 'starlight-versions/schema'
+import { docsSchema } from '@astrojs/starlight/schema'
 import { defineCollection, z } from 'astro:content'
 
 // define a schema for common fields across all collections
