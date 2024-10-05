@@ -6,6 +6,8 @@ import icon from 'astro-icon'
 
 import react from '@astrojs/react'
 
+import starlight from '@astrojs/starlight'
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [
@@ -17,6 +19,7 @@ export default defineConfig({
     }),
     icon(),
     react(),
+    starlight(),
   ],
   vite: {
     envDir: '.',
