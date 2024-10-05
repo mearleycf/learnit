@@ -1,4 +1,5 @@
 import { defineCollection, z } from 'astro:content'
+import { glob } from 'astro/loaders'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -20,16 +21,6 @@ const courseCollection = defineCollection({
     price: z.number(),
     isFeatured: z.boolean().optional(),
   }),
-  loader: async () => {
-    const coursesDir = path.join(process.cwd(), 'src/content/courses')
-    const courseFiles = await fs.readdir(coursesDir)
-    return Promise.all(
-      courseFiles.map(async file => {
-        const content = await fs.readFile(path.join(coursesDir, file), 'utf-8')
-        return { id: path.parse(file).name, content }
-      }),
-    )
-  },
 })
 
 const chapterCollection = defineCollection({
