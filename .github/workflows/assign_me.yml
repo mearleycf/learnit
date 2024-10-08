@@ -1,9 +1,9 @@
 name: Assign Me to Feature
 on:
   issues:
-  types:
-    - reopened
-    - opened
+    types:
+      - reopened
+      - opened
 jobs:
   assign_me:
     runs-on: ubuntu-latest
