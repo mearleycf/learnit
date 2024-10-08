@@ -1,5 +1,5 @@
-# astro-base
-This is a template repository for starting new Astro projects. 
+# learnit
+A learning platform, content management platform, and administration platform for learning programming languages and frameworks online. 
 
 ## Included:
 The following setup is already configured within astro-base:
