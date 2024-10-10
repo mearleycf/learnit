@@ -152,3 +152,6 @@ dist
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# vercel auto generated build folder
+.vercel/
