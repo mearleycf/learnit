@@ -8,11 +8,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Inter var"', 'Inter', ...defaultTheme.fontFamily.sans],
-        display: [
-          '"Righteous"',
-          '"Lilita One"',
-          ...defaultTheme.fontFamily.sans,
-        ],
+        display: ['"Righteous"', '"Lilita One"', ...defaultTheme.fontFamily.fantasy],
+        monospace: ['Mononoki', ...defaultTheme.fontFamily.monospace],
       },
     },
   },

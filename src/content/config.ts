@@ -1,5 +1,3 @@
-import { docsVersionsSchema } from 'starlight-versions/schema'
-import { docsSchema } from '@astrojs/starlight/schema'
 import { defineCollection, z } from 'astro:content'
 
 // define a schema for common fields across all collections
@@ -85,15 +83,6 @@ const noteCollection = defineCollection({
   }),
 })
 
-const docsCollection = defineCollection({
-  schema: docsSchema(),
-})
-
-const versionsCollection = defineCollection({
-  type: 'data',
-  schema: docsVersionsSchema,
-})
-
 export const collections = {
   courses: courseCollection,
   chapters: chapterCollection,
@@ -101,6 +90,4 @@ export const collections = {
   users: userCollection,
   feedback: feedbackCollection,
   notes: noteCollection,
-  docs: docsCollection,
-  versions: versionsCollection,
 }
