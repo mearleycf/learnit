@@ -7,10 +7,11 @@ import icon from 'astro-icon'
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://fivestarcode.cc',
   integrations: [
     tailwind(),
     sitemap({
-      changeFreq: 'weekly',
+      changefreq: 'weekly',
       priority: 0.8,
       lastmod: new Date(),
     }),
