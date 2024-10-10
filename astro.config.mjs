@@ -1,5 +1,5 @@
-import { defineConfig, envField } from 'astro/config'
 import vercel from '@astrojs/vercel/serverless'
+import { defineConfig } from 'astro/config'
 import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
 import react from '@astrojs/react'
@@ -31,13 +31,6 @@ export default defineConfig({
     // Add this ssr configuration
     ssr: {
       noExternal: [],
-    },
-  },
-  // prettier-ignore
-  env: {
-    schema: {
-      PUBLIC_ASTRO_CLIENT_API_URL: envField.string({ context: 'client', access: 'public' }),
-      PUBLIC_ASTRO_SERVER_API_URL: envField.string({ context: 'server', access: 'public' }),
     },
   },
   output: 'server',
