@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 import defaultTheme from 'tailwindcss/defaultTheme'
-import plugin from 'tailwindcss/plugin'
 
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
@@ -8,10 +7,9 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Inter var"', 'Inter', ...defaultTheme.fontFamily.sans],
-        display: ['"Righteous"', '"Lilita One"', ...defaultTheme.fontFamily.fantasy],
-        monospace: ['Mononoki', ...defaultTheme.fontFamily.monospace],
+        display: ['"Righteous"', '"Lilita One"', ...defaultTheme.fontFamily.sans],
+        monospace: ['Mononoki', ...defaultTheme.fontFamily.sans],
       },
     },
   },
-  plugins: [],
 }
