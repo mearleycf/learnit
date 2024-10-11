@@ -18,7 +18,7 @@ const Courses = defineTable({
 const Chapters = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    course_id: column.text(),
+    course_id: column.text({ references: () => Courses.columns.id }),
     title: column.text(),
     description: column.text(),
     order_number: column.number(),
@@ -27,18 +27,12 @@ const Chapters = defineTable({
     updated_at: column.date({ default: NOW }),
   },
   indexes: [{ on: ['course_id'] }],
-  foreignKeys: [
-    {
-      columns: ['course_id'],
-      references: () => [Courses.id],
-    },
-  ],
 })
 
 const Exercises = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    section_id: column.text(),
+    section_id: column.text({ references: () => Sections.columns.id }),
     instructions: column.text(),
     browser_html: column.json(),
     code_files: column.json(),
@@ -52,19 +46,13 @@ const Exercises = defineTable({
     updated_at: column.date({ default: NOW }),
   },
   indexes: [{ on: ['section_id'] }],
-  foreignKeys: [
-    {
-      columns: ['section_id'],
-      references: () => [Sections.id],
-    },
-  ],
 })
 
 const Feedback = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    user_id: column.text(),
-    section_id: column.text(),
+    user_id: column.text({ references: () => Users.columns.id }),
+    section_id: column.text({ references: () => Sections.columns.id }),
     feedback_text: column.text(),
     rating: column.number({ optional: true }),
     status: column.text({ default: 'pending' }),
@@ -75,77 +63,43 @@ const Feedback = defineTable({
     updated_at: column.date({ default: NOW }),
   },
   indexes: [{ on: ['section_id'] }, { on: ['user_id'] }],
-  foreignKeys: [
-    {
-      columns: ['section_id'],
-      references: () => [Sections.id],
-    },
-    {
-      columns: ['user_id'],
-      references: () => [Users.id],
-    },
-  ],
 })
 
 const Notes = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    user_id: column.text(),
-    section_id: column.text(),
+    user_id: column.text({ references: () => Users.columns.id }),
+    section_id: column.text({ references: () => Sections.columns.id }),
     note_text: column.text({ optional: true }),
     highlighted_text: column.text({ optional: true }),
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
   indexes: [{ on: ['section_id'] }, { on: ['user_id'] }],
-  foreignKeys: [
-    {
-      columns: ['section_id'],
-      references: () => [Sections.id],
-    },
-    {
-      columns: ['user_id'],
-      references: () => [Users.id],
-    },
-  ],
 })
 
 const Sections = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    course_id: column.text(),
-    chapter_id: column.text(),
+    course_id: column.text({ references: () => Courses.columns.id }),
+    chapter_id: column.text({ references: () => Chapters.columns.id }),
+    exercise_id: column.text({ optional: true, references: () => Exercises.columns.id }),
     title: column.text(),
     description: column.text(),
     order_number: column.number(),
     content_type: column.text(),
     content: column.json({ optional: true }),
-    exercise_id: column.text({ optional: true }),
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
   indexes: [{ on: ['chapter_id'] }, { on: ['course_id'] }, { on: ['exercise_id'] }],
-  foreignKeys: [
-    {
-      columns: ['course_id'],
-      references: () => [Courses.id],
-    },
-    {
-      columns: ['chapter_id'],
-      references: () => [Chapters.id],
-    },
-    {
-      columns: ['exercise_id'],
-      references: () => [Exercises.id],
-    },
-  ],
 })
 
 const User_Exercise_Progress = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    user_id: column.text(),
-    exercise_id: column.text(),
+    user_id: column.text({ references: () => Users.columns.id }),
+    exercise_id: column.text({ references: () => Exercises.columns.id }),
     score: column.number({ optional: true, default: 0 }),
     completed: column.boolean({ default: false }),
     attempts: column.number({ default: 0 }),
@@ -154,44 +108,20 @@ const User_Exercise_Progress = defineTable({
     updated_at: column.date({ default: NOW }),
   },
   indexes: [{ on: ['exercise_id'] }, { on: ['user_id'] }],
-  foreignKeys: [
-    {
-      columns: ['exercise_id'],
-      references: () => [Exercises.id],
-    },
-    {
-      columns: ['user_id'],
-      references: () => [Users.id],
-    },
-  ],
 })
 
 const User_Progress = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    user_id: column.text(),
-    course_id: column.text(),
-    current_section_id: column.text(),
+    user_id: column.text({ references: () => Users.columns.id }),
+    course_id: column.text({ references: () => Courses.columns.id }),
+    current_section_id: column.text({ references: () => Sections.columns.id }),
     completed_sections: column.json({ default: {} }),
     last_accessed_at: column.date({ optional: true }),
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
   indexes: [{ on: ['user_id'] }, { on: ['course_id'] }, { on: ['current_section_id'] }],
-  foreignKeys: [
-    {
-      columns: ['course_id'],
-      references: () => [Courses.id],
-    },
-    {
-      columns: ['current_section_id'],
-      references: () => [Sections.id],
-    },
-    {
-      columns: ['user_id'],
-      references: () => [Users.id],
-    },
-  ],
 })
 
 const Users = defineTable({
