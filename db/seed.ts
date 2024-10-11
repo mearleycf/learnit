@@ -12,6 +12,10 @@ import {
 } from 'astro:db'
 
 export default async function () {
+  function capitalize(str: string): string {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
   // Seed Courses
   await db.insert(Courses).values([
     {
@@ -73,23 +77,29 @@ export default async function () {
   ])
 
   // Seed Sections
-  const sectionTypes = ['lesson', 'exercise', 'recap']
-  let sectionId = 1
-  for (let courseId = 1; courseId <= 2; courseId++) {
-    for (let chapterId = (courseId - 1) * 2 + 1; chapterId <= courseId * 2; chapterId++) {
-      for (let sectionType of sectionTypes) {
-        await db.insert(Sections).values({
-          id: String(sectionId),
-          course_id: String(courseId),
-          chapter_id: String(chapterId),
-          title: `${sectionType.charAt(0).toUpperCase() + sectionType.slice(1)} ${sectionId}`,
-          description: `Description for ${sectionType} ${sectionId}`,
-          order_number: sectionId,
-          content_type: sectionType,
-          content: JSON.stringify({ text: `Content for ${sectionType} ${sectionId}` }),
-          exercise_id: sectionType === 'exercise' ? String(courseId) : null,
-        })
-        sectionId++
+  async function seedSections() {
+    const sectionTypes = ['lesson', 'exercise', 'recap']
+    let globalSectionId = 1
+
+    for (let courseId = 1; courseId <= 2; courseId++) {
+      for (let chapterNumber = 1; chapterNumber <= 2; chapterNumber++) {
+        const chapterId = (courseId - 1) * 2 + chapterNumber
+
+        for (let sectionType of sectionTypes) {
+          await db.insert(Sections).values({
+            id: String(globalSectionId),
+            course_id: String(courseId),
+            chapter_id: String(chapterId),
+            title: `${capitalize(sectionType)} ${globalSectionId}`,
+            description: `Description for ${sectionType} ${globalSectionId}`,
+            order_number: globalSectionId,
+            content_type: sectionType,
+            content: JSON.stringify({ text: `Content for ${sectionType} ${globalSectionId}` }),
+            exercise_id: sectionType === 'exercise' ? String(courseId) : null,
+          })
+
+          globalSectionId++
+        }
       }
     }
   }
