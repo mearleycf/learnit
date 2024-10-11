@@ -1,0 +1,13 @@
+---
+const { frontmatter } = Astro.props
+---
+
+<html>
+  <head> </head><body>
+    <nav><!--add navigation for doc pages --></nav>
+    <main>
+      <h1>{frontmatter.title}</h1>
+      <slot />
+    </main>
+  </body>
+</html>

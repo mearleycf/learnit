@@ -12,7 +12,6 @@
     "allowJs": true,
     "rootDir": ".",
     "strictNullChecks": true,
-    "types": ["astro/client"],
     "paths": {
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
