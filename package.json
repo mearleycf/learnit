@@ -5,6 +5,7 @@
   "scripts": {
     "astro": "astro",
     "build": "astro check && astro build",
+    "db:seed": "astro db execute src/scripts/runSeed.ts",
     "dev": "astro dev",
     "preview": "astro preview",
     "test": "vitest",

@@ -3,18 +3,23 @@ import { defineConfig } from 'astro/config'
 import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
 import react from '@astrojs/react'
+import db from '@astrojs/db'
 import icon from 'astro-icon'
-
-import db from '@astrojs/db';
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://fivestarcode.cc',
-  integrations: [tailwind(), sitemap({
-    changefreq: 'weekly',
-    priority: 0.8,
-    lastmod: new Date(),
-  }), icon(), react(), db()],
+  integrations: [
+    tailwind(),
+    sitemap({
+      changefreq: 'weekly',
+      priority: 0.8,
+      lastmod: new Date(),
+    }),
+    icon(),
+    react(),
+    db(),
+  ],
   vite: {
     envDir: '.',
     envPrefix: ['PUBLIC_'],
