@@ -30,28 +30,39 @@ export async function seed() {
 
     // Seed Courses
     console.log('Seeding Courses...')
-    await db.insert(Courses).values([
-      {
-        id: '1',
-        title: 'Introduction to JavaScript',
-        description: 'Learn the basics of JavaScript programming',
-        slug: 'intro-to-javascript',
-        subject_area: 'Programming',
-        level: 'beginner',
-        tags: JSON.stringify(['javascript', 'web development', 'programming']),
-        price: 49.99,
-      },
-      {
-        id: '2',
-        title: 'Advanced React Development',
-        description: 'Master React and build complex applications',
-        slug: 'advanced-react',
-        subject_area: 'Web Development',
-        level: 'advanced',
-        tags: JSON.stringify(['react', 'javascript', 'frontend']),
-        price: 79.99,
-      },
-    ])
+    await db.insert(Courses).values({
+      title: 'Javascript Fundamentals',
+      description: 'Learn the fundamentals of JavaScript programming',
+      slug: 'javascript-fundamentals',
+      subject_area: 'Programming',
+      level: 'beginner',
+      tags: JSON.stringify(['javascript', 'web development', 'programming', 'ES14', 'ECMAScript 2023']),
+      price: 49.99,
+      purchase_active_length: 1825, // course is available for 5 years
+    })
+
+    await db.insert(Courses).values({
+      title: 'Advanced React Development',
+      description: 'Master React and build complex applications',
+      slug: 'advanced-react',
+      subject_area: 'Web Development',
+      level: 'advanced',
+      tags: JSON.stringify(['react', 'javascript', 'frontend', 'typescript', 'react18', 'react19']),
+      price: 79.99,
+      purchase_active_length: null, // course is available to student indefinitely
+    })
+
+    await db.insert(Courses).values({
+      title: 'Python Fundamentals',
+      description: 'Master Python and build complex applications',
+      slug: 'python-fundamentals',
+      subject_area: 'Python Development',
+      level: 'advanced',
+      tags: JSON.stringify(['python', 'backend']),
+      price: 69.99,
+      purchase_active_length: null, // course is available to student indefinitely
+    })
+
     console.log('Courses seeded')
 
     // Seed Chapters
