@@ -11,7 +11,7 @@ import {
   User_Progress,
 } from 'astro:db'
 
-export async function seed() {
+export default async function seed() {
   try {
     console.log('Starting seed process...')
 
