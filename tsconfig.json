@@ -27,6 +27,6 @@
     },
     "jsxImportSource": "react"
   },
-  "include": ["src/**/*", ".eslintrc.cjs", "astro.config.mjs", "tailwind.config.mjs", ".astro/types.d.ts"],
+  "include": ["src/**/*", ".eslintrc.cjs", "astro.config.mjs", "tailwind.config.mjs", ".astro/types.d.ts", "db.d.ts"],
   "exclude": ["node_modules", "dist", ".yarn", ".vscode", "public"]
 }
