@@ -136,7 +136,8 @@ const Users = defineTable({
     email: column.text({ unique: true }),
     avatar_url: column.text({ optional: true }),
     role: column.text({ default: 'student' }),
-    enrolled_courses: column.json({ default: [] }),
+    enrolled_courses: column.json({ optional: true, default: [] }), // students
+    assigned_courses: column.json({ optional: true, default: [] }), // course_admin and author
     auth_provider: column.text({ optional: true }),
     auth_provider_id: column.text({ optional: true }),
     github_username: column.text({ optional: true }),
