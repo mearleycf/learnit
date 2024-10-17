@@ -9,8 +9,10 @@ import {
   Notes,
   User_Exercise_Progress,
   User_Progress,
+  and,
 } from 'astro:db'
 import { calculateExpirationDate } from '@utils/astrodb_utils.ts'
+import { eq } from 'astro:db'
 
 async function getAllCourseIds(): Promise<string[]> {
   const courses = await db.select({ id: Courses.id }).from(Courses)
@@ -420,9 +422,14 @@ export default async function seed() {
 
     for (const exercise of exercises) {
       try {
-        await db.insert(Exercises).values({
+        const defaultSolution = `function exercise${exercise.id}() { 
+          // Default solution
+          return true; 
+        }`
+
+        const exerciseData = {
           ...exercise,
-          instructions: `Instructions for Exercise ${exercise.id}`,
+          instructions: `Complete the exercise${exercise.id} function to solve the problem.`,
           browser_html: JSON.stringify({ html: '<div id="app"></div>' }),
           code_files: JSON.stringify({
             'script.js': '// Your code here',
@@ -432,10 +439,34 @@ export default async function seed() {
             { test: `assert(typeof exercise${exercise.id} !== "undefined");` },
             { test: `assert(exercise${exercise.id}() === true);` },
           ]),
-          hints: JSON.stringify([`Hint 1 for Exercise ${exercise.id}`, `Hint 2 for Exercise ${exercise.id}`]),
-          default_solution: JSON.stringify({ 'script.js': `function exercise${exercise.id}() { return true; }` }),
+          hints: JSON.stringify([
+            `Hint 1: Think about the problem step by step.`,
+            `Hint 2: Remember to return a boolean value.`,
+          ]),
+          default_solution: JSON.stringify({ 'script.js': defaultSolution }),
           user_solution: JSON.stringify({}),
-        })
+        }
+
+        // Check if any user has completed this exercise
+        const completedProgress = await db
+          .select()
+          .from(User_Exercise_Progress)
+          .where(and(eq(User_Exercise_Progress.exercise_id, exercise.id), eq(User_Exercise_Progress.completed, true)))
+          .limit(1)
+
+        if (completedProgress.length > 0) {
+          // Create a unique user solution
+          const userSolution = `function exercise${exercise.id}() {
+            // User's unique solution
+            let result = false;
+            // Some unique logic here
+            result = !result;
+            return result;
+          }`
+          exerciseData.user_solution = JSON.stringify({ 'script.js': userSolution })
+        }
+
+        await db.insert(Exercises).values(exerciseData)
         console.log(`Inserted exercise ${exercise.id}`)
       } catch (error) {
         console.error(`Error inserting exercise ${exercise.id}:`, error)
@@ -629,485 +660,182 @@ export default async function seed() {
     // Seed Notes
     console.log('Seeding Notes...')
     let noteId = 1
-    for (let courseId = 1; courseId <= 3; courseId++) {
-      for (let chapterId = (courseId - 1) * 2 + 1; chapterId <= courseId * 2; chapterId++) {
-        for (let sectionOrder = 1; sectionOrder <= 3; sectionOrder++) {
-          const sectionId = (chapterId - 1) * 3 + sectionOrder
-          const sectionType = ['lesson', 'exercise', 'recap'][sectionOrder - 1]
-          try {
-            if (sectionType === 'lesson') {
-              await db.insert(Notes).values([
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: `Note text for section ${sectionId}`,
-                  highlighted_text: null,
-                },
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: null,
-                  highlighted_text: `Highlighted text for section ${sectionId}`,
-                },
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: `Note with highlight for section ${sectionId}`,
-                  highlighted_text: `Highlighted text with note for section ${sectionId}`,
-                },
-              ])
-            } else if (sectionType === 'exercise') {
-              await db.insert(Notes).values([
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: `Note for exercise ${sectionId}`,
-                  highlighted_text: null,
-                },
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: `Default solution for exercise ${sectionId}`,
-                  highlighted_text: null,
-                },
-              ])
-            } else if (sectionType === 'recap') {
-              await db.insert(Notes).values([
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: `Note for recap ${sectionId}`,
-                  highlighted_text: null,
-                },
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: `Note with highlight for recap ${sectionId}`,
-                  highlighted_text: `Highlighted text for recap ${sectionId}`,
-                },
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: null,
-                  highlighted_text: `Highlighted text only for recap ${sectionId}`,
-                },
-                {
-                  id: String(noteId++),
-                  user_id: '1',
-                  section_id: String(sectionId),
-                  note_text: `Recap content for section ${sectionId}`,
-                  highlighted_text: null,
-                },
-              ])
-            }
-            console.log(`Inserted notes for section ${sectionId}`)
-          } catch (error) {
-            console.error(`Error inserting notes for section ${sectionId}:`, error)
-          }
+
+    // Helper function to get a random integer between min and max (inclusive)
+    const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
+
+    // Helper function to get a random element from an array
+    function getRandomElement<T>(array: T[]): T {
+      const randomIndex = Math.floor(Math.random() * array.length)
+      return array[randomIndex]!
+    }
+
+    const courseTopics = [
+      ['variables', 'functions', 'objects', 'arrays', 'async programming'],
+      ['components', 'props', 'state', 'hooks', 'context'],
+      ['data types', 'functions', 'modules', 'classes', 'file I/O'],
+    ]
+
+    for (let userId = 1; userId <= 8; userId++) {
+      // Determine the number of notes for this user
+      const numberOfNotes = getRandomInt(3, 8)
+
+      for (let i = 0; i < numberOfNotes; i++) {
+        const courseId = getRandomInt(1, 3)
+        const chapterId = getRandomInt((courseId - 1) * 2 + 1, courseId * 2)
+        const sectionId = getRandomInt((chapterId - 1) * 3 + 1, chapterId * 3)
+        const topic = getRandomElement(courseTopics[courseId - 1]!)
+
+        const noteType = getRandomInt(1, 3) // 1: note_text only, 2: highlighted_text only, 3: both
+
+        let noteData = {
+          id: String(noteId++),
+          user_id: String(userId),
+          section_id: String(sectionId),
+          note_text: null as string | null,
+          highlighted_text: null as string | null,
         }
+
+        if (noteType === 1 || noteType === 3) {
+          noteData.note_text = JSON.stringify({
+            content: `This section on ${topic} in ${['JavaScript', 'React', 'Python'][courseId - 1]} was very informative. I learned that ${topic} is crucial for ${['building interactive web applications', 'creating reusable UI components', 'developing efficient and readable code'][courseId - 1]}. Need to practice more with ${topic} to fully grasp the concept.`,
+            tags: [topic, 'important', 'review'],
+            created_at: new Date().toISOString(),
+          })
+        }
+
+        if (noteType === 2 || noteType === 3) {
+          noteData.highlighted_text = JSON.stringify({
+            content: `${topic} in ${['JavaScript', 'React', 'Python'][courseId - 1]} allows developers to ${['write more efficient and maintainable code', 'create dynamic and responsive user interfaces', 'handle complex data structures and algorithms'][courseId - 1]}.`,
+            color: getRandomElement(['yellow', 'green', 'blue', 'red']),
+            created_at: new Date().toISOString(),
+          })
+        }
+
+        await db.insert(Notes).values(noteData)
       }
     }
+
     console.log('Notes seeded')
 
     // Seed User_Exercise_Progress
     console.log('Seeding User Exercise Progress...')
-    await db.insert(User_Exercise_Progress).values([
-      // Course 1: JavaScript Fundamentals
-      {
-        id: '1',
-        user_id: '1',
-        exercise_id: '1',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      { id: '2', user_id: '5', exercise_id: '1', score: 80, completed: true, attempts: 2, last_attempt_at: new Date() },
-      { id: '3', user_id: '6', exercise_id: '1', score: 90, completed: true, attempts: 1, last_attempt_at: new Date() },
-      { id: '4', user_id: '1', exercise_id: '2', score: 0, completed: false, attempts: 1, last_attempt_at: new Date() },
-      {
-        id: '5',
-        user_id: '5',
-        exercise_id: '2',
-        score: 50,
-        completed: false,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '6',
-        user_id: '6',
-        exercise_id: '2',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
+    const userExerciseProgressData = []
+    let progressId = 1
 
-      // Course 2: Advanced React Development
-      {
-        id: '7',
-        user_id: '2',
-        exercise_id: '3',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      { id: '8', user_id: '5', exercise_id: '3', score: 75, completed: true, attempts: 2, last_attempt_at: new Date() },
-      { id: '9', user_id: '6', exercise_id: '3', score: 90, completed: true, attempts: 1, last_attempt_at: new Date() },
-      {
-        id: '10',
-        user_id: '2',
-        exercise_id: '4',
-        score: 60,
-        completed: false,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '11',
-        user_id: '5',
-        exercise_id: '4',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '12',
-        user_id: '6',
-        exercise_id: '4',
-        score: 80,
-        completed: true,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
+    // Helper function to generate a random date within the last 30 days
+    const getRandomRecentDate = () => {
+      const date = new Date()
+      date.setDate(date.getDate() - Math.floor(Math.random() * 30))
+      return date
+    }
 
-      // Course 3: Python Fundamentals
-      {
-        id: '13',
-        user_id: '3',
-        exercise_id: '5',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '14',
-        user_id: '4',
-        exercise_id: '5',
-        score: 90,
-        completed: true,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '15',
-        user_id: '6',
-        exercise_id: '5',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '16',
-        user_id: '3',
-        exercise_id: '6',
-        score: 80,
-        completed: true,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '17',
-        user_id: '4',
-        exercise_id: '6',
-        score: 70,
-        completed: true,
-        attempts: 3,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '18',
-        user_id: '6',
-        exercise_id: '6',
-        score: 90,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '19',
-        user_id: '3',
-        exercise_id: '7',
-        score: 60,
-        completed: false,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '20',
-        user_id: '4',
-        exercise_id: '7',
-        score: 50,
-        completed: false,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '21',
-        user_id: '6',
-        exercise_id: '7',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '22',
-        user_id: '3',
-        exercise_id: '8',
-        score: 0,
-        completed: false,
-        attempts: 0,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '23',
-        user_id: '4',
-        exercise_id: '8',
-        score: 40,
-        completed: false,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '24',
-        user_id: '6',
-        exercise_id: '8',
-        score: 75,
-        completed: true,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '25',
-        user_id: '3',
-        exercise_id: '9',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '26',
-        user_id: '4',
-        exercise_id: '9',
-        score: 90,
-        completed: true,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '27',
-        user_id: '6',
-        exercise_id: '9',
-        score: 95,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '28',
-        user_id: '3',
-        exercise_id: '10',
-        score: 70,
-        completed: true,
-        attempts: 3,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '29',
-        user_id: '4',
-        exercise_id: '10',
-        score: 80,
-        completed: true,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '30',
-        user_id: '6',
-        exercise_id: '10',
-        score: 100,
-        completed: true,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '31',
-        user_id: '3',
-        exercise_id: '11',
-        score: 0,
-        completed: false,
-        attempts: 0,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '32',
-        user_id: '4',
-        exercise_id: '11',
-        score: 60,
-        completed: false,
-        attempts: 1,
-        last_attempt_at: new Date(),
-      },
-      {
-        id: '33',
-        user_id: '6',
-        exercise_id: '11',
-        score: 85,
-        completed: true,
-        attempts: 2,
-        last_attempt_at: new Date(),
-      },
-    ])
+    // For each user
+    for (let userId = 1; userId <= 7; userId++) {
+      const user = await db
+        .select()
+        .from(Users)
+        .where(eq(Users.id, String(userId)))
+        .get()
+      const enrolledCourses = JSON.parse(user?.enrolled_courses as string)
+
+      // For each enrolled course
+      for (const courseId of enrolledCourses) {
+        const exercises = await db
+          .select()
+          .from(Exercises)
+          .innerJoin(Sections, eq(Exercises.section_id, Sections.id))
+          .where(eq(Sections.course_id, courseId))
+          .all()
+
+        // For each exercise in the course
+        for (const exercise of exercises) {
+          const completed = Math.random() > 0.3 // 70% chance of completion
+          const score = completed ? Math.floor(Math.random() * 41) + 60 : Math.floor(Math.random() * 60) // 60-100 if completed, 0-59 if not
+          const attempts = completed ? Math.floor(Math.random() * 3) + 1 : Math.floor(Math.random() * 2) + 1
+
+          userExerciseProgressData.push({
+            id: String(progressId++),
+            user_id: String(userId),
+            exercise_id: exercise.Exercises.id,
+            score,
+            completed,
+            attempts,
+            last_attempt_at: getRandomRecentDate(),
+          })
+        }
+      }
+    }
+
+    await db.insert(User_Exercise_Progress).values(userExerciseProgressData)
     console.log('User Exercise Progress seeded')
 
     // Seed User_Progress
+    const sectionsData = sections.map(section => ({
+      id: section.id,
+      course_id: section.course_id,
+      order_number: section.order_number,
+    }))
+
     console.log('Seeding User Progress...')
-    await db.insert(User_Progress).values([
-      // Course 1: JavaScript Fundamentals
-      {
-        id: '1',
-        user_id: '1',
-        course_id: '1',
-        current_section_id: '3',
-        completed_sections: JSON.stringify(['1', '2']),
-        enrollment_date: new Date('2024-01-01'),
-        purchase_date: new Date('2024-01-02'),
-        expiration_date: new Date('2029-01-02'), // 5 years from purchase date
-        last_accessed_at: new Date(),
-      },
-      {
-        id: '2',
-        user_id: '5',
-        course_id: '1',
-        current_section_id: '4',
-        completed_sections: JSON.stringify(['1', '2', '3']),
-        enrollment_date: new Date('2024-01-05'),
-        purchase_date: new Date('2024-01-06'),
-        expiration_date: new Date('2029-01-06'), // 5 years from purchase date
-        last_accessed_at: new Date(),
-      },
-      {
-        id: '3',
-        user_id: '6',
-        course_id: '1',
-        current_section_id: '6',
-        completed_sections: JSON.stringify(['1', '2', '3', '4', '5']),
-        enrollment_date: new Date('2024-01-10'),
-        purchase_date: new Date('2024-01-11'),
-        expiration_date: new Date('2029-01-11'), // 5 years from purchase date
-        last_accessed_at: new Date(),
-      },
+    const userProgressData: any[] = []
 
-      // Course 2: Advanced React Development
-      {
-        id: '4',
-        user_id: '2',
-        course_id: '2',
-        current_section_id: '9',
-        completed_sections: JSON.stringify(['7', '8']),
-        enrollment_date: new Date('2024-02-01'),
-        purchase_date: new Date('2024-02-02'),
-        expiration_date: null, // indefinite access
-        last_accessed_at: new Date(),
-      },
-      {
-        id: '5',
-        user_id: '5',
-        course_id: '2',
-        current_section_id: '10',
-        completed_sections: JSON.stringify(['7', '8', '9']),
-        enrollment_date: new Date('2024-02-05'),
-        purchase_date: new Date('2024-02-06'),
-        expiration_date: null, // indefinite access
-        last_accessed_at: new Date(),
-      },
-      {
-        id: '6',
-        user_id: '6',
-        course_id: '2',
-        current_section_id: '12',
-        completed_sections: JSON.stringify(['7', '8', '9', '10', '11']),
-        enrollment_date: new Date('2024-02-10'),
-        purchase_date: new Date('2024-02-11'),
-        expiration_date: null, // indefinite access
-        last_accessed_at: new Date(),
-      },
+    // Helper function to get random sections
+    const getRandomSections = (courseId: string, count: number) => {
+      const sections = sectionsData.filter(s => s.course_id === courseId)
+      return sections
+        .sort(() => 0.5 - Math.random())
+        .slice(0, count)
+        .map(s => s.id)
+    }
 
-      // Course 3: Python Fundamentals
-      {
-        id: '7',
-        user_id: '3',
-        course_id: '3',
-        current_section_id: '22',
-        completed_sections: JSON.stringify(['13', '14', '15', '16', '17', '18', '19', '20', '21']),
-        enrollment_date: new Date('2024-03-01'),
-        purchase_date: null, // free course
-        expiration_date: null, // free course, indefinite access
-        last_accessed_at: new Date(),
-      },
-      {
-        id: '8',
-        user_id: '4',
-        course_id: '3',
-        current_section_id: '23',
-        completed_sections: JSON.stringify(['13', '14', '15', '16', '17', '18', '19', '20', '21', '22']),
-        enrollment_date: new Date('2024-03-05'),
-        purchase_date: null, // free course
-        expiration_date: null, // free course, indefinite access
-        last_accessed_at: new Date(),
-      },
-      {
-        id: '9',
-        user_id: '6',
-        course_id: '3',
-        current_section_id: '27',
-        completed_sections: JSON.stringify([
-          '13',
-          '14',
-          '15',
-          '16',
-          '17',
-          '18',
-          '19',
-          '20',
-          '21',
-          '22',
-          '23',
-          '24',
-          '25',
-          '26',
-        ]),
-        enrollment_date: new Date('2024-03-10'),
-        purchase_date: null, // free course
-        expiration_date: null, // free course, indefinite access
-        last_accessed_at: new Date(),
-      },
-    ])
+    // For each user (excluding user 8 who is not enrolled in any course)
+    for (let userId = 1; userId <= 7; userId++) {
+      const user = await db
+        .select()
+        .from(Users)
+        .where(eq(Users.id, String(userId)))
+        .get()
+      const enrolledCourses = JSON.parse(user?.enrolled_courses as string) as string[]
+
+      // For each enrolled course
+      for (const courseId of enrolledCourses) {
+        const course = await db.select().from(Courses).where(eq(Courses.id, courseId)).get()
+        if (!course) continue
+
+        const sections = sectionsData.filter(s => s.course_id === courseId)
+        const totalSections = sections.length
+        const completedCount = Math.floor(Math.random() * (totalSections + 1))
+        const completedSections = getRandomSections(courseId, completedCount)
+        const currentSection = sections[completedCount % totalSections]
+        const currentSectionId = currentSection ? currentSection.id : (sections[0]?.id ?? null)
+
+        const enrollmentDate = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000) // Random date within last 90 days
+        let purchaseDate = null
+        let expirationDate = null
+
+        if (course.price !== null && course.price > 0) {
+          purchaseDate = new Date(enrollmentDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000)
+          if (course.purchase_active_length) {
+            expirationDate = new Date(purchaseDate.getTime() + course.purchase_active_length * 24 * 60 * 60 * 1000)
+          }
+        }
+
+        userProgressData.push({
+          id: String(progressId++),
+          user_id: String(userId),
+          course_id: courseId,
+          current_section_id: currentSectionId,
+          completed_sections: JSON.stringify(completedSections),
+          enrollment_date: enrollmentDate,
+          purchase_date: purchaseDate,
+          expiration_date: expirationDate,
+          last_accessed_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random date within last 7 days
+        })
+      }
+    }
+
+    await db.insert(User_Progress).values(userProgressData)
     console.log('User Progress seeded')
 
     console.log('Seed process completed successfully')
