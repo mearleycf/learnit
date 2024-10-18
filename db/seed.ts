@@ -422,27 +422,61 @@ export default async function seed() {
 
     for (const exercise of exercises) {
       try {
+        /* create a random number of entries for any array or object;
+        passes in a multiplier parameter `ceiling` to determine the highest number we want to generate.
+        */
+        const entriesGenerator = <T>(ceiling: number): number => {
+          return Math.floor(Math.random() * ceiling) + 1
+        }
         const defaultSolution = `function exercise${exercise.id}() { 
           // Default solution
           return true; 
         }`
 
+        // array for using to randomize content
+        const htmlFiles = [
+          ['index.html', `<div id="app">Hello World</div>`],
+          ['page1.html', `<div id="app"><h1>Header 1</h1><p>This is a page</p></div>`],
+          ['page2.html', `<div id="app"><a href="">This page has a link</a></div>`],
+          [
+            'page3.html',
+            `<div id="app"><form><label for="page">Enter your name: </label><input name="page" type="text" /></form></div>`,
+          ],
+        ]
+
+        const codeFiles = [
+          ['script.js', `// your code here`],
+          ['global.css', `body {font-size: 1rem;}\n/* your styles here */`],
+          ['index.html', `<div id="app">Hello World</div>`],
+          ['calculate.js', `const sum = (x, y) => x + y\n//more code here`],
+        ]
+
+        const tests = [
+          ['test', 'assert(typeof exercise !== "undefined");'],
+          ['test', 'assert(exercise() === true);'],
+          ['test', 'assert(exercise.toString().includes("return"));'],
+          ['test', 'assert(exercise.length === 0);'],
+        ]
+
+        const hints = [
+          ['Hint 1', 'Start by declaring a function named "exercise".'],
+          ['Hint 2', 'The function should return a boolean value.'],
+          ['Hint 3', 'Consider what condition would make the function return true.'],
+          ['Hint 4', 'Remember, an empty function body implicitly returns undefined.'],
+        ]
+
+        const htmlFileResults = Object.fromEntries(htmlFiles.slice(0, entriesGenerator(4)))
+        const codeFileResults = Object.fromEntries(codeFiles.slice(0, entriesGenerator(4)))
+        const testResults = Object.fromEntries(tests.slice(0, entriesGenerator(4)))
+        const hintsResults = Object.fromEntries(hints.slice(0, entriesGenerator(4)))
+
         const exerciseData = {
           ...exercise,
           instructions: `Complete the exercise${exercise.id} function to solve the problem.`,
-          browser_html: JSON.stringify({ html: '<div id="app"></div>' }),
-          code_files: JSON.stringify({
-            'script.js': '// Your code here',
-            'styles.css': '/* Your styles here */',
-          }),
-          tests: JSON.stringify([
-            { test: `assert(typeof exercise${exercise.id} !== "undefined");` },
-            { test: `assert(exercise${exercise.id}() === true);` },
-          ]),
-          hints: JSON.stringify([
-            `Hint 1: Think about the problem step by step.`,
-            `Hint 2: Remember to return a boolean value.`,
-          ]),
+          browser_html: JSON.stringify(htmlFileResults),
+          code_files: JSON.stringify(codeFileResults),
+          tests: JSON.stringify(testResults),
+          hints: JSON.stringify(hintsResults),
           default_solution: JSON.stringify({ 'script.js': defaultSolution }),
           user_solution: JSON.stringify({}),
         }

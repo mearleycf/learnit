@@ -1,0 +1,9 @@
+DELETE from Chapters;
+DELETE FROM Courses;
+delete from Exercises;
+delete from Feedback;
+delete from Notes;
+delete from Sections;
+delete from User_Exercise_Progress;
+delete from User_Progress;
+delete from Users;

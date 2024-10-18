@@ -1,0 +1,91 @@
+graph TD
+    subgraph "Frontend (Astro + React)"
+        A[Marketing Site]
+        B[Learning Platform]
+        C[Admin Dashboard]
+        D[CMS Interface]
+    end
+
+    subgraph "Astro Content Collections"
+        E[Courses Collection]
+        F[Chapters Collection]
+        G[Exercises Collection]
+        H[Users Collection]
+        I[Feedback Collection]
+        J[Notes Collection]
+    end
+
+    subgraph "Astro API Routes"
+        K[Content Serving]
+        L[User Management]
+        M[Progress Tracking]
+        N[Feedback System]
+        O[Note Management]
+    end
+
+    subgraph "FastAPI Backend"
+        P[Advanced API Endpoints]
+        Q[Code Execution Service]
+    end
+
+    subgraph "Supabase"
+        R[PostgreSQL Database]
+        S[Authentication]
+        T[Real-time Subscriptions]
+        U[Storage]
+    end
+
+    subgraph "External Services"
+        V[Stripe Payment]
+        W[Vercel Deployment]
+    end
+
+    A --> K
+    B --> K
+    B --> L
+    B --> M
+    B --> N
+    B --> O
+    C --> L
+    C --> M
+    C --> N
+    D --> E
+    D --> F
+    D --> G
+
+    K --> E
+    K --> F
+    K --> G
+    L --> H
+    M --> H
+    N --> I
+    O --> J
+
+    E --> R
+    F --> R
+    G --> R
+    H --> R
+    I --> R
+    J --> R
+
+    K --> P
+    L --> P
+    M --> P
+    N --> P
+    O --> P
+
+    P --> Q
+    P --> R
+    P --> S
+    P --> T
+    P --> U
+
+    L --> S
+    L --> V
+    K --> U
+    O --> U
+
+    A --> W
+    B --> W
+    C --> W
+    D --> W
