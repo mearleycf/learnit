@@ -2488,6 +2488,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.9.0"
     astro: "npm:4.16.5"
     astro-icon: "npm:^1.1.1"
+    date-fns: "npm:^4.1.0"
     eslint: "npm:^9.12.0"
     eslint-config-prettier: "npm:^9.1.0"
     globals: "npm:^15.11.0"
@@ -3273,6 +3274,13 @@ __metadata:
     whatwg-mimetype: "npm:^4.0.0"
     whatwg-url: "npm:^14.0.0"
   checksum: 10c0/1b894d7d41c861f3a4ed2ae9b1c3f0909d4575ada02e36d3d3bc584bdd84278e20709070c79c3b3bff7ac98598cb191eb3e86a89a79ea4ee1ef360e1694f92ad
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "date-fns@npm:4.1.0"
+  checksum: 10c0/b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
   languageName: node
   linkType: hard
 
