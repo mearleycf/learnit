@@ -11,13 +11,18 @@ import {
   User_Progress,
   and,
 } from 'astro:db'
+import { entriesGenerator, getRandomElement } from '@utils/general_utils'
 import { calculateExpirationDate } from '@utils/astrodb_utils.ts'
 import { eq } from 'astro:db'
+
+// ====================================================================
 
 async function getAllCourseIds(): Promise<string[]> {
   const courses = await db.select({ id: Courses.id }).from(Courses)
   return courses.map(course => course.id)
 }
+
+// ====================================================================
 
 export default async function seed() {
   try {
@@ -35,6 +40,8 @@ export default async function seed() {
     await db.delete(Courses)
 
     console.log('Existing data cleared.')
+
+    // ====================================================================
 
     // Seed Courses
     console.log('Seeding Courses...')
@@ -74,6 +81,8 @@ export default async function seed() {
       },
     ])
     console.log('Courses seeded')
+
+    // ====================================================================
 
     // Seed Chapters
     console.log('Seeding Chapters...')
@@ -136,6 +145,8 @@ export default async function seed() {
       },
     ])
     console.log('Chapters seeded')
+
+    // ====================================================================
 
     // Seed Sections
     console.log('Seeding Sections...')
@@ -404,6 +415,8 @@ export default async function seed() {
     }
     console.log('Sections seeded')
 
+    // ====================================================================
+
     // Seed Exercises
     console.log('Seeding Exercises...')
     const exercises = [
@@ -425,9 +438,7 @@ export default async function seed() {
         /* create a random number of entries for any array or object;
         passes in a multiplier parameter `ceiling` to determine the highest number we want to generate.
         */
-        const entriesGenerator = <T>(ceiling: number): number => {
-          return Math.floor(Math.random() * ceiling) + 1
-        }
+
         const defaultSolution = `function exercise${exercise.id}() { 
           // Default solution
           return true; 
@@ -465,10 +476,10 @@ export default async function seed() {
           ['Hint 4', 'Remember, an empty function body implicitly returns undefined.'],
         ]
 
-        const htmlFileResults = Object.fromEntries(htmlFiles.slice(0, entriesGenerator(4)))
-        const codeFileResults = Object.fromEntries(codeFiles.slice(0, entriesGenerator(4)))
-        const testResults = Object.fromEntries(tests.slice(0, entriesGenerator(4)))
-        const hintsResults = Object.fromEntries(hints.slice(0, entriesGenerator(4)))
+        const htmlFileResults = Object.fromEntries(htmlFiles.slice(0, entriesGenerator(1, 4)))
+        const codeFileResults = Object.fromEntries(codeFiles.slice(0, entriesGenerator(1, 4)))
+        const testResults = Object.fromEntries(tests.slice(0, entriesGenerator(1, 4)))
+        const hintsResults = Object.fromEntries(hints.slice(0, entriesGenerator(1, 4)))
 
         const exerciseData = {
           ...exercise,
@@ -507,6 +518,8 @@ export default async function seed() {
       }
     }
     console.log('Exercises seeded')
+
+    // ====================================================================
 
     // Seed Users
     console.log('Seeding Users...')
@@ -656,6 +669,8 @@ export default async function seed() {
     ])
     console.log('Users seeded')
 
+    // ====================================================================
+
     // Seed Feedback
     console.log('Seeding Feedback...')
     const statuses = ['pending', 'reviewed', 'resolved', 'ignored']
@@ -691,18 +706,11 @@ export default async function seed() {
     await db.insert(Feedback).values(feedbackData)
     console.log('Feedback seeded')
 
+    // ====================================================================
+
     // Seed Notes
     console.log('Seeding Notes...')
     let noteId = 1
-
-    // Helper function to get a random integer between min and max (inclusive)
-    const getRandomInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
-
-    // Helper function to get a random element from an array
-    function getRandomElement<T>(array: T[]): T {
-      const randomIndex = Math.floor(Math.random() * array.length)
-      return array[randomIndex]!
-    }
 
     const courseTopics = [
       ['variables', 'functions', 'objects', 'arrays', 'async programming'],
@@ -712,15 +720,21 @@ export default async function seed() {
 
     for (let userId = 1; userId <= 8; userId++) {
       // Determine the number of notes for this user
-      const numberOfNotes = getRandomInt(3, 8)
+      const numberOfNotes = entriesGenerator(3, 8)
 
       for (let i = 0; i < numberOfNotes; i++) {
-        const courseId = getRandomInt(1, 3)
-        const chapterId = getRandomInt((courseId - 1) * 2 + 1, courseId * 2)
-        const sectionId = getRandomInt((chapterId - 1) * 3 + 1, chapterId * 3)
-        const topic = getRandomElement(courseTopics[courseId - 1]!)
+        const courseId = entriesGenerator(1, 3)
+        const chapterId = entriesGenerator((courseId - 1) * 2 + 1, courseId * 2)
+        const sectionId = entriesGenerator((chapterId - 1) * 3 + 1, chapterId * 3)
+        // const topic = getRandomElement(courseTopics[courseId - 1]!)
+        const topic = () => {
+          const randomElement = getRandomElement(courseTopics[courseId - 1]!)
+          if (randomElement === undefined) {
+            return 'Generic Course'
+          }
+        }
 
-        const noteType = getRandomInt(1, 3) // 1: note_text only, 2: highlighted_text only, 3: both
+        const noteType = entriesGenerator(1, 3) // 1: note_text only, 2: highlighted_text only, 3: both
 
         let noteData = {
           id: String(noteId++),
@@ -751,6 +765,8 @@ export default async function seed() {
     }
 
     console.log('Notes seeded')
+
+    // ====================================================================
 
     // Seed User_Exercise_Progress
     console.log('Seeding User Exercise Progress...')
@@ -803,6 +819,8 @@ export default async function seed() {
 
     await db.insert(User_Exercise_Progress).values(userExerciseProgressData)
     console.log('User Exercise Progress seeded')
+
+    // ====================================================================
 
     // Seed User_Progress
     const sectionsData = sections.map(section => ({
