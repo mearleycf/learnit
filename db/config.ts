@@ -27,7 +27,27 @@ const Chapters = defineTable({
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
-  indexes: [{ on: ['course_id'] }],
+  indexes: [{ on: ['course_id'], name: 'chapter_course_id_idx' }],
+})
+
+const Sections = defineTable({
+  columns: {
+    id: column.text({ primaryKey: true }),
+    course_id: column.text({ references: () => Courses.columns.id }),
+    chapter_id: column.text({ references: () => Chapters.columns.id }),
+    title: column.text(),
+    description: column.text(),
+    order_number: column.number(),
+    content_type: column.text(),
+    content: column.json({ optional: true }),
+    access_level: column.text({ default: 'purchased' }),
+    created_at: column.date({ default: NOW }),
+    updated_at: column.date({ default: NOW }),
+  },
+  indexes: [
+    { on: ['chapter_id'], name: 'section_chapter_id_idx' },
+    { on: ['course_id'], name: 'section_course_id_idx' },
+  ], // Ensure the type is correctly inferred
 })
 
 const Exercises = defineTable({
@@ -46,15 +66,15 @@ const Exercises = defineTable({
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
-  indexes: [{ on: ['section_id'] }],
 })
 
 const Feedback = defineTable({
   columns: {
     id: column.text({ primaryKey: true }),
-    user_id: column.text({ references: () => Users.columns.id }),
+    student_id: column.text({ references: () => Users.columns.id }),
     section_id: column.text({ references: () => Sections.columns.id }),
-    feedback_text: column.text(),
+    assigned_to_id: column.text({ references: () => Users.columns.id, optional: true }),
+    feedback_text: column.json(),
     rating: column.number({ optional: true }),
     status: column.text({ default: 'pending' }),
     category: column.text({ optional: true }),
@@ -63,7 +83,11 @@ const Feedback = defineTable({
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
-  indexes: [{ on: ['section_id'] }, { on: ['user_id'] }],
+  indexes: [
+    { on: ['section_id'], name: 'feedback_section_id_idx' },
+    { on: ['student_id'], name: 'feedback_student_id_idx' },
+    { on: ['assigned_to_id'], name: 'feedback_assigned_to_id_idx' },
+  ],
 })
 
 const Notes = defineTable({
@@ -76,25 +100,10 @@ const Notes = defineTable({
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
-  indexes: [{ on: ['section_id'] }, { on: ['user_id'] }],
-})
-
-const Sections = defineTable({
-  columns: {
-    id: column.text({ primaryKey: true }),
-    course_id: column.text({ references: () => Courses.columns.id }),
-    chapter_id: column.text({ references: () => Chapters.columns.id }),
-    exercise_id: column.text({ optional: true, references: () => Exercises.columns.id }),
-    title: column.text(),
-    description: column.text(),
-    order_number: column.number(),
-    content_type: column.text(),
-    content: column.json({ optional: true }),
-    access_level: column.text({ default: 'purchased' }),
-    created_at: column.date({ default: NOW }),
-    updated_at: column.date({ default: NOW }),
-  },
-  indexes: [{ on: ['chapter_id'] }, { on: ['course_id'] }, { on: ['exercise_id'] }],
+  indexes: [
+    { on: ['section_id'], name: 'notes_section_id_idx' },
+    { on: ['user_id'], name: 'notes_user_id_idx' },
+  ],
 })
 
 const User_Exercise_Progress = defineTable({
@@ -109,7 +118,10 @@ const User_Exercise_Progress = defineTable({
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
-  indexes: [{ on: ['exercise_id'] }, { on: ['user_id'] }],
+  indexes: [
+    { on: ['exercise_id'], name: 'user_exercise_progress_exercise_id_idx' },
+    { on: ['user_id'], name: 'user_exercise_progress_user_id_idx' },
+  ],
 })
 
 const User_Progress = defineTable({
@@ -126,7 +138,11 @@ const User_Progress = defineTable({
     created_at: column.date({ default: NOW }),
     updated_at: column.date({ default: NOW }),
   },
-  indexes: [{ on: ['user_id'] }, { on: ['course_id'] }, { on: ['current_section_id'] }],
+  indexes: [
+    { on: ['user_id'], name: 'user_progress_user_id_idx' },
+    { on: ['course_id'], name: 'user_progress_course_id_idx' },
+    { on: ['current_section_id'], name: 'user_progress_current_section_id_idx' },
+  ],
 })
 
 const Users = defineTable({
@@ -154,8 +170,8 @@ export default defineDb({
   tables: {
     Courses,
     Chapters,
-    Exercises,
     Sections,
+    Exercises,
     Users,
     Feedback,
     Notes,

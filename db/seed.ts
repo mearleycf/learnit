@@ -11,15 +11,68 @@ import {
   User_Progress,
   and,
 } from 'astro:db'
-import { entriesGenerator, getRandomElement } from '@utils/general_utils'
+import { entriesGenerator, getRandomElement, randomDateGenerator } from '@utils/general_utils'
 import { calculateExpirationDate } from '@utils/astrodb_utils.ts'
+import { differenceInDays, addDays, subDays } from 'date-fns'
 import { eq } from 'astro:db'
 
 // ====================================================================
 
+// general seeding utility functions and data
+
 async function getAllCourseIds(): Promise<string[]> {
   const courses = await db.select({ id: Courses.id }).from(Courses)
   return courses.map(course => course.id)
+}
+
+const getAllUsers = async () => {
+  const users = await db.select({ id: Users.id, created_at: Users.created_at, role: Users.role }).from(Users).all()
+  return users
+}
+
+type Exercise = {
+  exerciseId: string
+  createdAt: Date
+  updatedAt: Date | null
+}
+
+type Section = {
+  sectionId: string
+  createdAt: Date
+  updatedAt: Date | null
+  exercise: Exercise | null
+}
+
+type Chapter = {
+  chapterId: string
+  createdAt: Date
+  updatedAt: Date | null
+  sections: Section[]
+}
+
+type Course = {
+  courseId: string
+  createdAt: Date
+  updatedAt: Date | null
+  chapters: Chapter[]
+}
+
+const coursesData: Course[] = []
+
+function findCourseAndChapterForSection(sectionId: string): {
+  course: Course | undefined
+  chapter: Chapter | undefined
+  section: Section | undefined
+} {
+  for (const course of coursesData) {
+    for (const chapter of course.chapters) {
+      const section = chapter.sections.find(section => section.sectionId === sectionId)
+      if (section) {
+        return { course, chapter, section }
+      }
+    }
+  }
+  return { course: undefined, chapter: undefined, section: undefined }
 }
 
 // ====================================================================
@@ -45,7 +98,8 @@ export default async function seed() {
 
     // Seed Courses
     console.log('Seeding Courses...')
-    await db.insert(Courses).values([
+
+    const courses = [
       {
         id: '1',
         title: 'Javascript Fundamentals',
@@ -79,14 +133,40 @@ export default async function seed() {
         price: 0, // course is free for all sections
         purchase_active_length: null, // course is available to student indefinitely
       },
-    ])
+    ]
+
+    for (const course of courses) {
+      const { createdDate, updatedDate } = randomDateGenerator({
+        start: 720,
+        end: 365,
+        includeUpdated: true,
+        chanceOfUpdate: 1,
+      })
+
+      await db.insert(Courses).values({
+        ...course,
+        created_at: createdDate,
+        updated_at: updatedDate || undefined,
+      })
+
+      coursesData.push({
+        courseId: course.id,
+        createdAt: createdDate,
+        updatedAt: updatedDate,
+        chapters: [],
+      })
+    }
+
+    console.log(coursesData)
+
     console.log('Courses seeded')
 
     // ====================================================================
 
     // Seed Chapters
     console.log('Seeding Chapters...')
-    await db.insert(Chapters).values([
+
+    const chapters = [
       {
         id: '1',
         course_id: '1',
@@ -143,13 +223,45 @@ export default async function seed() {
         order_number: 3,
         estimated_time: '3 hours',
       },
-    ])
+    ]
+
+    for (const chapter of chapters) {
+      const matchingCourse = coursesData.find(courseItem => courseItem.courseId === chapter.course_id)
+      if (!matchingCourse) {
+        console.error(`No course found for chapter ${chapter.id}`)
+        continue
+      }
+
+      const { createdDate: chapterCreatedDate, updatedDate: chapterUpdatedDate } = randomDateGenerator({
+        start: matchingCourse.createdAt,
+        end: subDays(new Date(), 182),
+        includeUpdated: true,
+        chanceOfUpdate: 1,
+      })
+
+      await db.insert(Chapters).values({
+        ...chapter,
+        created_at: chapterCreatedDate,
+        updated_at: chapterUpdatedDate || undefined,
+      })
+
+      matchingCourse.chapters.push({
+        chapterId: chapter.id,
+        createdAt: chapterCreatedDate,
+        updatedAt: chapterUpdatedDate,
+        sections: [],
+      })
+    }
+
+    console.log(coursesData)
+
     console.log('Chapters seeded')
 
     // ====================================================================
 
     // Seed Sections
     console.log('Seeding Sections...')
+
     const sections = [
       // Course 1: JavaScript Fundamentals
       {
@@ -401,12 +513,41 @@ export default async function seed() {
       },
     ]
 
+    console.log(coursesData)
     for (const section of sections) {
+      const courseData = coursesData.find(course => course.courseId === section.course_id)
+      if (!courseData) {
+        console.error(`No course found for section ${section.id}`)
+        continue
+      }
+
+      const chapterData = courseData.chapters.find(chapter => chapter.chapterId === section.chapter_id)
+      if (!chapterData) {
+        console.error(`No chapter found for section ${section.id}`)
+        continue
+      }
+
+      const { createdDate, updatedDate } = randomDateGenerator({
+        start: chapterData.createdAt,
+        end: subDays(new Date(), 182),
+        includeUpdated: true,
+        chanceOfUpdate: 1,
+      })
+
       try {
         await db.insert(Sections).values({
           ...section,
           description: `Description for ${section.title}`,
           content: JSON.stringify({ text: `Content for ${section.title}` }),
+          created_at: createdDate,
+          updated_at: updatedDate || undefined,
+        })
+
+        chapterData.sections.push({
+          sectionId: section.id,
+          createdAt: createdDate,
+          updatedAt: updatedDate,
+          exercise: null,
         })
         console.log(`Inserted section ${section.id}`)
       } catch (error) {
@@ -434,11 +575,20 @@ export default async function seed() {
     ]
 
     for (const exercise of exercises) {
-      try {
-        /* create a random number of entries for any array or object;
-        passes in a multiplier parameter `ceiling` to determine the highest number we want to generate.
-        */
+      const { course, chapter, section } = findCourseAndChapterForSection(exercise.section_id)
+      if (!course || !chapter || !section) {
+        console.error(`Could not find course, chapter, or section for exercise ${exercise.id}`)
+        continue
+      }
 
+      const { createdDate, updatedDate } = randomDateGenerator({
+        start: section.createdAt,
+        end: subDays(new Date(), 182),
+        includeUpdated: true,
+        chanceOfUpdate: 0.8, // 80% chance of having an update date
+      })
+
+      try {
         const defaultSolution = `function exercise${exercise.id}() { 
           // Default solution
           return true; 
@@ -490,6 +640,8 @@ export default async function seed() {
           hints: JSON.stringify(hintsResults),
           default_solution: JSON.stringify({ 'script.js': defaultSolution }),
           user_solution: JSON.stringify({}),
+          created_at: createdDate,
+          updated_at: updatedDate || undefined,
         }
 
         // Check if any user has completed this exercise
@@ -513,6 +665,12 @@ export default async function seed() {
 
         await db.insert(Exercises).values(exerciseData)
         console.log(`Inserted exercise ${exercise.id}`)
+
+        section.exercise = {
+          exerciseId: exercise.id,
+          createdAt: createdDate,
+          updatedAt: updatedDate,
+        }
       } catch (error) {
         console.error(`Error inserting exercise ${exercise.id}:`, error)
       }
@@ -525,7 +683,7 @@ export default async function seed() {
     console.log('Seeding Users...')
     const allCourseIds = await getAllCourseIds()
 
-    await db.insert(Users).values([
+    const usersData = [
       // Students
       {
         id: '1',
@@ -631,7 +789,6 @@ export default async function seed() {
         email: 'courseadmin4@example.com',
         role: 'course_admin',
         enrolled_courses: JSON.stringify([]),
-        assigned_courses: JSON.stringify(['2', '3']),
       },
       // Authors
       {
@@ -666,14 +823,32 @@ export default async function seed() {
         enrolled_courses: JSON.stringify([]),
         assigned_courses: JSON.stringify(['2', '3']),
       },
-    ])
+    ]
+
+    const usersWithDates = usersData.map(user => {
+      const { createdDate, updatedDate } = randomDateGenerator({
+        start: 365,
+        end: 14,
+        includeUpdated: true,
+        chanceOfUpdate: 0.5,
+      })
+
+      return {
+        ...user,
+        created_at: createdDate,
+        updated_at: updatedDate || undefined,
+      }
+    })
+
+    await db.insert(Users).values(usersWithDates)
+
     console.log('Users seeded')
 
     // ====================================================================
 
     // Seed Feedback
     console.log('Seeding Feedback...')
-    const statuses = ['pending', 'reviewed', 'resolved', 'ignored']
+    const statuses = ['submitted', 'assigned', 'in_progress', 'pending_publication', 'resolved', 'no_action_required']
     const categories = [
       'incorrect_content',
       'general_feedback',
@@ -687,18 +862,47 @@ export default async function seed() {
     let feedbackId = 1
     const feedbackData = []
 
-    for (const status of statuses) {
-      for (const category of categories) {
-        for (const rating of ratings) {
-          feedbackData.push({
-            id: String(feedbackId++),
-            user_id: String(Math.floor(Math.random() * 8) + 1), // Random student user (1-8)
-            section_id: String(Math.floor(Math.random() * 27) + 1), // Random section (1-27)
-            feedback_text: `This is ${status} ${category} feedback with a rating of ${rating}.`,
-            rating: rating,
-            status: status,
-            category: category,
-          })
+    const allUsers = await getAllUsers()
+    const studentUsers = allUsers.filter(user => user.role === 'student')
+    const adminUsers = allUsers.filter(user => ['app_admin', 'course_admin', 'author'].includes(user.role))
+
+    if (studentUsers.length === 0 || adminUsers.length === 0) {
+      console.warn(`Not enough users to seed feedback. Skipping feedback seeding.`)
+    } else {
+      for (const status of statuses) {
+        for (const category of categories) {
+          for (const rating of ratings) {
+            const studentUser = getRandomElement(studentUsers)!
+            const adminUser = getRandomElement(adminUsers)!
+
+            const { createdDate, updatedDate } = randomDateGenerator({
+              start: studentUser?.created_at,
+              end: new Date(),
+              includeUpdated: true,
+              chanceOfUpdate: 0.7,
+            })
+
+            feedbackData.push({
+              id: String(feedbackId++),
+              student_id: studentUser.id,
+              section_id: String(Math.floor(Math.random() * 27) + 1), // Random section (1-27)
+              assigned_to_id: ['assigned', 'in_progress', 'pending_publication', 'resolved'].includes(status)
+                ? adminUser?.id
+                : null,
+              feedback_text: JSON.stringify({
+                content: `This is ${status} ${category} feedback with a rating of ${rating}.`,
+                created_at: createdDate,
+              }),
+              rating: rating,
+              status: status,
+              category: category,
+              github_issue_link: ['in_progress', 'pending_publication', 'resolved'].includes(status)
+                ? `https://github.com/example/repo/issues/${feedbackId}`
+                : null,
+              created_at: createdDate,
+              updated_at: updatedDate || undefined,
+            })
+          }
         }
       }
     }
@@ -748,7 +952,7 @@ export default async function seed() {
           noteData.note_text = JSON.stringify({
             content: `This section on ${topic} in ${['JavaScript', 'React', 'Python'][courseId - 1]} was very informative. I learned that ${topic} is crucial for ${['building interactive web applications', 'creating reusable UI components', 'developing efficient and readable code'][courseId - 1]}. Need to practice more with ${topic} to fully grasp the concept.`,
             tags: [topic, 'important', 'review'],
-            created_at: new Date().toISOString(),
+            created_at: new Date(),
           })
         }
 
@@ -756,7 +960,7 @@ export default async function seed() {
           noteData.highlighted_text = JSON.stringify({
             content: `${topic} in ${['JavaScript', 'React', 'Python'][courseId - 1]} allows developers to ${['write more efficient and maintainable code', 'create dynamic and responsive user interfaces', 'handle complex data structures and algorithms'][courseId - 1]}.`,
             color: getRandomElement(['yellow', 'green', 'blue', 'red']),
-            created_at: new Date().toISOString(),
+            created_at: new Date(),
           })
         }
 

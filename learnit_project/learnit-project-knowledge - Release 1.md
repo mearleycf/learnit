@@ -1,8 +1,35 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 18, 2024 at 2:49:29 AM (EST)
+Last Updated: Oct 20, 2024 at 11:35:07 AM (EST)
 
 ## Notes to the Claude AI
+
+### What you need to know
+
+> Last updated at Oct 20, 2024 at 11:35:17 AM
+
+Let's break this down step by step:
+
+1. First, let's consider the table structure. Based on your description, we need to update the Feedback table. Here's what we should consider:
+    1. Rename 'user_id' to 'student_id'
+    2. Add a 'assigned_to_id' column for the admin/author currently handling the feedback
+    3. Update the 'status' column to include more granular statuses
+    4. Ensure we have 'created_at' and 'updated_at' columns
+2. For the status values, let's consider:
+['submitted', 'assigned', 'in_progress', 'pending_publication', 'resolved', 'no_action_required']
+1. Now, for the seeding process, we need to:
+    1. Ensure feedback dates are after the student's creation date
+    2. Assign realistic statuses and assigned_to_id values
+    3. Generate realistic github_issue_link values when appropriate
+
+So we need to: 
+* Update the Feedback table structure in astrodb_utils.ts
+* Update the status values in seed.ts and astrodb_utils.ts
+* Modify the feedback seeding process to account for user creation dates and the new table structure
+* Consider how to realistically assign statuses, assigned_to_id, and github_issue_link values
+
+
+### General Hygiene Notes
 
 > NOTE TO CLAUDE: **DO NOT** remove any unedited content from this document. Please ONLY make updates and additions. If you need to delete something, please check with me first. **DO NOT** replace any of the content with `[content remains unchanged]`
 >
@@ -18,19 +45,33 @@ I want to build a learning platform for learning development languages and frame
 
 ### Features
 
-- So overall, a user would enroll in a course
+#### The Learning Platform
+
+- So overall, a student would enroll in a course
     - a course would have a series of chapters
         - a chapter would have a series of sections (lessons, exercises, recap)
             - the first section would usually be a lesson section (markdown file explaining a concept)
                 - links out to documentation for those language or framework features.
-            - then the user would complete 1 or more exercises related to the lesson they just learned (so, the code editor stuff)
+            - then the student would complete 1 or more exercises related to the lesson they just learned (so, the code editor stuff)
             - I want a code editor with a real-time console, syntax highlighting, and auto-completion.
-                - The user should be able to run the code, which would both:
+                - The student should be able to run the code, which would both:
                     - run the code itself
                     - also execute tests to determine if the code meets requirements to pass the exercise.
             - the final section in a chapter would be a chapter recap section, which is also markdown
 - The course would have a spaced repitition learning system--i.e. flashcards basically. 
-    - The system would build notecards for the user as they learn, allowing them to use the notecards for refreshing their memory--spaced repetition learning, basically.
+    - The system would build notecards for the student as they learn, allowing them to use the notecards for refreshing their memory--spaced repetition learning, basically.
+
+#### The Feedback System
+
+* student submits feedback through learning platform (various ways to do this, which will in some instances set the category value)
+* course_admin and app_admin are notified of feedback submission
+* either of the admins updates the feedback--they need to determine if action needs to be taken; if action needs to be taken, they should take the action (mostly this is going to be updating a course section to correct content)...
+   * they might need to create a github issue, in which case they should provide the github_issue_link value as well...
+   * I think we need to update the possible statuses here, because if for example the app_admin looks at it, determines the author or course_admin needs to update content, then they should be able to (a) open an issue to notify the author or course_admin to make an update, set the status to 'assigned'
+   * The author or course_admin or app_admin should be able to update it to 'in progress' if they're working on it but it's not done
+   * When they're done, they should set it to 'pending', because most likely the change still needs to be published by an admin
+   * once the change is completed, they should update status to resolved and close the github issue (but leave the link)
+* If action doesn't need to be taken, for whatever reason (maybe the feedback is just "Hey, I love the app!"), then we shouldn't use the 'ignored' status, but I'm not sure 'resolved' is the right status either...what other status could we use in this scenario? 
  
 ### Definition of terms
 
@@ -673,21 +714,22 @@ This table represents a breakout of sections that have a type of 'exercise'. Thi
 
 ### Feedback Table
 
-> Last updated Oct 16, 2024 at 11:35:35 AM
+> Last updated Oct 20, 2024 at 11:59:37 AM
 > 
 
-This table represents feedback the student has submitted through the learning platform interface. There will be several different places the student can submit feedback, and these places will determine the content of the rows on this table. 
+### Feedback Table
 
-* user_id (indexed): foreign key to Users
-* section_id (indexed): foreign key to Sections; it is the section from where the user is submitting the feedback
-* feedback_text: the feedback as the user wrote it and submitted it
-    * this should probably be JSON, not text, as the user can submit code and markdown as part of the feedback
-* rating (optional): the rating a user has provided to a section; let's use star rating here (0-5)
-* status (default 'pending'): the status of the feedback as determined by the course_admin or app_admin that is handling the feedback
-    * not sure what other values we need besides 'pending'
-* category (optional): um...we need to determine what goes here; I guess it could be things like 'incorrect content', or 'general feedback', stuff like that
-* admin_notes (optional): this is a set of notes the course or app_admin writes to notate changes that need to be made, if applicable
-* github_issue_link (optional): link to github repo issues if the admin has created an issue for tracking purposes
+This table represents feedback submitted by students through the learning platform interface. 
+
+* student_id (indexed): foreign key to Users, represents the student who submitted the feedback
+* section_id (indexed): foreign key to Sections; it is the section from where the student submitted the feedback
+* assigned_to_id (indexed, optional): foreign key to Users; represents the admin/author currently handling the feedback
+* feedback_text (JSON): the feedback as the user wrote it and submitted it, stored as JSON to allow for rich text formatting and additional metadata
+* rating (optional): the rating a user has provided to a section; uses a star rating system (0-5)
+* status: the current status of the feedback, can be one of: 'submitted', 'assigned', 'in_progress', 'pending_publication', 'resolved', 'no_action_required'
+* category (optional): classifies the type of feedback, e.g., 'incorrect_content', 'general_feedback', 'technical_issue', etc.
+* admin_notes (optional): notes written by the course or app admin handling the feedback
+* github_issue_link (optional): link to a GitHub issue if one has been created to track the feedback
 
 ### Notes Table
 
@@ -832,10 +874,14 @@ This table stores the users of the learning platform, administration platform, a
 #### Feedback
 
 * Generate feedback entries for every combination of:
-    * Statuses: pending, reviewed, resolved, ignored
+    * Statuses: submitted, assigned, in_progress, pending_publication, resolved, no_action_required
     * Categories: incorrect_content, general_feedback, technical_issue, feature_request, clarity_improvement, typo_or_grammar
     * Ratings: 0-5
-* Each feedback entry should be randomly assigned to a user (1-8) and a section
+* Each feedback entry should be randomly assigned to a student user (1-7) and a section
+* For statuses 'assigned', 'in_progress', 'pending_publication', and 'resolved', randomly assign an admin user (app_admin, course_admin, or author)
+* For statuses 'in_progress', 'pending_publication', and 'resolved', generate a mock GitHub issue link
+* Ensure feedback dates are after the student's creation date
+* Random distribution of created_at and updated_at dates
 
 #### Notes
 
@@ -936,21 +982,22 @@ await db.run(sql`
 
 ### Feedback Table
 
-> updated Oct 11, 2024 at 2:26:18 AM
+> updated Oct 20, 2024 at 11:59:13 AM
 
-| field             | type                   | default          | required |
-|-------------------|------------------------|------------------|----------|
-| id                | text                   | n/a_generate_v4 | not null |
-| user_id           | foreign_key (users)    | n/a              | not null |
-| section_id        | foreign_key (sections) | n/a              | not null |
-| feedback_text     | text                   | n/a              | not null |
-| rating            | number                | n/a              | optional |
-| status            | text                   | 'pending'        | not null |
-| category          | text                   | n/a              | optional |
-| admin_notes       | text                   | n/a              | optional |
-| github_issue_link | text                   | n/a              | optional |
-| created_at        | date   | NOW       | not null |
-| updated_at        | date   | NOW       | not null |
+| field             | type                   | default     | required | notes                                   |
+|-------------------|------------------------|-------------|----------|------------------------------------------|
+| id                | text                   | n/a         | not null | primary key                              |
+| student_id        | text                   | n/a         | not null | foreign key (users)                      |
+| section_id        | text                   | n/a         | not null | foreign key (sections)                   |
+| assigned_to_id    | text                   | n/a         | optional | foreign key (users)                      |
+| feedback_text     | json                   | n/a         | not null |                                          |
+| rating            | number                 | n/a         | optional |                                          |
+| status            | text                   | 'submitted' | not null | check constraint for valid status values |
+| category          | text                   | n/a         | optional |                                          |
+| admin_notes       | text                   | n/a         | optional |                                          |
+| github_issue_link | text                   | n/a         | optional |                                          |
+| created_at        | date                   | NOW         | not null |                                          |
+| updated_at        | date                   | NOW         | not null |                                          |
 
 ### Notes Table
 

@@ -30,7 +30,8 @@
       "@scripts/*": ["src/scripts/*"],
       "@styles/*": ["src/styles/*"],
       "@utils/*": ["src/utils/*"],
-      "@lib/*": ["src/lib/*"]
+      "@lib/*": ["src/lib/*"],
+      "@db/*": ["db/*"]
     }
   },
   "exclude": ["dist"]
