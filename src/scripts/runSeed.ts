@@ -1,4 +1,4 @@
-import { seed } from '../../db/seed.ts'
+import seed from '@db/seed'
 
 export default async function () {
   try {

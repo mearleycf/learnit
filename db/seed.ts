@@ -11,15 +11,10 @@ import {
   User_Progress,
   and,
 } from 'astro:db'
-import {
-  entriesGenerator,
-  getRandomElement,
-  getRandomElements,
-  randomDateGenerator,
-  randomDateGenerator,
-} from '@utils/general_utils'
+import { entriesGenerator, getRandomElement, getRandomElements, randomDateGenerator } from '@utils/general_utils'
 import { subDays } from 'date-fns'
 import { eq } from 'astro:db'
+import { ulid } from 'ulidx'
 
 // ====================================================================
 
@@ -66,7 +61,11 @@ type Course = {
   chapters: Chapter[]
 }
 
-const coursesData: Course[] = []
+const courseIdMap = new Map<string, string>()
+const chapterIdMap = new Map<string, string>()
+const sectionIdMap = new Map<string, string>()
+const exerciseIdMap = new Map<string, string>()
+const userIdMap = new Map<string, string>()
 
 function findCourseAndChapterForSection(sectionId: string): {
   course: Course | undefined
@@ -110,7 +109,7 @@ export default async function seed() {
 
     const courses = [
       {
-        id: '1',
+        id: ulid(),
         title: 'Javascript Fundamentals',
         description: 'Learn the fundamentals of JavaScript programming',
         slug: 'javascript-fundamentals',
@@ -121,7 +120,7 @@ export default async function seed() {
         purchase_active_length: 1825, // course is available for 5 years
       },
       {
-        id: '2',
+        id: ulid(),
         title: 'Advanced React Development',
         description: 'Master React and build complex applications',
         slug: 'advanced-react',
@@ -132,7 +131,7 @@ export default async function seed() {
         purchase_active_length: null, // course is available to student indefinitely
       },
       {
-        id: '3',
+        id: ulid(),
         title: 'Python Fundamentals',
         description: 'Master Python and build complex applications',
         slug: 'python-fundamentals',
@@ -145,6 +144,10 @@ export default async function seed() {
     ]
 
     for (const course of courses) {
+      const oldId = course.id
+      const newId = ulid()
+      courseIdMap.set(oldId, newId)
+
       const { createdDate, updatedDate } = randomDateGenerator({
         start: 720,
         end: 365,
@@ -177,7 +180,7 @@ export default async function seed() {
 
     const chapters = [
       {
-        id: '1',
+        id: ulid(),
         course_id: '1',
         title: 'JavaScript Basics',
         description: 'Fundamental concepts of JavaScript',
@@ -185,7 +188,7 @@ export default async function seed() {
         estimated_time: '2 hours',
       },
       {
-        id: '2',
+        id: ulid(),
         course_id: '1',
         title: 'Functions and Objects',
         description: 'Working with functions and objects in JavaScript',
@@ -193,7 +196,7 @@ export default async function seed() {
         estimated_time: '3 hours',
       },
       {
-        id: '3',
+        id: ulid(),
         course_id: '2',
         title: 'React Fundamentals',
         description: 'Core concepts of React',
@@ -201,7 +204,7 @@ export default async function seed() {
         estimated_time: '4 hours',
       },
       {
-        id: '4',
+        id: ulid(),
         course_id: '2',
         title: 'State Management',
         description: 'Advanced state management in React',
@@ -209,7 +212,7 @@ export default async function seed() {
         estimated_time: '5 hours',
       },
       {
-        id: '5',
+        id: ulid(),
         course_id: '3',
         title: 'Python Basics',
         description: 'Fundamental concepts of Python',
@@ -217,7 +220,7 @@ export default async function seed() {
         estimated_time: '3 hours',
       },
       {
-        id: '6',
+        id: ulid(),
         course_id: '3',
         title: 'Data Structures in Python',
         description: 'Working with data structures in Python',
@@ -225,7 +228,7 @@ export default async function seed() {
         estimated_time: '4 hours',
       },
       {
-        id: '7',
+        id: ulid(),
         course_id: '3',
         title: 'Python Functions and Modules',
         description: 'Understanding functions and modules in Python',
@@ -274,7 +277,7 @@ export default async function seed() {
     const sections = [
       // Course 1: JavaScript Fundamentals
       {
-        id: '1',
+        id: ulid(),
         course_id: '1',
         chapter_id: '1',
         title: 'Introduction to JavaScript',
@@ -283,7 +286,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '2',
+        id: ulid(),
         course_id: '1',
         chapter_id: '1',
         title: 'Variables and Data Types',
@@ -292,7 +295,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '3',
+        id: ulid(),
         course_id: '1',
         chapter_id: '1',
         title: 'JavaScript Basics Recap',
@@ -301,7 +304,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '4',
+        id: ulid(),
         course_id: '1',
         chapter_id: '2',
         title: 'Functions in JavaScript',
@@ -310,7 +313,7 @@ export default async function seed() {
         access_level: 'purchased',
       },
       {
-        id: '5',
+        id: ulid(),
         course_id: '1',
         chapter_id: '2',
         title: 'Object-Oriented JavaScript',
@@ -319,7 +322,7 @@ export default async function seed() {
         access_level: 'purchased',
       },
       {
-        id: '6',
+        id: ulid(),
         course_id: '1',
         chapter_id: '2',
         title: 'Functions and Objects Recap',
@@ -330,7 +333,7 @@ export default async function seed() {
 
       // Course 2: Advanced React Development
       {
-        id: '7',
+        id: ulid(),
         course_id: '2',
         chapter_id: '3',
         title: 'React Components',
@@ -339,7 +342,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '8',
+        id: ulid(),
         course_id: '2',
         chapter_id: '3',
         title: 'React Props and State',
@@ -348,7 +351,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '9',
+        id: ulid(),
         course_id: '2',
         chapter_id: '3',
         title: 'React Fundamentals Recap',
@@ -357,7 +360,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '10',
+        id: ulid(),
         course_id: '2',
         chapter_id: '4',
         title: 'Redux Basics',
@@ -366,7 +369,7 @@ export default async function seed() {
         access_level: 'purchased',
       },
       {
-        id: '11',
+        id: ulid(),
         course_id: '2',
         chapter_id: '4',
         title: 'Advanced Redux Patterns',
@@ -375,7 +378,7 @@ export default async function seed() {
         access_level: 'purchased',
       },
       {
-        id: '12',
+        id: ulid(),
         course_id: '2',
         chapter_id: '4',
         title: 'State Management Recap',
@@ -386,7 +389,7 @@ export default async function seed() {
 
       // Course 3: Python Fundamentals
       {
-        id: '13',
+        id: ulid(),
         course_id: '3',
         chapter_id: '5',
         title: 'Introduction to Python',
@@ -395,7 +398,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '14',
+        id: ulid(),
         course_id: '3',
         chapter_id: '5',
         title: 'Python Syntax Basics',
@@ -404,7 +407,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '15',
+        id: ulid(),
         course_id: '3',
         chapter_id: '5',
         title: 'Variables and Data Types',
@@ -413,7 +416,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '16',
+        id: ulid(),
         course_id: '3',
         chapter_id: '5',
         title: 'Working with Numbers',
@@ -422,7 +425,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '17',
+        id: ulid(),
         course_id: '3',
         chapter_id: '5',
         title: 'String Operations',
@@ -431,7 +434,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '18',
+        id: ulid(),
         course_id: '3',
         chapter_id: '5',
         title: 'Python Basics Recap',
@@ -440,7 +443,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '19',
+        id: ulid(),
         course_id: '3',
         chapter_id: '6',
         title: 'Python Data Structures',
@@ -449,7 +452,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '20',
+        id: ulid(),
         course_id: '3',
         chapter_id: '6',
         title: 'Lists and Tuples',
@@ -458,7 +461,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '21',
+        id: ulid(),
         course_id: '3',
         chapter_id: '6',
         title: 'Data Structures Recap',
@@ -467,7 +470,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '22',
+        id: ulid(),
         course_id: '3',
         chapter_id: '7',
         title: 'Python Functions',
@@ -476,7 +479,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '23',
+        id: ulid(),
         course_id: '3',
         chapter_id: '7',
         title: 'Python Modules',
@@ -485,7 +488,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '24',
+        id: ulid(),
         course_id: '3',
         chapter_id: '7',
         title: 'Basic Function Exercise',
@@ -494,7 +497,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '25',
+        id: ulid(),
         course_id: '3',
         chapter_id: '7',
         title: 'Intermediate Function Exercise',
@@ -503,7 +506,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '26',
+        id: ulid(),
         course_id: '3',
         chapter_id: '7',
         title: 'Advanced Module Exercise',
@@ -512,7 +515,7 @@ export default async function seed() {
         access_level: 'free',
       },
       {
-        id: '27',
+        id: ulid(),
         course_id: '3',
         chapter_id: '7',
         title: 'Functions and Modules Recap',
@@ -569,17 +572,17 @@ export default async function seed() {
     // Seed Exercises
     console.log('Seeding Exercises...')
     const exercises = [
-      { id: '1', section_id: '2', difficulty: 'beginner', estimated_time_minutes: 10 },
-      { id: '2', section_id: '5', difficulty: 'intermediate', estimated_time_minutes: 15 },
-      { id: '3', section_id: '8', difficulty: 'intermediate', estimated_time_minutes: 20 },
-      { id: '4', section_id: '11', difficulty: 'advanced', estimated_time_minutes: 25 },
-      { id: '5', section_id: '14', difficulty: 'beginner', estimated_time_minutes: 15 },
-      { id: '6', section_id: '16', difficulty: 'beginner', estimated_time_minutes: 15 },
-      { id: '7', section_id: '17', difficulty: 'beginner', estimated_time_minutes: 20 },
-      { id: '8', section_id: '20', difficulty: 'intermediate', estimated_time_minutes: 25 },
-      { id: '9', section_id: '24', difficulty: 'beginner', estimated_time_minutes: 20 },
-      { id: '10', section_id: '25', difficulty: 'intermediate', estimated_time_minutes: 25 },
-      { id: '11', section_id: '26', difficulty: 'advanced', estimated_time_minutes: 30 },
+      { id: ulid(), section_id: '2', difficulty: 'beginner', estimated_time_minutes: 10 },
+      { id: ulid(), section_id: '5', difficulty: 'intermediate', estimated_time_minutes: 15 },
+      { id: ulid(), section_id: '8', difficulty: 'intermediate', estimated_time_minutes: 20 },
+      { id: ulid(), section_id: '11', difficulty: 'advanced', estimated_time_minutes: 25 },
+      { id: ulid(), section_id: '14', difficulty: 'beginner', estimated_time_minutes: 15 },
+      { id: ulid(), section_id: '16', difficulty: 'beginner', estimated_time_minutes: 15 },
+      { id: ulid(), section_id: '17', difficulty: 'beginner', estimated_time_minutes: 20 },
+      { id: ulid(), section_id: '20', difficulty: 'intermediate', estimated_time_minutes: 25 },
+      { id: ulid(), section_id: '24', difficulty: 'beginner', estimated_time_minutes: 20 },
+      { id: ulid(), section_id: '25', difficulty: 'intermediate', estimated_time_minutes: 25 },
+      { id: ulid(), section_id: '26', difficulty: 'advanced', estimated_time_minutes: 30 },
     ]
 
     for (const exercise of exercises) {
@@ -688,7 +691,7 @@ export default async function seed() {
     const usersData = [
       // Students
       {
-        id: '1',
+        id: ulid(),
         name: 'Student 1',
         email: 'student1@example.com',
         role: 'student',
@@ -696,7 +699,7 @@ export default async function seed() {
         assigned_courses: null,
       },
       {
-        id: '2',
+        id: ulid(),
         name: 'Student 2',
         email: 'student2@example.com',
         role: 'student',
@@ -704,7 +707,7 @@ export default async function seed() {
         assigned_courses: null,
       },
       {
-        id: '3',
+        id: ulid(),
         name: 'Student 3',
         email: 'student3@example.com',
         role: 'student',
@@ -712,7 +715,7 @@ export default async function seed() {
         assigned_courses: null,
       },
       {
-        id: '4',
+        id: ulid(),
         name: 'Student 4',
         email: 'student4@example.com',
         role: 'student',
@@ -720,7 +723,7 @@ export default async function seed() {
         assigned_courses: null,
       },
       {
-        id: '5',
+        id: ulid(),
         name: 'Student 5',
         email: 'student5@example.com',
         role: 'student',
@@ -728,7 +731,7 @@ export default async function seed() {
         assigned_courses: null,
       },
       {
-        id: '6',
+        id: ulid(),
         name: 'Student 6',
         email: 'student6@example.com',
         role: 'student',
@@ -736,7 +739,7 @@ export default async function seed() {
         assigned_courses: null,
       },
       {
-        id: '7',
+        id: ulid(),
         name: 'Student 7',
         email: 'student7@example.com',
         role: 'student',
@@ -744,7 +747,7 @@ export default async function seed() {
         assigned_courses: null,
       },
       {
-        id: '8',
+        id: ulid(),
         name: 'Student 8',
         email: 'student8@example.com',
         role: 'student',
@@ -753,7 +756,7 @@ export default async function seed() {
       },
       // App Admin
       {
-        id: '9',
+        id: ulid(),
         name: 'App Admin',
         email: 'admin@example.com',
         role: 'app_admin',
@@ -762,7 +765,7 @@ export default async function seed() {
       },
       // Course Admins
       {
-        id: '10',
+        id: ulid(),
         name: 'Course Admin 1',
         email: 'courseadmin1@example.com',
         role: 'course_admin',
@@ -770,7 +773,7 @@ export default async function seed() {
         assigned_courses: JSON.stringify(['1']),
       },
       {
-        id: '11',
+        id: ulid(),
         name: 'Course Admin 2',
         email: 'courseadmin2@example.com',
         role: 'course_admin',
@@ -778,7 +781,7 @@ export default async function seed() {
         assigned_courses: JSON.stringify(['2']),
       },
       {
-        id: '12',
+        id: ulid(),
         name: 'Course Admin 3',
         email: 'courseadmin3@example.com',
         role: 'course_admin',
@@ -786,7 +789,7 @@ export default async function seed() {
         assigned_courses: JSON.stringify(['3']),
       },
       {
-        id: '13',
+        id: ulid(),
         name: 'Course Admin 4',
         email: 'courseadmin4@example.com',
         role: 'course_admin',
@@ -794,7 +797,7 @@ export default async function seed() {
       },
       // Authors
       {
-        id: '14',
+        id: ulid(),
         name: 'Author 1',
         email: 'author1@example.com',
         role: 'author',
@@ -802,7 +805,7 @@ export default async function seed() {
         assigned_courses: JSON.stringify(['1']),
       },
       {
-        id: '15',
+        id: ulid(),
         name: 'Author 2',
         email: 'author2@example.com',
         role: 'author',
@@ -810,7 +813,7 @@ export default async function seed() {
         assigned_courses: JSON.stringify(['2']),
       },
       {
-        id: '16',
+        id: ulid(),
         name: 'Author 3',
         email: 'author3@example.com',
         role: 'author',
@@ -818,7 +821,7 @@ export default async function seed() {
         assigned_courses: JSON.stringify(['3']),
       },
       {
-        id: '17',
+        id: ulid(),
         name: 'Author 4',
         email: 'author4@example.com',
         role: 'author',
@@ -885,7 +888,7 @@ export default async function seed() {
             })
 
             feedbackData.push({
-              id: String(feedbackId++),
+              id: ulid(),
               student_id: studentUser.id,
               section_id: String(Math.floor(Math.random() * 27) + 1), // Random section (1-27)
               assigned_to_id: ['assigned', 'in_progress', 'pending_publication', 'resolved'].includes(status)
@@ -943,7 +946,7 @@ export default async function seed() {
         const noteType = entriesGenerator(1, 3) // 1: note_text only, 2: highlighted_text only, 3: both
 
         let noteData = {
-          id: String(noteId++),
+          id: ulid(),
           user_id: String(userId),
           section_id: String(sectionId),
           note_text: null as string | null,
@@ -1009,7 +1012,7 @@ export default async function seed() {
           })
 
           userExerciseProgressData.push({
-            id: String(progressId++),
+            id: ulid(),
             user_id: String(userId),
             exercise_id: exercise.Exercises.id,
             score,
@@ -1089,7 +1092,7 @@ export default async function seed() {
         })
 
         userProgressData.push({
-          id: String(entriesGenerator(1, 1000000)),
+          id: ulid(),
           user_id: String(userId),
           course_id: courseId,
           current_section_id: currentSectionId,

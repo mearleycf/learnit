@@ -1,23 +1,23 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 21, 2024 at 11:27:54 AM (EST)
+Last Updated: Oct 21, 2024 at 5:34:14 PM (EST)
 
 ## Notes to the AI
 
 ### What you need to know
 
-> Last updated at Oct 21, 2024 at 11:27:49 AM
+> Last updated at Oct 21, 2024 at 5:34:09 PM
 
 1. We are going to use ULIDs for our primary keys in all of the db tables
-2. Can you define ULID for me, and explain why it's better than UUIDv4?
-3. Can you explain the terms canonical and monotonic, in the context of ULIDs? 
-4. How should we store the ULID? (i.e. raw vs. encoded)
-5. What library should we use for ULID
-6. What implementation considerations are there for our database schema
-7. What are the performance implications of using ULID
-8. What are the best practices for generating and using ULIDs in our application
-9. After we discuss all of that, we need to move on to the discussion of creating a seeding configuration file where we can define all of the sample data we're using, so that when we want to change it, there's one simple place to change it; the config file can contain other things that would make more sense in a config file as well (e.g. things that we are using repeatedly in the seeding process)
-10. Also, I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
+    1. we're using canonical ulid
+    2. we will store encoded, not raw
+    3. we're using the ulidx library
+2. What implementation considerations are there for our database schema
+3. What are the performance implications of using ULID
+4. What are the best practices for generating and using ULIDs in our application
+5. We need to update the seed.ts file to use ulid() instead of hard coding the ids on every table. 
+6. After we discuss all of that, we need to move on to the discussion of creating a seeding configuration file where we can define all of the sample data we're using, so that when we want to change it, there's one simple place to change it; the config file can contain other things that would make more sense in a config file as well (e.g. things that we are using repeatedly in the seeding process)
+7. Also, I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
 ```ts
 if (course.purchase_active_length) {
   expirationDate = new Date(purchaseDate.getTime() course.purchase_active_length * 24 * 60 * 60 * 1000)
