@@ -1,43 +1,41 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 20, 2024 at 11:35:07 AM (EST)
+Last Updated: Oct 21, 2024 at 11:27:54 AM (EST)
 
-## Notes to the Claude AI
+## Notes to the AI
 
 ### What you need to know
 
-> Last updated at Oct 20, 2024 at 11:35:17 AM
+> Last updated at Oct 21, 2024 at 11:27:49 AM
 
-Let's break this down step by step:
-
-1. First, let's consider the table structure. Based on your description, we need to update the Feedback table. Here's what we should consider:
-    1. Rename 'user_id' to 'student_id'
-    2. Add a 'assigned_to_id' column for the admin/author currently handling the feedback
-    3. Update the 'status' column to include more granular statuses
-    4. Ensure we have 'created_at' and 'updated_at' columns
-2. For the status values, let's consider:
-['submitted', 'assigned', 'in_progress', 'pending_publication', 'resolved', 'no_action_required']
-1. Now, for the seeding process, we need to:
-    1. Ensure feedback dates are after the student's creation date
-    2. Assign realistic statuses and assigned_to_id values
-    3. Generate realistic github_issue_link values when appropriate
-
-So we need to: 
-* Update the Feedback table structure in astrodb_utils.ts
-* Update the status values in seed.ts and astrodb_utils.ts
-* Modify the feedback seeding process to account for user creation dates and the new table structure
-* Consider how to realistically assign statuses, assigned_to_id, and github_issue_link values
+1. We are going to use ULIDs for our primary keys in all of the db tables
+2. Can you define ULID for me, and explain why it's better than UUIDv4?
+3. Can you explain the terms canonical and monotonic, in the context of ULIDs? 
+4. How should we store the ULID? (i.e. raw vs. encoded)
+5. What library should we use for ULID
+6. What implementation considerations are there for our database schema
+7. What are the performance implications of using ULID
+8. What are the best practices for generating and using ULIDs in our application
+9. After we discuss all of that, we need to move on to the discussion of creating a seeding configuration file where we can define all of the sample data we're using, so that when we want to change it, there's one simple place to change it; the config file can contain other things that would make more sense in a config file as well (e.g. things that we are using repeatedly in the seeding process)
+10. Also, I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
+```ts
+if (course.purchase_active_length) {
+  expirationDate = new Date(purchaseDate.getTime() course.purchase_active_length * 24 * 60 * 60 * 1000)
+  }
+}
+```
+11. Finally, I need to know what changes we need to make to our Database > Database Structure > Data Seeding layout section of this document based on the current state of the seed.ts file. 
 
 
 ### General Hygiene Notes
 
-> NOTE TO CLAUDE: **DO NOT** remove any unedited content from this document. Please ONLY make updates and additions. If you need to delete something, please check with me first. **DO NOT** replace any of the content with `[content remains unchanged]`
+> NOTE TO AI: **DO NOT** remove any unedited content from this document. Please ONLY make updates and additions. If you need to delete something, please check with me first. **DO NOT** replace any of the content with `[content remains unchanged]`
 >
-> NOTE TO CLAUDE: **DO NOT** try and print the full contents of this document into the chat response when I send it to you, it is **too long**. Just let me know you got it and we'll go from there.
+> NOTE TO AI: **DO NOT** try and print the full contents of this document into the chat response when I send it to you, it is **too long**. Just let me know you got it and we'll go from there.
 >
-> NOTE TO CLAUDE: I use fish shell, yarn and kitty terminal, I do not use bash, and I don't use NPM; most of the time there isn't an issue, especially when dealing with commands from a 3rd party cli interface--however, sometimes it matters. **Please remember this**
+> NOTE TO AI: I use fish shell, yarn and kitty terminal, I do not use bash, and I don't use NPM; most of the time there isn't an issue, especially when dealing with commands from a 3rd party cli interface--however, sometimes it matters. **Please remember this**
 > 
-> NOTE TO CLAUDE: Please stop apologizing every time I correct an issue with something you helped me with. It's fine. I make mistakes, you make mistakes. I don't need to see a paragraph of you apologizing every time. Just get to the corrections.
+> NOTE TO AI: Please stop apologizing every time I correct an issue with something you helped me with. It's fine. I make mistakes, you make mistakes. I don't need to see a paragraph of you apologizing every time. Just get to the corrections.
 
 ## Summary of Project
 
@@ -572,7 +570,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
 5. Implement documentation: Astro for application docs, and README.md. README.md should explain the project, outline the tooling, outline the installation method, how to run dev, build, test, run the database, reseed the database, etc. Operate all tooling in other words. The application docs should document all of the APIs, other services, whatever would normally be documented so that someone else can use the application.
 6. Outline accessibility functionality, including keyboard navigation
 7. Are there any specific conventions or patterns being used in the project (e.g. naming conventions, file organization)? I can't think of anything, might come up later.
-8. Claude asked for a brief description of the authentication and authorization strategy I'm implementing--honestly, I have no strategy here, so we probably need to define a strategy. \
+8. AI asked for a brief description of the authentication and authorization strategy I'm implementing--honestly, I have no strategy here, so we probably need to define a strategy. \
 9. Open question as to how we're going to manage the separation of concerns regarding Course content data storage (database, content collection, something else) and Platform data storage (users, etc)
 10. We previously created `middleware.ts`, `auth-middleware.ts`, `triggers.ts`, and `astrodb_utils.ts`, and I need to understand how these all interact with each other; I also need to complete all of them, because they're currently only stubbed out
 11. We need to pull out Hanko authentication and implement authentication using Oslo instead [Oslo](https://oslojs.dev)

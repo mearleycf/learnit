@@ -33,6 +33,24 @@ export const getRandomElement = <T>(array?: T[]): T | undefined => {
   return array[randomIndex]!
 }
 
+// generate an array of random elements
+/* --------------------------------------------------------
+usage: getRandomElements(array: T[], count: number): T[]
+- array: the array from which to select elements
+- count: the number of elements to select
+- returns: an array of 'count' number of randomly selected elements from the provided array
+-------------------------------------------------------- */
+
+export const getRandomElements = <T>(array: T[], count: number): T[] => {
+  const shallowCopy: T[] = array.slice()
+  let i = array.length
+  while (--i > 0) {
+    const randomIndex: number = Math.floor(Math.random() * (i + 1))
+    ;[shallowCopy[i], shallowCopy[randomIndex]] = [shallowCopy[randomIndex]!, shallowCopy[i]!]
+  }
+  return shallowCopy.slice(0, count)
+}
+
 // generate a random date between a range of provided dates
 /* --------------------------------------------------------
 usage: 

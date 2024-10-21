@@ -11,9 +11,14 @@ import {
   User_Progress,
   and,
 } from 'astro:db'
-import { entriesGenerator, getRandomElement, randomDateGenerator } from '@utils/general_utils'
-import { calculateExpirationDate } from '@utils/astrodb_utils.ts'
-import { differenceInDays, addDays, subDays } from 'date-fns'
+import {
+  entriesGenerator,
+  getRandomElement,
+  getRandomElements,
+  randomDateGenerator,
+  randomDateGenerator,
+} from '@utils/general_utils'
+import { subDays } from 'date-fns'
 import { eq } from 'astro:db'
 
 // ====================================================================
@@ -30,6 +35,11 @@ const getAllUsers = async () => {
   return users
 }
 
+const getRandomSections = async (courseId: string, count: number) => {
+  const sections = await db.select({ id: Sections.id }).from(Sections).where(eq(Sections.course_id, courseId)).all()
+  return getRandomElements(sections, count).map(section => section.id)
+}
+
 type Exercise = {
   exerciseId: string
   createdAt: Date
@@ -40,7 +50,6 @@ type Section = {
   sectionId: string
   createdAt: Date
   updatedAt: Date | null
-  exercise: Exercise | null
 }
 
 type Chapter = {
@@ -547,7 +556,6 @@ export default async function seed() {
           sectionId: section.id,
           createdAt: createdDate,
           updatedAt: updatedDate,
-          exercise: null,
         })
         console.log(`Inserted section ${section.id}`)
       } catch (error) {
@@ -665,12 +673,6 @@ export default async function seed() {
 
         await db.insert(Exercises).values(exerciseData)
         console.log(`Inserted exercise ${exercise.id}`)
-
-        section.exercise = {
-          exerciseId: exercise.id,
-          createdAt: createdDate,
-          updatedAt: updatedDate,
-        }
       } catch (error) {
         console.error(`Error inserting exercise ${exercise.id}:`, error)
       }
@@ -977,13 +979,6 @@ export default async function seed() {
     const userExerciseProgressData = []
     let progressId = 1
 
-    // Helper function to generate a random date within the last 30 days
-    const getRandomRecentDate = () => {
-      const date = new Date()
-      date.setDate(date.getDate() - Math.floor(Math.random() * 30))
-      return date
-    }
-
     // For each user
     for (let userId = 1; userId <= 7; userId++) {
       const user = await db
@@ -1008,6 +1003,11 @@ export default async function seed() {
           const score = completed ? Math.floor(Math.random() * 41) + 60 : Math.floor(Math.random() * 60) // 60-100 if completed, 0-59 if not
           const attempts = completed ? Math.floor(Math.random() * 3) + 1 : Math.floor(Math.random() * 2) + 1
 
+          const { createdDate } = randomDateGenerator({
+            start: 30,
+            end: 0,
+          })
+
           userExerciseProgressData.push({
             id: String(progressId++),
             user_id: String(userId),
@@ -1015,7 +1015,7 @@ export default async function seed() {
             score,
             completed,
             attempts,
-            last_attempt_at: getRandomRecentDate(),
+            last_attempt_at: createdDate,
           })
         }
       }
@@ -1027,23 +1027,8 @@ export default async function seed() {
     // ====================================================================
 
     // Seed User_Progress
-    const sectionsData = sections.map(section => ({
-      id: section.id,
-      course_id: section.course_id,
-      order_number: section.order_number,
-    }))
-
     console.log('Seeding User Progress...')
     const userProgressData: any[] = []
-
-    // Helper function to get random sections
-    const getRandomSections = (courseId: string, count: number) => {
-      const sections = sectionsData.filter(s => s.course_id === courseId)
-      return sections
-        .sort(() => 0.5 - Math.random())
-        .slice(0, count)
-        .map(s => s.id)
-    }
 
     // For each user (excluding user 8 who is not enrolled in any course)
     for (let userId = 1; userId <= 7; userId++) {
@@ -1052,6 +1037,8 @@ export default async function seed() {
         .from(Users)
         .where(eq(Users.id, String(userId)))
         .get()
+      if (!user) continue
+
       const enrolledCourses = JSON.parse(user?.enrolled_courses as string) as string[]
 
       // For each enrolled course
@@ -1059,26 +1046,50 @@ export default async function seed() {
         const course = await db.select().from(Courses).where(eq(Courses.id, courseId)).get()
         if (!course) continue
 
-        const sections = sectionsData.filter(s => s.course_id === courseId)
+        const sections = await db
+          .select({ id: Sections.id })
+          .from(Sections)
+          .where(eq(Sections.course_id, courseId))
+          .all()
         const totalSections = sections.length
-        const completedCount = Math.floor(Math.random() * (totalSections + 1))
+        const completedCount = entriesGenerator(0, totalSections)
         const completedSections = getRandomSections(courseId, completedCount)
         const currentSection = sections[completedCount % totalSections]
         const currentSectionId = currentSection ? currentSection.id : (sections[0]?.id ?? null)
 
-        const enrollmentDate = new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000) // Random date within last 90 days
+        const { createdDate: enrollmentDate } = randomDateGenerator({
+          start: 90,
+          end: 0,
+        })
         let purchaseDate = null
         let expirationDate = null
 
         if (course.price !== null && course.price > 0) {
-          purchaseDate = new Date(enrollmentDate.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000)
+          const { createdDate: purchaseCreatedDate } = randomDateGenerator({
+            start: enrollmentDate,
+            end: new Date(),
+          })
+          purchaseDate = purchaseCreatedDate
+
           if (course.purchase_active_length) {
             expirationDate = new Date(purchaseDate.getTime() + course.purchase_active_length * 24 * 60 * 60 * 1000)
           }
         }
 
+        const { createdDate: lastAccessedDate } = randomDateGenerator({
+          start: 7,
+          end: 0,
+        })
+
+        const { createdDate, updatedDate } = randomDateGenerator({
+          start: enrollmentDate,
+          end: new Date(),
+          includeUpdated: true,
+          chanceOfUpdate: 0.7,
+        })
+
         userProgressData.push({
-          id: String(progressId++),
+          id: String(entriesGenerator(1, 1000000)),
           user_id: String(userId),
           course_id: courseId,
           current_section_id: currentSectionId,
@@ -1086,7 +1097,9 @@ export default async function seed() {
           enrollment_date: enrollmentDate,
           purchase_date: purchaseDate,
           expiration_date: expirationDate,
-          last_accessed_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random date within last 7 days
+          last_accessed_at: lastAccessedDate,
+          created_at: createdDate,
+          updated_at: updatedDate,
         })
       }
     }
