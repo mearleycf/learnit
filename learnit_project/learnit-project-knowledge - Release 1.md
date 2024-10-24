@@ -1,19 +1,17 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 23, 2024 at 9:39:36 PM
+Last Updated: Oct 23, 2024 at 10:42:07 PM
 
 ## Notes to the AI
 
 ### What you need to know
 
-> Last updated at Oct 23, 2024 at 9:39:29 PM
+> Last updated at Oct 23, 2024 at 10:42:03 PM
 
 1. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
-2. I need to provide you with several files, including db/config.ts, db/seed_config/index.ts, db/seed_config/seed/date-options.ts, db/seed_config/seed/exercise-content.ts, db/seed_config/seed/utils.ts, db/seed_config/seed/courses/javascript-fundamentals.ts, db/seed_config/types/seed-types.ts, db/seedDataConfig.ts
-3. I think we should proceed with effect/Schema instead of zod, because I want to utilize the effect library in other parts of the project, and we should limit what we're using to as few packages/libraries as possible. 
-4. We need to use the effect/Schema library to set up schema validation
-5. We need to ensure all of our sample data is internally consistent
-6. I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
+2. I need to provide you with several files, including db/config.ts, db/seed_config/index.ts, db/seed_config/seed/date-options.ts, db/seed_config/seed/exercise-content.ts, db/seed_config/seed/utils.ts, db/seed_config/seed/courses/javascript-fundamentals.ts, advanced-react.ts, and python-fundamentals.ts, db/seed_config/types/seed-types.ts, db/seedDataConfig.ts, src/utils/general_utils.ts, seed_old.ts, seed.ts
+3. We need to use the effect/Schema library to set up schema validation
+4. I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
 ```ts
 if (course.purchase_active_length) {
   expirationDate = new Date(purchaseDate.getTime() course.purchase_active_length * 24 * 60 * 60 * 1000)
@@ -496,6 +494,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
     2. Made decision to use AstroDB for local development, with storage on either Turso or self-hosted as the online hosting service for the DB
     3. Implementing a strong/robust seed configuration and typing setup so that when we actually do the seed.ts file, we consistently build out a set of data that is as close to a production version of data as possible. 
     4. We are using ulidx as the library for generating and accessing our ULID ids on our tables
+    5. We're going to use the effect library for a variety of concerns; one of those concerns is schema validation, using effect/Schema (instead of using zod for example)
 3. Tailwind & Design decisions:
     1. Will use the inter-veriable font as the primary font
     2. Will use mononoki as the primary code/monospace font

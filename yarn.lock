@@ -2562,6 +2562,7 @@ __metadata:
     astro: "npm:4.16.5"
     astro-icon: "npm:^1.1.1"
     date-fns: "npm:^4.1.0"
+    effect: "npm:^3.10.2"
     eslint: "npm:^9.12.0"
     eslint-config-prettier: "npm:^9.1.0"
     fluid-tailwind: "npm:^1.0.3"
@@ -3710,6 +3711,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"effect@npm:^3.10.2":
+  version: 3.10.2
+  resolution: "effect@npm:3.10.2"
+  dependencies:
+    fast-check: "npm:^3.21.0"
+  checksum: 10c0/000dbbdff402e8fba4602b7a24d4878cbd1a6aca42a0d8adc2e40ee7345feb8ae6bd07a005ea5101d6446058a4006a0471eba004aee14ae070a572dfe79f44fe
+  languageName: node
+  linkType: hard
+
 "electron-to-chromium@npm:^1.5.28":
   version: 1.5.39
   resolution: "electron-to-chromium@npm:1.5.39"
@@ -4110,6 +4120,15 @@ __metadata:
   bin:
     extract-zip: cli.js
   checksum: 10c0/9afbd46854aa15a857ae0341a63a92743a7b89c8779102c3b4ffc207516b2019337353962309f85c66ee3d9092202a83cdc26dbf449a11981272038443974aee
+  languageName: node
+  linkType: hard
+
+"fast-check@npm:^3.21.0":
+  version: 3.22.0
+  resolution: "fast-check@npm:3.22.0"
+  dependencies:
+    pure-rand: "npm:^6.1.0"
+  checksum: 10c0/15c70f83df655f9bdcec4f8ed7e3207a933bf6e22c220a4fafc7ea17a28a009bc5d0a85588689f5726e3514796745cb5b35e7295ce469ac286992548fd55cc1d
   languageName: node
   linkType: hard
 
@@ -7114,6 +7133,13 @@ __metadata:
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10c0/14f76a8206bc3464f794fb2e3d3cc665ae416c01893ad7a02b23766eb07159144ee612ad67af5e84fa4479ccfe67678c4feb126b0485651b302babf66f04f9e9
+  languageName: node
+  linkType: hard
+
+"pure-rand@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "pure-rand@npm:6.1.0"
+  checksum: 10c0/1abe217897bf74dcb3a0c9aba3555fe975023147b48db540aa2faf507aee91c03bf54f6aef0eb2bf59cc259a16d06b28eca37f0dc426d94f4692aeff02fb0e65
   languageName: node
   linkType: hard
 

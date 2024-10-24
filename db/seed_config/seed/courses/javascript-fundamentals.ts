@@ -218,12 +218,6 @@ export const javascriptFundamentals: CourseConfig =
             // end of course 1, chapter 3
           } as ChapterConfig,
         ],
-        dateConfig: {
-          // course 1 date config
-          start: courseDateOptions.courses.start,
-          end: 365,
-          includeUpdated: true,
-          chanceOfUpdate: 1,
-        },
+        dateConfig: courseDateOptions.courses
         // end of course 1
       }

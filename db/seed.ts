@@ -7,15 +7,16 @@ import {
   Users,
   Feedback,
   Notes,
-  User_Exercise_Progress,
-  User_Progress,
+  Student_Exercise_Progress,
+  Student_Progress,
   and,
 } from 'astro:db'
 import { entriesGenerator, getRandomElement, getRandomElements, randomDateGenerator } from '@utils/general_utils'
-import { sampleDataConfig as data } from '@db/seedDataConfig'
+import { courseData as data } from '@db/seed_config/seed/courses/index'
 import { subDays } from 'date-fns'
 import { eq } from 'astro:db'
 import { ulid } from 'ulidx'
+import type { CourseConfig } from '@db/seed_config/types/seed-types'
 
 // ====================================================================
 
@@ -30,8 +31,8 @@ export default async function seed() {
     console.log('Starting seed process...')
 
     // Clear existing data
-    await db.delete(User_Progress)
-    await db.delete(User_Exercise_Progress)
+    await db.delete(Student_Progress)
+    await db.delete(Student_Exercise_Progress)
     await db.delete(Notes)
     await db.delete(Feedback)
     await db.delete(Users)
@@ -47,7 +48,10 @@ export default async function seed() {
     // Seed Courses
     console.log('Seeding Courses...')
 
-    // course seed functionality here
+    async function seedCourses() {
+      const courses: CourseConfig[] = data.courses;
+    
+    }
 
     console.log('Courses seeded')
 
@@ -107,21 +111,21 @@ export default async function seed() {
 
     // ====================================================================
 
-    // Seed User_Exercise_Progress
-    console.log('Seeding User Exercise Progress...')
+    // Seed Student_Exercise_Progress
+    console.log('Seeding Student Exercise Progress...')
 
-    // user exercise progress seed functionality here
+    // Student exercise progress seed functionality here
 
-    console.log('User Exercise Progress seeded')
+    console.log('Student Exercise Progress seeded')
 
     // ====================================================================
 
-    // Seed User_Progress
-    console.log('Seeding User Progress...')
+    // Seed Student_Progress
+    console.log('Seeding Student Progress...')
 
-    // user progress seed functionality here
+    // Student progress seed functionality here
 
-    console.log('User Progress seeded')
+    console.log('Student Progress seeded')
 
     // ====================================================================\
 
