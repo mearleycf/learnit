@@ -1,13 +1,12 @@
 import { addMilliseconds, subDays } from 'date-fns'
 
-// generate a random number between two provided values inclusive
-/* --------------------------------------------------------
-Usage: entriesGenerator(floor?: number, ceiling?: number): number
-- floor: the lowest possible value to generate (inclusive), default is 1 if not provided
-- ceiling: the highest possible value to generate (inclusive), default is 1 if not provided
-- returns: a random number between floor and ceiling, inclusive
--------------------------------------------------------- */
-
+/**
+ * Generates a random number within a specified range.
+ *
+ * @param floor - The lower bound of the range (inclusive). Defaults to 1 if not provided.
+ * @param ceiling - The upper bound of the range (inclusive). Defaults to the value of `floor` or 1 if not provided.
+ * @returns A random number between `floor` and `ceiling`, inclusive.
+ */
 export const entriesGenerator = <T>(floor?: number, ceiling?: number): number => {
   if (floor === undefined && ceiling === undefined) {
     return 1
@@ -19,12 +18,12 @@ export const entriesGenerator = <T>(floor?: number, ceiling?: number): number =>
   return Math.floor(Math.random() * (ceilingNum - floorNum + 1)) + floorNum
 }
 
-// select one element from an array at random
-/* --------------------------------------------------------
-usage: getRandomElement(array: T[]): T | undefined
-- array: the array from which to select an element
-- returns: a randomly selected element from the array, or undefined if the array is empty
--------------------------------------------------------- */
+/**
+ * Selects one element from an array at random.
+ *
+ * @param array - The array from which to select an element.
+ * @returns The randomly selected element, or `undefined` if the provided array is empty or not provided.
+ */
 export const getRandomElement = <T>(array?: T[]): T | undefined => {
   if (!array || array.length === 0) {
     return undefined
@@ -33,14 +32,13 @@ export const getRandomElement = <T>(array?: T[]): T | undefined => {
   return array[randomIndex]!
 }
 
-// generate an array of random elements
-/* --------------------------------------------------------
-usage: getRandomElements(array: T[], count: number): T[]
-- array: the array from which to select elements
-- count: the number of elements to select
-- returns: an array of 'count' number of randomly selected elements from the provided array
--------------------------------------------------------- */
-
+/**
+ * Selects `count` elements from an array at random.
+ *
+ * @param array - The array from which to select elements.
+ * @param count - The number of elements to select.
+ * @returns An array of length `count` containing elements randomly selected from `array`.
+ */
 export const getRandomElements = <T>(array: T[], count: number): T[] => {
   const shallowCopy: T[] = array.slice()
   let i = array.length
@@ -52,23 +50,8 @@ export const getRandomElements = <T>(array: T[], count: number): T[] => {
 }
 
 // generate a random date between a range of provided dates
-/* --------------------------------------------------------
-usage: 
-randomDateGenerator(options: DateOptions = {}): { createdDate: Date; updatedDate: Date | null }
 
-options:
-- start: Date | number (default: 180) - start date or number of days before the reference date
-- end: Date | number (default: current date) - end date or number of days before the reference date
-- reference: Date (default: current date) - reference date for the start and end dates
-- includeUpdated: boolean (default: false) - whether to include an updated date
-- chanceOfUpdate: number (default: 0.8) - chance of an update occurring
-
-returns:
-- createdDate: Date - a randomly generated date within the specified range
-- updatedDate: Date | null - a randomly generated updated date within the specified range, or null if includeUpdated is false or the update does not occur
--------------------------------------------------------- */
-
-type DateOptions = {
+export type DateOptions = {
   start?: Date | number
   end?: Date | number
   reference?: Date
@@ -76,7 +59,7 @@ type DateOptions = {
   chanceOfUpdate?: number
 }
 
-const defaultOptions: Required<DateOptions> = {
+export const defaultOptions: Required<DateOptions> = {
   start: 180,
   end: new Date(),
   reference: new Date(),
@@ -84,6 +67,17 @@ const defaultOptions: Required<DateOptions> = {
   chanceOfUpdate: 0.8,
 }
 
+/**
+ * Generates a random date between a range of provided dates.
+ *
+ * @param options - Options object for customizing the date generation.
+ * @param options.start - The start date of the range. Can be a Date object or a number of days prior to the present day.
+ * @param options.end - The end date of the range. Can be a Date object or a number of days prior to the present day.
+ * @param options.reference - The reference date from which to calculate the start and end dates. Defaults to the present day.
+ * @param options.includeUpdated - Whether or not to include an updated date. Defaults to false.
+ * @param options.chanceOfUpdate - The probability of an updated date being included. Defaults to 0.8.
+ * @returns An object with a createdDate and an updatedDate. The updatedDate is null if options.includeUpdated is false.
+ */
 export const randomDateGenerator = (options: DateOptions = {}): { createdDate: Date; updatedDate: Date | null } => {
   const mergedOptions: Required<DateOptions> = { ...defaultOptions, ...options }
   const generateRandomDate = (startDate: Date, endDate: Date): Date => {

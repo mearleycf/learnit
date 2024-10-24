@@ -1,31 +1,25 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 21, 2024 at 5:34:14 PM (EST)
+Last Updated: Oct 23, 2024 at 9:39:36 PM
 
 ## Notes to the AI
 
 ### What you need to know
 
-> Last updated at Oct 21, 2024 at 5:34:09 PM
+> Last updated at Oct 23, 2024 at 9:39:29 PM
 
-1. We are going to use ULIDs for our primary keys in all of the db tables
-    1. we're using canonical ulid
-    2. we will store encoded, not raw
-    3. we're using the ulidx library
-2. What implementation considerations are there for our database schema
-3. What are the performance implications of using ULID
-4. What are the best practices for generating and using ULIDs in our application
-5. We need to update the seed.ts file to use ulid() instead of hard coding the ids on every table. 
-6. After we discuss all of that, we need to move on to the discussion of creating a seeding configuration file where we can define all of the sample data we're using, so that when we want to change it, there's one simple place to change it; the config file can contain other things that would make more sense in a config file as well (e.g. things that we are using repeatedly in the seeding process)
-7. Also, I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
+1. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
+2. I need to provide you with several files, including db/config.ts, db/seed_config/index.ts, db/seed_config/seed/date-options.ts, db/seed_config/seed/exercise-content.ts, db/seed_config/seed/utils.ts, db/seed_config/seed/courses/javascript-fundamentals.ts, db/seed_config/types/seed-types.ts, db/seedDataConfig.ts
+3. I think we should proceed with effect/Schema instead of zod, because I want to utilize the effect library in other parts of the project, and we should limit what we're using to as few packages/libraries as possible. 
+4. We need to use the effect/Schema library to set up schema validation
+5. We need to ensure all of our sample data is internally consistent
+6. I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
 ```ts
 if (course.purchase_active_length) {
   expirationDate = new Date(purchaseDate.getTime() course.purchase_active_length * 24 * 60 * 60 * 1000)
   }
 }
 ```
-11. Finally, I need to know what changes we need to make to our Database > Database Structure > Data Seeding layout section of this document based on the current state of the seed.ts file. 
-
 
 ### General Hygiene Notes
 
@@ -497,14 +491,23 @@ Then, as a product owner, I could sell the core system to other organizations, a
 ## Key Decisions and Notes
 
 1. Using Astro 5.x (currently in beta) for the frontend with React components.
-2. Made decision to stop using supabase due to platform concerns and issues
-3. Made decision to use AstroDB for local development, with storage on either Turso or self-hosted as the online hosting service for the DB
-4. This means we need to fill some gaps!
+2. Database decisions:
+    1. Made decision to stop using supabase due to platform concerns and issues
+    2. Made decision to use AstroDB for local development, with storage on either Turso or self-hosted as the online hosting service for the DB
+    3. Implementing a strong/robust seed configuration and typing setup so that when we actually do the seed.ts file, we consistently build out a set of data that is as close to a production version of data as possible. 
+    4. We are using ulidx as the library for generating and accessing our ULID ids on our tables
+3. Tailwind & Design decisions:
+    1. Will use the inter-veriable font as the primary font
+    2. Will use mononoki as the primary code/monospace font
+    3. Installed the tailwind-merge package to simplify tailwind classes in production
+    4. Installed the fluid-tailwind package to be able to use the 'clamp' feature of css in tailwind without a lot of overhead
+4. Installed the date-fns package to utilize for various date related functionality
+5. This means we need to fill some gaps!
     1. real time subscriptions
     2. code execution
     3. edge functions if needed (I think vercel provides this)
     4. storage if needed (there aren't a lot of images in the initial courses)
-5. Made decision to switch from Hanko to Oslo for authentication
+6. Made decision to switch from Hanko to Oslo for authentication
 
 ## Completed Steps/Tasks
 1. Set up the project structure--installing and configuring all of the various tooling (see [Tooling](#tooling))
@@ -1187,10 +1190,10 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 
 ## Project Directory Structure (high level only)
 
-> Last updated Oct 17, 2024 at 11:01:23 AM
+> Last updated Oct 23, 2024 at 9:48:01 PM
 > 
 > Note: the following tree command was used, to prune unneeded directory/file info:
-> `tree -a -L 4 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn'`
+> `tree -a -L 4 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
 
 .
 ├── .DS_Store
@@ -1214,6 +1217,21 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 ├── db
 │   ├── config.ts
 │   ├── seed.ts
+│   ├── seedDataConfig.ts
+│   ├── seed_config
+│   │   ├── index.ts
+│   │   ├── seed
+│   │   │   ├── courses
+│   │   │   │   ├── advanced-react.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── javascript-fundamentals.ts
+│   │   │   │   └── python-fundamentals.ts
+│   │   │   ├── date-options.ts
+│   │   │   ├── exercise-content.ts
+│   │   │   └── utils.ts
+│   │   └── types
+│   │       └── seed-types.ts
+│   ├── seed_old.ts
 │   └── triggers.ts
 ├── db.d.ts
 ├── package.json
@@ -1244,7 +1262,9 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 │   ├── styles
 │   │   └── global.css
 │   └── utils
-│       └── astrodb_utils.ts
+│       ├── astrodb_utils.ts
+│       ├── general_utils.ts
+│       └── temp_file_code.ts
 ├── tailwind.config.mjs
 ├── test-results
 │   └── .last-run.json
@@ -1256,4 +1276,4 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 ├── vitest.config.ts
 └── yarn.lock
 
-18 directories, 45 files
+22 directories, 58 files
