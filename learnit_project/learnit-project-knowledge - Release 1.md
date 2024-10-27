@@ -1,12 +1,12 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 24, 2024 at 4:12:21 PM
+Last Updated: Oct 27, 2024 at 12:25:21 PM
 
 ## Notes to the AI
 
 ### What you need to know
 
-> Last updated at Oct 24, 2024 at 4:12:14 PM
+> Last updated Oct 27, 2024 at 12:25:15 PM
 
 1. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
 2. Need to come back to the conversation of Error logging using the Effect/Console functionality; I need to understand it better--for example, where do the logs go? How do I see them? You mentioned better structured logging, adding log levels, add context to logs, configured to output to different destinations, filtered and formatted, and integrate with tracing? I need to know about all of that. 
@@ -141,6 +141,9 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## Current Architecture Overview
 
+> Last updated Oct 27, 2024 at 12:24:58 PM
+> 
+
 1. Frontend (Astro + React)
    - Marketing Site
    - Learning Platform
@@ -161,7 +164,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 4. Backend Services
    - libsql database (by way of AstroDB)
-   - Authentication through Hanko (including OAuth)
+   - Authentication through Oslo (including OAuth)
    - Real-time Subscriptions (service tbd)
    - Storage (service tbd)
    - Code Execution (for exercises) (service tbd)
@@ -169,7 +172,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 5. External Services Integration
    - Stripe Payment
    - Vercel Deployment
-   - Hanko authentication
+   - Oslo authentication
+   - Sentry analytics/monitoring
 
 ## Epics & Features
 
@@ -488,6 +492,9 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## Key Decisions and Notes
 
+> Last updated Oct 27, 2024 at 12:19:09 PM
+> 
+
 1. Using Astro 5.x (currently in beta) for the frontend with React components.
 2. Database decisions:
     1. Made decision to stop using supabase due to platform concerns and issues
@@ -496,42 +503,47 @@ Then, as a product owner, I could sell the core system to other organizations, a
     4. We are using ulidx as the library for generating and accessing our ULID ids on our tables
     5. We're going to use the effect library for a variety of concerns; one of those concerns is schema validation, using effect/Schema (instead of using zod for example)
     6. Note: Effect no longer requires the _ adapter functionality to interact with generator functions. As of version 5.5+ of typescript, it is no longer necessary. 
-3. Tailwind & Design decisions:
+3. Error Handling, Logging, Metrics, Analytics
+    1. Going to implement Sentry for this purpose, in terms of storing/monitoring
+    2. Locally, will use Effect's system to log problems and pass information to Sentry also
+4. Tailwind & Design decisions:
     1. Will use the inter-veriable font as the primary font
     2. Will use mononoki as the primary code/monospace font
     3. Installed the tailwind-merge package to simplify tailwind classes in production
     4. Installed the fluid-tailwind package to be able to use the 'clamp' feature of css in tailwind without a lot of overhead
-4. Installed the date-fns package to utilize for various date related functionality
-5. This means we need to fill some gaps!
+5. Installed the date-fns package to utilize for various date related functionality
+6. This means we need to fill some gaps!
     1. real time subscriptions
     2. code execution
     3. edge functions if needed (I think vercel provides this)
     4. storage if needed (there aren't a lot of images in the initial courses)
-6. Made decision to switch from Hanko to Oslo for authentication
+7. Made decision to switch from Hanko to Oslo for authentication
 
 ## Completed Steps/Tasks
+
+> Last updated Oct 8, 2024 at 12:24:00 PM
+
 1. Set up the project structure--installing and configuring all of the various tooling (see [Tooling](#tooling))
 2. Initial facade definition of all learning platform user stories (see [Epics & Features > Learning Platform](#learning-platform))
 3. Had to remove quite a bit of functionality due to build errors--removed mdx, starlight, and supabase and astroDb, due to build issues--will readd astroDb soon
 
 ## To-Do / Next Steps
 
+> Last updated Oct 27, 2024 at 12:23:49 PM
+
 1. Define remaining features:
     1. Administration: flesh out all features and turn into user stories, subject only
     2. Content Management Platform: flesh out all features and turn into user stories, subject only
     3. Marketing Website: take features already listed in this doc and turn into user stories, subject only
     4. Learning Platform: user stories created, need to be fleshed out for all stories
-2. Implement error handling and logging--set up ErroyBoundary components for React Islands within Astro pages; Implement a global error handling strategy; set up a logging system for better debugging and monitoring.
+2. Implement error handling and logging--set up ErroyBoundary components for React Islands within Astro pages (still needed?); Implement a global error handling strategy; set up a logging system for better debugging and monitoring.
 3. Resolve the following error: `21:20:29 [ERROR] [astro:db] [vite] cannot find entry point module 'astro:db'.` (appears in console when running `yarn astro dev`
 4. Revisit authentication solution--should we use Hanko, or Auth.js, or auth-astro, or oslo and custom-written auth (akin to lucia auth, which is being sunset)
     1. I think we're going to go with Oslo
-5. Update the Notes table seeding so that we generate a random distribution of created_at and updated_at dates to the notes rows
-6. User Progress table--ensure the current section value is always ahead of all completed sections
 7. Once we've updated Notes and User Progress seeding to be more dynamic, we can do the following:
-    1. implement error handling (use Effect for this?)
+    1. implement error handling (use Effect for this, with Sentry integration)
     2. Create a mechanism to easily reset the database to its seeded state for testing purposes
     3. Implement a way to seed data incrementally or update existing seed data
-    4. Create a separate configuration file for seed data parameters (e.g. number of users, courses, etc)
     5. Add data validation checks before inserting seed data
 8. need to write functions that update the enrollment_date, purchase_date, expiration_date columns appropriately
 9. We need to write a function that automatically assigns newly created courses to any users of role 'app_admin', so it doesn't have to be done manually
@@ -573,12 +585,15 @@ Then, as a product owner, I could sell the core system to other organizations, a
 5. Implement documentation: Astro for application docs, and README.md. README.md should explain the project, outline the tooling, outline the installation method, how to run dev, build, test, run the database, reseed the database, etc. Operate all tooling in other words. The application docs should document all of the APIs, other services, whatever would normally be documented so that someone else can use the application.
 6. Outline accessibility functionality, including keyboard navigation
 7. Are there any specific conventions or patterns being used in the project (e.g. naming conventions, file organization)? I can't think of anything, might come up later.
-8. AI asked for a brief description of the authentication and authorization strategy I'm implementing--honestly, I have no strategy here, so we probably need to define a strategy. \
+8. AI asked for a brief description of the authentication and authorization strategy I'm implementing--honestly, I have no strategy here, so we probably need to define a strategy. 
 9. Open question as to how we're going to manage the separation of concerns regarding Course content data storage (database, content collection, something else) and Platform data storage (users, etc)
 10. We previously created `middleware.ts`, `auth-middleware.ts`, `triggers.ts`, and `astrodb_utils.ts`, and I need to understand how these all interact with each other; I also need to complete all of them, because they're currently only stubbed out
 11. We need to pull out Hanko authentication and implement authentication using Oslo instead [Oslo](https://oslojs.dev)
 
 ## Tooling
+
+> Last updated Oct 27, 2024 at 12:23:34 PM
+> 
 
 This tooling setup ensures consistency across the development process and facilitates efficient collaboration.
 
@@ -636,6 +651,7 @@ This tooling setup ensures consistency across the development process and facili
 
 * Hosting: Vercel
 * CI/CD: GitHub Actions
+* Analytics/Monitoring: Sentry
 
 ### Project Management
 
@@ -646,14 +662,6 @@ This tooling setup ensures consistency across the development process and facili
   - Using conventional commits and git flow for commit and branch management
 
 ## Database
-
-### Some common columns
-
-* id: this is the primary key--we need a way to generate this somewhere, I think? In postgres we were using their UUID_v4 method, but I don't think sqlite has an equivalent function?
-* title: when a table has it, it's what it says--a title for that row
-* description: same as above--a description for that row; not all tables have it
-* created_at: the timestamp of when the row was initially created
-* updated_at: the timestamp of when the row was updated; it is updated using database trigger functionality defined elsewhere in the application
 
 ### Courses Table
 
@@ -1190,7 +1198,7 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 
 ## Project Directory Structure (high level only)
 
-> Last updated Oct 23, 2024 at 9:48:01 PM
+> Last updated Oct 27, 2024 at 12:23:19 PM
 > 
 > Note: the following tree command was used, to prune unneeded directory/file info:
 > `tree -a -L 4 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
@@ -1219,8 +1227,10 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 │   ├── seed.ts
 │   ├── seedDataConfig.ts
 │   ├── seed_config
+│   │   ├── .DS_Store
 │   │   ├── index.ts
 │   │   ├── seed
+│   │   │   ├── .DS_Store
 │   │   │   ├── courses
 │   │   │   │   ├── advanced-react.ts
 │   │   │   │   ├── index.ts
@@ -1230,8 +1240,21 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 │   │   │   ├── exercise-content.ts
 │   │   │   └── utils.ts
 │   │   └── types
+│   │       ├── seed-error-types.ts
+│   │       ├── seed-success-types.ts
 │   │       └── seed-types.ts
 │   ├── seed_old.ts
+│   ├── seederFiles
+│   │   ├── chapters.ts
+│   │   ├── courses.ts
+│   │   ├── exercises.ts
+│   │   ├── feedback.ts
+│   │   ├── index.ts
+│   │   ├── notes.ts
+│   │   ├── sections.ts
+│   │   ├── student-exercise-progress.ts
+│   │   ├── student-progress.ts
+│   │   └── users.ts
 │   └── triggers.ts
 ├── db.d.ts
 ├── package.json
@@ -1276,4 +1299,4 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 ├── vitest.config.ts
 └── yarn.lock
 
-22 directories, 58 files
+23 directories, 72 files
