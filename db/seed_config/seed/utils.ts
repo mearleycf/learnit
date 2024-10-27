@@ -2,6 +2,7 @@
 import type { ExerciseConfig } from '../types/seed-types'
 import { courseDateOptions } from './date-options'
 import { ulid } from 'ulidx'
+import { millisecondsPerDayCalc } from '@utils/general_utils'
 
 export const createExerciseData = (
   seedSeq: number, 
@@ -24,3 +25,9 @@ export const createExerciseData = (
   dateConfig: courseDateOptions.exercises,
   ...(comment && { comment })
 })
+
+const milliseconds = millisecondsPerDayCalc()
+export const calculateExpirationDate = (purchaseDate: Date, activeLengthInDays: number): Date | null => {
+    if (!activeLengthInDays) return null;
+    return new Date(purchaseDate.getTime() + (activeLengthInDays * milliseconds))
+}

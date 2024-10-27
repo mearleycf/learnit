@@ -24,6 +24,7 @@
     "@fontsource/lilita-one": "^5.1.0",
     "@fontsource/mononoki": "^5.1.0",
     "@fontsource/righteous": "^5.1.0",
+    "@sentry/astro": "^8.35.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "@testing-library/dom": "^10.4.0",
     "@types/react": "^18.3.11",

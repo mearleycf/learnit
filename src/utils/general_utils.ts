@@ -107,3 +107,19 @@ export const randomDateGenerator = (options: DateOptions = {}): { createdDate: D
     updatedDate,
   }
 }
+
+/**
+ * Calculates the number of milliseconds in a day.
+ *
+ * @returns The total number of milliseconds in one day.
+ */
+export const millisecondsPerDayCalc = () => {
+  const HOURS_PER_DAY = 24
+  const MINUTES_PER_HOUR = 60
+  const SECONDS_PER_MINUTE = 60
+  const MILLISECONDS_PER_SECOND = 1000
+  const MILLISECONDS_PER_MINUTE = SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND
+  const MILLISECONDS_PER_HOUR = MINUTES_PER_HOUR * MILLISECONDS_PER_MINUTE
+  const MILLISECONDS_PER_DAY = HOURS_PER_DAY * MILLISECONDS_PER_HOUR
+  return MILLISECONDS_PER_DAY
+}

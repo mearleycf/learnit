@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-import fluid, { extract, screens, fontSize } from 'tailwindcss-fluid'
-import containerQueries from 'tailwindcss-container-queries'
+import fluid, { extract, screens, fontSize } from 'fluid-tailwind'
+import containerQueries from '@tailwindcss/container-queries'
 import defaultTheme from 'tailwindcss/defaultTheme'
 import plugin from 'tailwindcss'
 
