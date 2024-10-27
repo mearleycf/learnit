@@ -1,15 +1,15 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 23, 2024 at 10:42:07 PM
+Last Updated: Oct 24, 2024 at 4:12:21 PM
 
 ## Notes to the AI
 
 ### What you need to know
 
-> Last updated at Oct 23, 2024 at 10:42:03 PM
+> Last updated at Oct 24, 2024 at 4:12:14 PM
 
 1. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
-2. I need to provide you with several files, including db/config.ts, db/seed_config/index.ts, db/seed_config/seed/date-options.ts, db/seed_config/seed/exercise-content.ts, db/seed_config/seed/utils.ts, db/seed_config/seed/courses/javascript-fundamentals.ts, advanced-react.ts, and python-fundamentals.ts, db/seed_config/types/seed-types.ts, db/seedDataConfig.ts, src/utils/general_utils.ts, seed_old.ts, seed.ts
+2. Need to come back to the conversation of Error logging using the Effect/Console functionality; I need to understand it better--for example, where do the logs go? How do I see them? You mentioned better structured logging, adding log levels, add context to logs, configured to output to different destinations, filtered and formatted, and integrate with tracing? I need to know about all of that. 
 3. We need to use the effect/Schema library to set up schema validation
 4. I'd like you to explain the following to me, and see if we should extract some code to the general_utils file for easier access
 ```ts
@@ -495,6 +495,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
     3. Implementing a strong/robust seed configuration and typing setup so that when we actually do the seed.ts file, we consistently build out a set of data that is as close to a production version of data as possible. 
     4. We are using ulidx as the library for generating and accessing our ULID ids on our tables
     5. We're going to use the effect library for a variety of concerns; one of those concerns is schema validation, using effect/Schema (instead of using zod for example)
+    6. Note: Effect no longer requires the _ adapter functionality to interact with generator functions. As of version 5.5+ of typescript, it is no longer necessary. 
 3. Tailwind & Design decisions:
     1. Will use the inter-veriable font as the primary font
     2. Will use mononoki as the primary code/monospace font

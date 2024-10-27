@@ -1,8 +1,8 @@
-import seed from '@db/seed_old'
+import { seedDb } from '@db/seed'
 
 export default async function () {
   try {
-    await seed()
+    await seedDb()
     console.log('Seeding completed successfully')
   } catch (error) {
     console.error('Error during seeding:', error)

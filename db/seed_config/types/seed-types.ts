@@ -117,3 +117,9 @@ export type UsersConfig = BaseEntityConfig & {
   bitbucket_username: string | null
   last_sign_in: Date | null
 }
+
+export type SeededCourse = {
+  id: string
+  createdAt: Date
+  updatedAt: Date | null
+}
