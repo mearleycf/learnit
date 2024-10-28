@@ -1,3 +1,8 @@
+# Old seed file, not using anymore
+
+## seed file function
+
+```ts
 import {
   db,
   Courses,
@@ -109,10 +114,6 @@ export default async function seed() {
     ]
 
     for (const course of courses) {
-      const oldId = course.id
-      const newId = ulid()
-      courseIdMap.set(oldId, newId)
-
       const { createdDate, updatedDate } = randomDateGenerator({
         start: 720,
         end: 365,
@@ -1041,3 +1042,4 @@ export default async function seed() {
     console.error('Error during seeding:', error)
   }
 }
+```

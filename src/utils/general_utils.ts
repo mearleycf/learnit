@@ -7,7 +7,7 @@ import { addMilliseconds, subDays } from 'date-fns'
  * @param ceiling - The upper bound of the range (inclusive). Defaults to the value of `floor` or 1 if not provided.
  * @returns A random number between `floor` and `ceiling`, inclusive.
  */
-export const entriesGenerator = <T>(floor?: number, ceiling?: number): number => {
+export const entriesGenerator = (floor?: number, ceiling?: number): number => {
   if (floor === undefined && ceiling === undefined) {
     return 1
   }

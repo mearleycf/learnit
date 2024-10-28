@@ -5,8 +5,8 @@ import type { CourseConfig } from '@db/seed_config/types/seed-types'
 import { randomDateGenerator } from '@utils/general_utils'
 import { logWithContext } from '@utils/logger'
 import { LoggerLive } from '@utils/logger'
-import { Effect, LogLevel } from 'effect'
 import { db, Courses } from 'astro:db'
+import { Effect } from 'effect'
 
 const componentName = 'CourseSeeder'
 
