@@ -16,13 +16,15 @@
   "scripts": {
     "astro": "astro",
     "build": "astro check && astro build",
+    "create-sentry-release": "sentry-cli releases new $npm_package_version && sentry-cli releases set-commits $npm_package_version --auto",
     "db:seed": "astro db execute src/scripts/runSeed.ts",
     "dev": "astro dev",
     "preview": "astro preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "version": "yarn create-sentry-release && git push --follow-tags"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
