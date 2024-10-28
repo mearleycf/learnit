@@ -2120,7 +2120,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/cli@npm:^2.36.1":
+"@sentry/cli@npm:2.38.0, @sentry/cli@npm:^2.36.1":
   version: 2.38.0
   resolution: "@sentry/cli@npm:2.38.0"
   dependencies:
@@ -5988,6 +5988,7 @@ __metadata:
     "@iconify-json/solar": "npm:^1.2.1"
     "@playwright/test": "npm:^1.48.1"
     "@sentry/astro": "npm:^8.35.0"
+    "@sentry/cli": "npm:2.38.0"
     "@stylistic/eslint-plugin": "npm:^2.9.0"
     "@tailwindcss/container-queries": "npm:^0.1.1"
     "@tailwindcss/forms": "npm:^0.5.9"
