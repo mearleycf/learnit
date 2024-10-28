@@ -2,7 +2,6 @@
 import Layout from '@layouts/Layout.astro'
 import '@utils/temp_file_code'
 import '@utils/general_utils'
-import '@db/seed_old'
 ---
 
 <Layout title="Login">
@@ -14,8 +13,8 @@ import '@db/seed_old'
   function handleClick() {
     throw new Error('Test error')
   }
-  const errorButton = document.querySelector("#error-button");
-if (errorButton) {
-  errorButton.addEventListener("click", handleClick);
-}
+  const errorButton = document.querySelector('#error-button')
+  if (errorButton) {
+    errorButton.addEventListener('click', handleClick)
+  }
 </script>

@@ -19,6 +19,7 @@
     "lib": ["es2022", "dom", "DOM.Iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "react",
+    "types": ["vite/client"],
     // path aliases
     "paths": {
       "@assets/*": ["src/assets/*"],
