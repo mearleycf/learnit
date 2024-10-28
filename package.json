@@ -1,6 +1,17 @@
 {
-  "name": "astro-base",
-  "version": "1.0.1",
+  "name": "learnit",
+  "version": "0.1.0",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mearleycf/learnit"
+  },
+  "license": "UNLICENSED",
+  "author": {
+    "name": "Mike Earley",
+    "email": "mwe@sent.com",
+    "url": "https://github.com/mearleycf"
+  },
   "type": "module",
   "scripts": {
     "astro": "astro",

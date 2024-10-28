@@ -1,21 +1,51 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 27, 2024 at 12:57:33 PM
+Last Updated: Oct 27, 2024 at 9:07:17 PM
 
 ## Notes to the AI
 
 ### What you need to know
 
-> Last updated Oct 27, 2024 at 12:57:28 PM
+> Last updated Oct 27, 2024 at 9:07:12 PM
 
 1. We are doing the following, currently:
-    1. Moving to implement Effect's Console logging system
-    2. In the process of creating the separate seeder files for the remaining tables (we've done courses; need to do the rest)
-    3. We need to identify any remaining database integration tasks (schema validation, error handling, etc)
-2. Please note the following (also noted later in the document here)
+    1. ~~Moving to implement Effect's Console logging system~~
+    2. ~~Logger testing page created at /logTesting~~
+    3. ~~Need to fix typescript errors in runLog function params~~
+    4. Sentry integration not working--logs not appearing in dashboard
+    5. Need to verify logging levels are working as expected
+    6. Need to implement better structured logging and add context
+    7. In the process of creating the separate seeder files for the remaining tables (we've done courses; need to do the rest)
+        1. [x] Courses
+        2. [] Chapters
+        3. [] Sections
+        4. [] Exercises
+        5. [] Users
+        6. [] Feedback
+        7. [] Notes
+        8. [] Student Exercise Progress
+        9. [] Student Progress
+    8. We need to identify any remaining database integration tasks (schema validation, error handling, etc)
+        1. [x] Initial AstroDB configuration
+        2. [x] Schema definitions
+        3. [] Schema validation using effect/Schema
+        4. [] error handling improvements
+        5. [] database reset mechanism
+        6. [] incremental seeding capability
+2. Immediate next steps:
+    1. Fix typescript errors in logTesting.astro
+        ```typescript
+        const runLog = (level: keyof typeof LogLevel, message: string, context = {}) => {
+          // ... rest of function
+        }
+        ```
+    2. debug sentry integration - verify dsn and config
+    3. complete the remaining seeder files following courses.ts pattern
+    4. implement effect/Schema for validation
+    5. I'd like to export the logs to a file in addition to exporting them to Sentry...
+3. Please note the following (also noted later in the document here)
     1. We're using TypeScript 5.5+, meaning we no longer need the _ adapter to integrate Effect with generator functions
-3. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
-4. Need to come back to the conversation of Error logging using the Effect/Console functionality; I need to understand it better--for example, where do the logs go? How do I see them? You mentioned better structured logging, adding log levels, add context to logs, configured to output to different destinations, filtered and formatted, and integrate with tracing? I need to know about all of that. 
+4. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
 5. We need to use the effect/Schema library to set up schema validation
 
 ### General Hygiene Notes

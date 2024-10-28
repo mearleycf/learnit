@@ -1,0 +1,100 @@
+---
+// src/pages/logTesting.astro
+import Layout from '@layouts/Layout.astro'
+import { Effect } from 'effect'
+import { logWithContext, LoggerLive } from '@utils/logger'
+
+// Test server-side logging on page load
+const testServerLogging = Effect.gen(function* () {
+  yield* logWithContext('LogTestPage', 'Page loaded - testing server-side logging', 'Info', {
+    environment: import.meta.env.MODE,
+  })
+}).pipe(Effect.provide(LoggerLive))
+
+await Effect.runPromise(testServerLogging)
+---
+
+<Layout title="Logger Testing">
+  <main class="container mx-auto p-4">
+    <h1 class="mb-6 text-2xl font-bold">Logger Testing Page</h1>
+
+    <div class="space-y-4">
+      <section class="rounded border p-4">
+        <h2 class="mb-4 text-xl font-semibold">Test Different Log Levels</h2>
+        <div class="space-x-4">
+          <button id="debug-button" class="rounded bg-gray-200 px-4 py-2">Log Debug</button>
+          <button id="info-button" class="rounded bg-blue-200 px-4 py-2">Log Info</button>
+          <button id="warn-button" class="rounded bg-yellow-200 px-4 py-2">Log Warning</button>
+          <button id="error-button" class="rounded bg-red-200 px-4 py-2">Log Error</button>
+        </div>
+      </section>
+
+      <section class="rounded border p-4">
+        <h2 class="mb-4 text-xl font-semibold">Test with Context</h2>
+        <button id="context-button" class="rounded bg-purple-200 px-4 py-2"> Log with Extra Context </button>
+      </section>
+
+      <section class="rounded border p-4">
+        <h2 class="mb-4 text-xl font-semibold">Test Error Tracking</h2>
+        <button id="sentry-button" class="rounded bg-red-400 px-4 py-2"> Trigger Sentry Error </button>
+      </section>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  import { Effect } from 'effect'
+  import { logWithContext, LoggerLive } from '@utils/logger'
+  import { LogLevel } from 'effect'
+
+  const runLog = (level: keyof typeof LogLevel, message: string, context: Record<string, unknown> = {}) => {
+    const program = logWithContext('LogTestPage', message, level, context).pipe(Effect.provide(LoggerLive))
+
+    Effect.runPromise(program)
+  }
+
+  // Basic log level testing
+  document.querySelector('#debug-button')?.addEventListener('click', () => {
+    runLog('Debug', 'Debug message test', { source: 'debug-button' })
+  })
+
+  document.querySelector('#info-button')?.addEventListener('click', () => {
+    runLog('Info', 'Info message test', { source: 'info-button' })
+  })
+
+  document.querySelector('#warn-button')?.addEventListener('click', () => {
+    runLog('Warning', 'Warning message test', { source: 'warn-button' })
+  })
+
+  document.querySelector('#error-button')?.addEventListener('click', () => {
+    runLog('Error', 'Error message test', { source: 'error-button' })
+  })
+
+  // Context testing
+  document.querySelector('#context-button')?.addEventListener('click', () => {
+    runLog('Info', 'Testing with rich context', {
+      source: 'context-button',
+      timestamp: new Date().toISOString(),
+      userId: 'test-user-123',
+      environment: import.meta.env.MODE,
+      features: ['logging', 'testing'],
+      metrics: {
+        responseTime: 123,
+        cpuUsage: '45%',
+      },
+    })
+  })
+
+  // Sentry error testing
+  document.querySelector('#sentry-button')?.addEventListener('click', () => {
+    runLog('Error', 'Sentry test error', {
+      source: 'sentry-button',
+      error: new Error('Intentionally triggered error for Sentry testing'),
+      context: {
+        location: 'log testing page',
+        action: 'sentry test',
+        timestamp: new Date().toISOString(),
+      },
+    })
+  })
+</script>
