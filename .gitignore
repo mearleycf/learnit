@@ -155,3 +155,6 @@ dist
 
 # vercel auto generated build folder
 .vercel/
+
+# Sentry Config File
+.sentryclirc

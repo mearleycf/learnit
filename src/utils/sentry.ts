@@ -8,11 +8,14 @@ export const initSentry = () => {
     release: 'learnit@' + process.env.npm_package_version,
     enableTracing: true,
     tracesSampleRate: 1.0,
+    tracePropagationTargets: ['localhost', '127.0.0.1'],
     debug: !import.meta.env.PROD,
+
     integrations: [
       Sentry.captureConsoleIntegration(),
       Sentry.httpClientIntegration(),
       Sentry.sessionTimingIntegration(),
+      Sentry.browserTracingIntegration(),
     ],
   })
 }
