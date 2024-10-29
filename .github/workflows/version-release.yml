@@ -76,11 +76,6 @@ jobs:
           fi
 
       - name: Create Sentry release
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: |
           VERSION=${{ steps.version_bump.outputs.NEW_VERSION }}
           echo "Creating sentry release for Version: $VERSION"
