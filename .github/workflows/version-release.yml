@@ -76,6 +76,11 @@ jobs:
           fi
 
       - name: Create Sentry release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: |
           VERSION=${{ steps.version_bump.outputs.NEW_VERSION }}
           echo "Creating sentry release for Version: $VERSION"
@@ -124,9 +129,3 @@ jobs:
           echo "- Version: ${{ steps.version_bump.outputs.NEW_VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
           echo "- Bump Type: ${{ github.event.inputs.bump_type }}" >> $GITHUB_STEP_SUMMARY
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-  SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-  SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-  SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
