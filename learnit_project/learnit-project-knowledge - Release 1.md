@@ -1,22 +1,21 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 27, 2024 at 9:07:17 PM
+Last Updated: Oct 30, 2024 at 3:42:00 PM
 
 ## Notes to the AI
 
 ### What you need to know
 
-> Last updated Oct 27, 2024 at 9:07:12 PM
+> Last updated Oct 30, 2024 at 3:42:06 PM
 
 1. We are doing the following, currently:
     1. ~~Moving to implement Effect's Console logging system~~
     2. ~~Logger testing page created at /logTesting~~
     3. ~~Need to fix typescript errors in runLog function params~~
-    4. Sentry integration not working--logs not appearing in dashboard
-    5. Need to verify logging levels are working as expected
-    6. Need to implement better structured logging and add context
-    7. In the process of creating the separate seeder files for the remaining tables (we've done courses; need to do the rest)
-        1. [x] Courses
+    4. Convert current seeding process into a state machine using Effect
+    5. Need to implement better structured logging and add context
+    6. In the process of creating the separate seeder files for the remaining tables (we've done courses; need to do the rest)
+        1. [x] Courses (convert to state machine)
         2. [] Chapters
         3. [] Sections
         4. [] Exercises
@@ -25,7 +24,7 @@ Last Updated: Oct 27, 2024 at 9:07:17 PM
         7. [] Notes
         8. [] Student Exercise Progress
         9. [] Student Progress
-    8. We need to identify any remaining database integration tasks (schema validation, error handling, etc)
+    7. We need to identify any remaining database integration tasks (schema validation, error handling, etc)
         1. [x] Initial AstroDB configuration
         2. [x] Schema definitions
         3. [] Schema validation using effect/Schema
@@ -33,16 +32,10 @@ Last Updated: Oct 27, 2024 at 9:07:17 PM
         5. [] database reset mechanism
         6. [] incremental seeding capability
 2. Immediate next steps:
-    1. Fix typescript errors in logTesting.astro
-        ```typescript
-        const runLog = (level: keyof typeof LogLevel, message: string, context = {}) => {
-          // ... rest of function
-        }
-        ```
-    2. debug sentry integration - verify dsn and config
-    3. complete the remaining seeder files following courses.ts pattern
-    4. implement effect/Schema for validation
-    5. I'd like to export the logs to a file in addition to exporting them to Sentry...
+    1. Work on conversion of seeding to state machine
+    2. complete the remaining seeder files following courses.ts pattern
+    3. implement effect/Schema for validation
+    4. I'd like to export the logs to a file in addition to exporting them to Sentry...
 3. Please note the following (also noted later in the document here)
     1. We're using TypeScript 5.5+, meaning we no longer need the _ adapter to integrate Effect with generator functions
 4. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
@@ -59,6 +52,9 @@ Last Updated: Oct 27, 2024 at 9:07:17 PM
 > NOTE TO AI: Please stop apologizing every time I correct an issue with something you helped me with. It's fine. I make mistakes, you make mistakes. I don't need to see a paragraph of you apologizing every time. Just get to the corrections.
 
 ## Summary of Project
+
+> Last updated on Oct 30, 2024 at 3:43:14 PM
+> 10/30: changed table names to student_progress, student_exercise_progress
 
 I want to build a learning platform for learning development languages and frameworks. A good example is https://learnjavascript.online
 
@@ -94,29 +90,29 @@ I want to build a learning platform for learning development languages and frame
  
 ### Definition of terms
 
-- Learning Platform: This is the application that a registered user who has registered for a course will use to engage in learning the course's content
+- Learning Platform: This is the application that a registered student who has registered for a course will use to engage in learning the course's content
     - Dashboard: The main page where a registered student can see their enrolled courses, payment status, progress, and achievements. 
     - Course: A course is a group of concepts all related to learning a programming language or framework (or really, any group of related concepts), typically organized from most basic concept at the beginning, through to most complicated concepts at the end. The goal is that the user has functionally complete understanding of a course's concepts upon completion
-    - Course Interface: This is the interface in the application that the user will see when they are inside a section of a course
+    - Course Interface: This is the interface in the application that the student will see when they are inside a section of a course
         - Course Outline: A comprehensive view of all chapters and sections in a course.
         - Knowledge Map: A visual representation of the course structure and concept relationships.
         - Course Achievements: Rewards or recognition for completing certain milestones or tasks. 
         - Course Chapter: This is one of one or more blocks of course sections, grouped by a specific concept within that programming language or framework (e.g. Objects, Arrays, etc)
             - Chapter Notes: Enables students to add personal annotations and highlight portions of text in the course content.
-                - Highlight: this is a block of text within a content section or recap section that the user has highlighted, and selected to save to their notes (without a comment)
-                - Highlight and Comment: same as a highlight, but the user has entered comments related to the highlighted text.
-                - Comment: just a comment a user has added to their notes, that is not attached to highlighted text. 
+                - Highlight: this is a block of text within a content section or recap section that the student has highlighted, and selected to save to their notes (without a comment)
+                - Highlight and Comment: same as a highlight, but the student has entered comments related to the highlighted text.
+                - Comment: just a comment a student has added to their notes, that is not attached to highlighted text. 
             - Chapter Section: This is one of one or more types of chapter learning materials
                 - Section Type - Content: This is a type of section that contains explanatory text, code blocks, images, and links about a specific subset of a concept (e.g. Array destructuring)
-                - Section Type - Exercise: This is a type of section that contains a challenge for the user to complete, in order to test their knowledge of the previous content section; a content section will typically have one or more exercise sections that accompany it; an exercise is a live code editor and testing interface
+                - Section Type - Exercise: This is a type of section that contains a challenge for the student to complete, in order to test their knowledge of the previous content section; a content section will typically have one or more exercise sections that accompany it; an exercise is a live code editor and testing interface
                     - Exercise Instructions: the task or problem description for an exercise.
                     - Exercise Code Editor: The interface where students write and edit code.
                     - Exercise Console: The area where code output and errors are displayed.
                     - Exercise Tests: Automated checks to verify if the student's code meets the exercise requirements.
                 - Section Type - Chapter Recap: This is a type of section that reviews the material and concepts learned within the just-completed chapter
                 - Bookmarks: Allows students to mark specific sections for easy reference.
-        - Course Navigation: This is the interface the user will see that allows them to navigate between sections
-        - Spaced Repitition: This is a learning concept/methodology in which a user is presented with questions regarding concepts they have recently learned, presented after a certain duration, which encourages long term memory formation through repetition of the concepts.
+        - Course Navigation: This is the interface the student will see that allows them to navigate between sections
+        - Spaced Repitition: This is a learning concept/methodology in which a student is presented with questions regarding concepts they have recently learned, presented after a certain duration, which encourages long term memory formation through repetition of the concepts.
             - Flashcards: Part of the spaced repitition system, these are quick questions or prompts related to completed course content.
 - Content Management Platform: This is the application that a content creator will use to create courses and their related concepts, chapters, and sections.
     - Course Builder: The interface for creating and structuring courses.
@@ -128,13 +124,13 @@ I want to build a learning platform for learning development languages and frame
     - Administrator: A user who manages the learning platform and content management platform, the related users and courses.
     - User Management Tools: tools for managing user accounts and permissions.
     - Analytics Dashboard: interface for viewing course and user statistics
-- Marketing Website: This is the website/application that will contain all information related to all courses, pricing, and other details necessary to guide users into using the learning platform and purchasing courses.
-    - Guest: A guest is a visitor to the marketing website who is a potential future user or content creator.
+- Marketing Website: This is the website/application that will contain all information related to all courses, pricing, and other details necessary to guide student into using the learning platform and purchasing courses.
+    - Guest: A guest is a visitor to the marketing website who is a potential future student or content creator.
 - Technical Terms
     - API: Application Programming Interface, used for integrating external services or data
     - Database: the system used to store course content, user data, and progress information
 - Terms we are **not** using:
-    - Lesson: instead we need to specifically refer to section content, section exercises, or chapter recaps
+    - none that I can think of at this time
 
 ### Overall System Functionality summary
 
@@ -161,7 +157,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
 ### Platform Administration
 
 - this would be a signed in 'admin' user
-- they would be able to see a list of courses, course details, course publication status, # of enrolled users, other analytical data that is appropriate
+- they would be able to see a list of courses, course details, course publication status, # of enrolled students, other analytical data that is appropriate
 - a course would not be live on the site (and available to users) until an admin published it; they could only publish 'finished' courses and course updates; they could unpublish a course; they could archive a course (which does not delete its contents but removes it from content creator administration site)
 - they would be able to manage things like the content of the marketing site, it's course landing pages, faqs, things like that
 - they would be able to manage users--user details, purchase details, authentication details, tools to help with authentication, purchasing
@@ -173,23 +169,22 @@ Then, as a product owner, I could sell the core system to other organizations, a
 > Last updated Oct 27, 2024 at 12:24:58 PM
 > 
 
-1. Frontend (Astro + React)
+1. Frontend (Astro + React(?))
    - Marketing Site
    - Learning Platform
    - Admin Dashboard
    - CMS Interface
 
-2. Astro Content Collections
-   - Courses Collection
-   - Chapters Collection
-   - Exercises Collection
+1. Astro Content Collections
+    - Needf to better understand how to integrate astro db with content collections and the content layer API introduced in Astro v5.x
 
-3. Astro API Routes
+2. Astro API Routes
    - Content Serving
    - User Management
    - Progress Tracking
    - Feedback System
    - Note Management
+   - What else? 
 
 4. Backend Services
    - libsql database (by way of AstroDB)
@@ -208,8 +203,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ### Learning Platform
 
-#### Courses Dashboard / User Landing Page
-- [x] This is the page displayed after a user logs in successfully
+#### Courses Dashboard / Student Landing Page
+- [x] This is the page displayed after a student logs in successfully
 - [x] View all registered/purchased courses
 - [x] View status/progress of all courses
 - [x] View detailed status of individual course progress
@@ -239,10 +234,10 @@ Then, as a product owner, I could sell the core system to other organizations, a
 - [x]     - provide flashcard functionality feedback
 - [x]     - view flashcards FAQ
 
-##### user profile
+##### student profile
 
 - [x] - view profile menu
-- [x]     - view user profile information (avatar, name, email)
+- [x]     - view student profile information (avatar, name, email)
 - [x]     - view github discussions (link to github)
 - [x]     - view purchases
 - [x]         - view all purchases (course name, purchase date, expiration date)
@@ -359,7 +354,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
 - [x]     - enable navigate to next section/exercise/recap button
 - [x]     - display any flashy congratulations things?
 - [x] - view exercise solution (modal)
-- [x]     - view solution diffed against user answer
+- [x]     - view solution diffed against student answer
 - [x]     - copy solution
 - [x]     - view/edit solution unlock timer delay
 - [x]     - save changed delay
@@ -368,8 +363,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 - [x]     - view count of hints for current exercise (e.g. 1 of 4, 2 of 4, etc)
 - [x]     - view currently displayed hint number (e.g. hint 1, hint 2, etc)
 - [x]     - view current hint details
-- [x]     - navigate to previous hint (only if user is navigated past first hint)
-- [x]     - navigate to next hint (only if user is not on last hint)
+- [x]     - navigate to previous hint (only if student is navigated past first hint)
+- [x]     - navigate to next hint (only if student is not on last hint)
 - [x]     - close hint modal (i.e. let me try button)
 - [x] - remind me to complete exercise later
 - [x]     - display success notification
@@ -490,11 +485,11 @@ Then, as a product owner, I could sell the core system to other organizations, a
         - view time to complete
         - view # of projects (or challenges?)
 
-#### Individual Course Landing Page (logged in user)
+#### Individual Course Landing Page (logged in student)
 
 - see Course Functionality section
 
-#### Support Landing Page (logged in user)
+#### Support Landing Page (logged in student)
 
 - not sure what all goes here…
     - faqs?
@@ -507,16 +502,16 @@ Then, as a product owner, I could sell the core system to other organizations, a
     - no access to discord?
 
 #### Learnit Platform registration
-- register new user
+- register new student
     - oauth from github and google
     - view password requirements
 - learnit terms of service and privacy policy links
 - view login page instead of registration page
 
 #### Learnit Platform Login
-- log in user (email/password)
-- log in user (oauth)
-- reset password (email/password user only)
+- log in student (email/password)
+- log in student (oauth)
+- reset password (email/password student only)
 - view register page instead of login page
 
 ## Key Decisions and Notes
@@ -558,31 +553,36 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## To-Do / Next Steps
 
-> Last updated Oct 27, 2024 at 12:23:49 PM
+> Last updated Oct 30, 2024 at 3:51:47 PM
+> 10/30: updated point about error handling to include sub-points and notes on effect logging system; added point about sentry integration not working. 
 
 1. Define remaining features:
     1. Administration: flesh out all features and turn into user stories, subject only
     2. Content Management Platform: flesh out all features and turn into user stories, subject only
     3. Marketing Website: take features already listed in this doc and turn into user stories, subject only
     4. Learning Platform: user stories created, need to be fleshed out for all stories
-2. Implement error handling and logging--set up ErroyBoundary components for React Islands within Astro pages (still needed?); Implement a global error handling strategy; set up a logging system for better debugging and monitoring.
+2. Implement error handling and logging
+    1. set up ErroyBoundary components for React Islands within Astro pages (still needed?)
+    2. Continue to implement a global error handling strategy using Effect
+    3. Ensure the Effect logging system we've configured will work holistically for our application
+    4. Sentry integration isn't sending errors to Sentry for some reason; resolve. 
 3. Resolve the following error: `21:20:29 [ERROR] [astro:db] [vite] cannot find entry point module 'astro:db'.` (appears in console when running `yarn astro dev`
 4. Revisit authentication solution--should we use Hanko, or Auth.js, or auth-astro, or oslo and custom-written auth (akin to lucia auth, which is being sunset)
     1. I think we're going to go with Oslo
-7. Once we've updated Notes and User Progress seeding to be more dynamic, we can do the following:
+5. Once we've updated Notes and Student Progress seeding to be more dynamic, we can do the following:
     1. implement error handling (use Effect for this, with Sentry integration)
     2. Create a mechanism to easily reset the database to its seeded state for testing purposes
     3. Implement a way to seed data incrementally or update existing seed data
-    5. Add data validation checks before inserting seed data
-8. need to write functions that update the enrollment_date, purchase_date, expiration_date columns appropriately
-9. We need to write a function that automatically assigns newly created courses to any users of role 'app_admin', so it doesn't have to be done manually
-10. Courses table needs new fields:
+    4. Add data validation checks before inserting seed data
+6. need to write functions that update the enrollment_date, purchase_date, expiration_date columns appropriately
+7. We need to write a function that automatically assigns newly created courses to any users of role 'app_admin', so it doesn't have to be done manually
+8. Courses table needs new fields:
     1. course status column--"published", "archived", "draft"
     2. course last_edited_by column (it's a foreign key reference to users)
     3. course last_edited_on column (date)
-11. I'm going to take a guess that we also need those exact same columns for "Chapters", "Sections", and "Exercises"...
-12. I need to know how sqlite handles historical changes--i.e. if an 'author' makes changes to a course, and saves the course changes, the new version of the course is not 'published' until an app_admin or course_admin 'publishes' the course; so we would have to somehow maintain 2 versions of the course? Or handle draft changes to a published course in a different manner, so that when an admin changes it from 'draft' to 'published', we apply the changes to the existing course row? Or do we just create a new course row, new copies of all of its descendants including any changes made to them (chapters > sections & exercises), update all users, user_progress, user_exercise_progress? That option sounds like a nightmare. I'm open to whatever ideas you have here. 
-13. Implement the Effect typescript library, including OpenTelemetry
+9. I'm going to take a guess that we also need those exact same columns for "Chapters", "Sections", and "Exercises"...
+10. I need to know how sqlite handles historical changes--i.e. if an 'author' makes changes to a course, and saves the course changes, the new version of the course is not 'published' until an app_admin or course_admin 'publishes' the course; so we would have to somehow maintain 2 versions of the course? Or handle draft changes to a published course in a different manner, so that when an admin changes it from 'draft' to 'published', we apply the changes to the existing course row? Or do we just create a new course row, new copies of all of its descendants including any changes made to them (chapters > sections & exercises), update all users, student_progress, student_exercise_progress? That option sounds like a nightmare. I'm open to whatever ideas you have here. 
+11. Implement the Effect typescript library, including OpenTelemetry
     1. I don't know anything about either of these libraries, you're going to have to walk me through them
     2. Effect apparently has some advanced features beyond just error management:
         1. First, implementing the Effect type functionality, creating and running the effects
@@ -747,15 +747,13 @@ This table represents a breakout of sections that have a type of 'exercise'. Thi
 * hints (JSON): the hint content of 1 or more hints that will help the user complete the exercise
 * difficulty: 'beginner', 'intermediate', 'advanced' are probably sufficient for now
 * default_solution (JSON): this is the solution as defined by the course author. 
-* user_solution (JSON): this is the solution the user wrote, which is updated as they continue to update the solution--so, every time we run the console code (which is basically live) we should also save the user solution
+* student_solution (JSON): this is the solution the user wrote, which is updated as they continue to update the solution--so, every time we run the console code (which is basically live) we should also save the user solution
 * estimated_time_minutes: estimated time, in minutes, to complete the course
 
 ### Feedback Table
 
-> Last updated Oct 20, 2024 at 11:59:37 AM
-> 
-
-### Feedback Table
+> Last updated Oct 30, 2024 at 3:54:54 PM
+> 10/30: changed user_id to student_id
 
 This table represents feedback submitted by students through the learning platform interface. 
 
@@ -771,39 +769,39 @@ This table represents feedback submitted by students through the learning platfo
 
 ### Notes Table
 
-> Last updated at Oct 15, 2024 at 7:33:56 PM
-> 
+> Last updated at Oct 30, 2024 at 3:55:15 PM
+> 10/30: updated user_id to student_id
 
-This table represents notes that the student takes during a course. Each row is an entry the user has written, or text they've highlighted, or both. A user can have 0 to many rows for each section. 
+This table represents notes that the student takes during a course. Each row is an entry the student has written, or text they've highlighted, or both. A student can have 0 to many rows for each section. 
 
-* user_id (indexed): foreign key to users
+* student_id (indexed): foreign key to users
 * section_id (indexed): foreign key to sections
 * note_text (JSON, default {}, optional): any notes the user has added to a particular section
 * highlighted_text (JSON, default {}, optional): any sections of text in the chapter recap or lesson content that the user has highlighted to add to their notes
     * note: there can be notes text without a highlight, and a highlight without notes text, and a combination of note text and highlights for a single row/entr6y
 
-### User Exercise Progress Table
+### Student Exercise Progress Table
 
-> Last updated at Oct 16, 2024 at 11:36:00 AM
-> 
+> Last updated at Oct 30, 2024 at 3:55:42 PM
+> 10/30: changed name to student exercise progress, user_id to student_id
 
-This table tracks a student's progress in one exercise per row. Each row is unique across user & exercise_id combined; a user can have multiple rows on the table but only one per exercise_id. 
+This table tracks a student's progress in one exercise per row. Each row is unique across user & exercise_id combined; a student can have multiple rows on the table but only one per exercise_id. 
 
-* user_id (indexed): foreign key to users
+* student_id (indexed): foreign key to users
 * exercise_id (indexed): foreign key to exercises
 * score (optional, default 0): score of exercise
 * completed (boolean): status of exercise
-* attempts (default 0): number of attempts--tbd whether this is # of times user has hit the 'run' button, or something else
+* attempts (default 0): number of attempts--tbd whether this is # of times student has hit the 'run' button, or something else
 * last_attempt_at (date, optional): the date the student last attempted the exercise in this row
 
-### User Progress Table
+### Student Progress Table
 
-> Last updated at Oct 16, 2024 at 11:36:28 AM
-> 
+> Last updated at Oct 30, 2024 at 3:56:14 PM
+> 10/30: updated name to student progress; changed user_id to student_id
 
-This table track's a student's progress in one course. Each row represents one user/course unique combination. A user can have multiple rows, but only if they have multiple courses. If there is no entry on this table for a registered course for a student, then they have not started the course.
+This table track's a student's progress in one course. Each row represents one user/course unique combination. A student can have multiple rows, but only if they have multiple courses. If there is no entry on this table for a registered course for a student, then they have not started the course.
 
-* user_id (indexed): foreign key to users
+* student_id (indexed): foreign key to users
 * course_id (indexed): foreign key to course
 * current_section_id (indexed): foreign key to sections.id
 * completed_sections (json, default {}): list of completed sections in current course
@@ -839,9 +837,10 @@ This table stores the users of the learning platform, administration platform, a
 
 ### Data Seeding layout
 
-> Last updated Oct 18, 2024 at 2:49:16 AM
+> Last updated Oct 30, 2024 at 3:17:18 PM
 >
 > Note: For all tables, when a column type is JSON, the seed data should use JSON objects.
+> Note: This almost certainly needs to be updated to match current state
 
 #### Courses
 
@@ -931,13 +930,13 @@ This table stores the users of the learning platform, administration platform, a
 * Random distribution of created_at and updated_at dates
 * Content should be relevant to the course and chapter topics
 
-#### User Exercise Progress
+#### Student Exercise Progress
 
 * Progress entries for every exercise for users 1-7
 * Include score, completion status, number of attempts, and last attempt date
 * Randomize completion status and scores
 
-#### User Progress
+#### Student Progress
 
 * Progress entries for users 1-7 on their enrolled courses
 * Include:
@@ -976,7 +975,7 @@ await db.run(sql`
 | subject_area | text                 | n/a              | not null |        |
 | level        | text                 | n/a              | not null |        |
 | tags         | json                 | n/a              | not null |        |
-| price        | number(10,2)        | n/a              | optional |        |
+| price        | number(10,2)         | n/a              | optional |        |
 | created_at   | date                 | NOW              | not null |        |
 | updated_at   | date                 | NOW              | not null |        |
 
@@ -990,66 +989,69 @@ await db.run(sql`
 | course_id      | foreign_key (courses) | n/a              | not null |
 | title          | text                  | n/a              | not null |
 | description    | text                  | n/a              | not null |
-| order_number   | number               | n/a              | not null |
+| order_number   | number                | n/a              | not null |
 | estimated_time | text                  | n/a              | not null |
-| created_at     | date  | NOW       | not null |
-| updated_at     | date  | NOW       | not null |
+| created_at     | date                  | NOW              | not null |
+| updated_at     | date                  | NOW              | not null |
 
 ### Exercises Table
 
-> updated Oct 11, 2024 at 2:26:25 AM
+> updated Oct 30, 2024 at 3:32:18 PM
+> 10/30: changed name from user_solution to student_solution
 
 1. The default solution is the solution the course author defines in the course management platform as the solution that is expected and which passes all tests
-2. the user_solution is the solution the student writes when they perform the exercise; it will be stored when the student runs the code to test it
+2. the student_solution is the solution the student writes when they perform the exercise; it will be stored when the student runs the code to test it
 
 | field                  | type                   | default          | required | notes  |
 |------------------------|------------------------|------------------|----------|--------|
-| id                     | text                   | n/a | not null |        |
+| id                     | text                   | n/a              | not null |        |
 | section_id             | foreign_key (sections) | n/a              | not null |        |
 | instructions           | text                   | n/a              | not null |        |
-| browser_html           | json                  | n/a              | optional |        |
-| code_files             | json                  | n/a              | not null |        |
-| tests                  | json                  | n/a              | not null |        |
-| hints                  | json                  | n/a              | not null |        |
+| browser_html           | json                   | n/a              | optional |        |
+| code_files             | json                   | n/a              | not null |        |
+| tests                  | json                   | n/a              | not null |        |
+| hints                  | json                   | n/a              | not null |        |
 | difficulty             | text                   | n/a              | not null |        |
-| default_solution       | json                  | n/a              | not null | note 1 |
-| user_solution          | json                  | n/a              | not null | note 2 |
-| estimated_time_minutes | number                | n/a              | not null |        |
-| created_at             | date   | NOW       | not null |        |
-| updated_at             | date   | NOW       | not null |        |
+| default_solution       | json                   | n/a              | not null | note 1 |
+| student_solution       | json                   | n/a              | not null | note 2 |
+| estimated_time_minutes | number                 | n/a              | not null |        |
+| created_at             | date                   | NOW              | not null |        |
+| updated_at             | date                   | NOW              | not null |        |
 
 ### Feedback Table
 
-> updated Oct 20, 2024 at 11:59:13 AM
+> updated Oct 30, 2024 at 3:25:07 PM
+> 10/30: changed user_id to student_id
 
-| field             | type                   | default     | required | notes                                   |
-|-------------------|------------------------|-------------|----------|------------------------------------------|
-| id                | text                   | n/a         | not null | primary key                              |
-| student_id        | text                   | n/a         | not null | foreign key (users)                      |
-| section_id        | text                   | n/a         | not null | foreign key (sections)                   |
-| assigned_to_id    | text                   | n/a         | optional | foreign key (users)                      |
-| feedback_text     | json                   | n/a         | not null |                                          |
-| rating            | number                 | n/a         | optional |                                          |
+| field             | type                   | default     | required | notes |
+|-------------------|------------------------|-------------|----------|-----------------|
+| id                | text                   | n/a         | not null | primary key     |
+| student_id        | text                   | n/a         | not null | foreign key (users) |
+| section_id        | text                   | n/a         | not null | foreign key (sections) |
+| assigned_to_id    | text                   | n/a         | optional | foreign key (users) |
+| feedback_text     | json                   | n/a         | not null | |
+| rating            | number                 | n/a         | optional | |
 | status            | text                   | 'submitted' | not null | check constraint for valid status values |
-| category          | text                   | n/a         | optional |                                          |
-| admin_notes       | text                   | n/a         | optional |                                          |
-| github_issue_link | text                   | n/a         | optional |                                          |
-| created_at        | date                   | NOW         | not null |                                          |
-| updated_at        | date                   | NOW         | not null |                                          |
+| category          | text                   | n/a         | optional | |
+| admin_notes       | text                   | n/a         | optional | |
+| github_issue_link | text                   | n/a         | optional | |
+| created_at        | date                   | NOW         | not null | |
+| updated_at        | date                   | NOW         | not null | |
 
 ### Notes Table
 
-> updated Oct 11, 2024 at 2:26:12 AM
+> updated Oct 30, 2024 at 3:25:20 PM
+> 10/30: changed user_id to student_id
 
 | field            | type                   | default          | required |
 |------------------|------------------------|------------------|----------|
-| id               | text                   | n/a | not null |
-| user_id          | foreign_key (users)    | n/a              | not null |
+| id               | text                   | n/a              | not null |
+| student_id       | foreign_key (users)    | n/a              | not null |
 | section_id       | foreign_key (sections) | n/a              | not null |
-| note_text        | text                   | n/a              | optional |
-| highlighted_text | text                   | n/a              | optional |
-| created_at       | date   | NOW       | not null |
-| updated_at       | date   | NOW       | not null |
+| note_text        | json                   | n/a              | optional |
+| highlighted_text | json                   | n/a              | optional |
+| created_at       | date                   | NOW              | not null |
+| updated_at       | date                   | NOW              | not null |
 
 ### Sections Table
 
@@ -1059,52 +1061,54 @@ await db.run(sql`
 
 | field        | type                    | default          | required | notes  |
 |--------------|-------------------------|------------------|----------|--------|
-| id           | text                    | n/a | not null |        |
+| id           | text                    | n/a              | not null |        |
 | course_id    | foreign_key (courses)   | n/a              | not null |        |
 | chapter_id   | foreign_key (chapters)  | n/a              | not null |        |
 | title        | text                    | n/a              | not null |        |
 | description  | text                    | n/a              | not null |        |
-| order_number | number                 | n/a              | not null |        |
+| order_number | number                  | n/a              | not null |        |
 | content_type | text                    | n/a              | not null | note 1 |
-| content      | number                   | n/a              | optional |        |
+| content      | number                  | n/a              | optional |        |
 | exercise_id  | foreign_key (exercises) | n/a              | optional |        |
-| created_at   | date    | NOW       | not null |        |
-| updated_at   | date    | NOW       | not null |        |
+| created_at   | date                    | NOW              | not null |        |
+| updated_at   | date                    | NOW              | not null |        |
 
-### User_Exercise_Progress Table
+### Student_Exercise_Progress Table
 
-> updated Oct 11, 2024 at 2:26:00 AM
+> updated Oct 30, 2024 at 3:30:58 PM
+> 10/30: changed name to Student_... instead of User_...; changed user_id to student_id
 
-1. `unique(user_id, exercise_id)`
+1. `unique(student_id, exercise_id)`
 
 | field           | type                    | default          | required | notes  |
 |-----------------|-------------------------|------------------|----------|--------|
-| id              | text                    | n/a | not null |        |
-| user_id         | foreign_key (courses)   | n/a              | not null | note 1 |
+| id              | text                    | n/a              | not null |        |
+| student_id      | foreign_key (courses)   | n/a              | not null | note 1 |
 | exercise_id     | foreign_key (exercises) | n/a              | not null | note 1 |
-| score           | number                 | 0                | optional |        |
+| score           | number                  | 0                | optional |        |
 | completed       | boolean                 | false            | not null |        |
-| attempts        | number                 | 0                | not null |        |
-| last_attempt_at | date    | n/a              | optional |        |
-| created_at      | date    | NOW       | not null |        |
-| updated_at      | date    | NOW       | not null |        |
+| attempts        | number                  | 0                | not null |        |
+| last_attempt_at | date                    | n/a              | optional |        |
+| created_at      | date                    | NOW              | not null |        |
+| updated_at      | date                    | NOW              | not null |        |
 
-### User_Progress Table
+### Student_Progress Table
 
-> updated Oct 11, 2024 at 2:25:53 AM
+> updated Oct 30, 2024 at 3:31:04 PM
+> 10/30: changed name from User_... to Student_...; renamed user_id to student_id
 
-1. `unique(user_id, course_id)`
+1. `unique(student_id, course_id)`
 
 | field              | type                   | default          | required | notes  |
 |--------------------|------------------------|------------------|----------|--------|
-| id                 | text                   | n/a | not null |        |
-| user_id            | foreign_key (users)    | n/a              | not null | note 1 |
+| id                 | text                   | n/a              | not null |        |
+| student_id         | foreign_key (users)    | n/a              | not null | note 1 |
 | course_id          | foreign_key (courses)  | n/a              | not null | note 1 |
 | current_section_id | foreign_key (sections) | n/a              | not null |        |
-| completed_sections | json                 | `'{}'`           | not null |        |
-| last_accessed_at   | date   | n/a       | not null |        |
-| created_at         | date   | NOW       | not null |        |
-| updated_at         | date   | NOW       | not null |        |
+| completed_sections | json                   | `'{}'`           | not null |        |
+| last_accessed_at   | date                   | n/a              | not null |        |
+| created_at         | date                   | NOW              | not null |        |
+| updated_at         | date                   | NOW              | not null |        |
 
 ### Users Table
 
@@ -1115,45 +1119,46 @@ await db.run(sql`
 
 | field              | type                 | default          | required | notes  |
 |--------------------|----------------------|------------------|----------|--------|
-| id                 | text                 | n/a | not null |        |
+| id                 | text                 | n/a              | not null |        |
 | name               | text                 | n/a              | not null |        |
-| email              | text                 | n/a              | not null |  unique      |
+| email              | text                 | n/a              | not null |  unique|
 | avatar_url         | text                 | n/a              | optional |        |
-| role               | text                 | 'student'              | not null | note 1 |
-| enrolled_courses   | json               | `[]`     | not null |        |
+| role               | text                 | 'student'        | not null | note 1 |
+| enrolled_courses   | json                 | `[]`             | not null |        |
 | auth_provider      | text                 | n/a              | optional | note 2 |
 | auth_provider_id   | text                 | n/a              | optional | note 2 |
 | github_username    | text                 | n/a              | optional |        |
 | google_id          | text                 | n/a              | optional |        |
 | gitlab_username    | text                 | n/a              | optional |        |
 | bitbucket_username | text                 | n/a              | optional |        |
-| last_sign_in       | date | n/a              | optional |        |
-| created_at         | date | NOW         | not null |        |
-| updated_at         | date | NOW         | not null |        |
+| last_sign_in       | date                 | n/a              | optional |        |
+| created_at         | date                 | NOW              | not null |        |
+| updated_at         | date                 | NOW              | not null |        |
 
 ### Indexes
 
-> updated Oct 11, 2024 at 2:25:38 AM
+> updated Oct 30, 2024 at 3:37:56 PM
+> 10/30: changed references to student_progress and student_exercise_progress; changed references to user_id, where appropriate, to student_id
 
 1. Chapters table: `[{ on: ["course_id"] }]`
 2. Exercises table: `[{ on: ["section_id"] }]`
 3. Feedback table: `[{ on: ["user_id"] }]`
 4. Feedback table: `[{ on: ["section_id"] }]`
-5. Notes table: `[{ on: ["user_id"] }]`
+5. Notes table: `[{ on: ["student_id"] }]`
 6. Notes table: `[{ on: ["section_id"] }]`
 7. Sections table: `[{ on: ["course_id"] }]`
 8. Sections table: `[{ on: ["chapter_id"] }]`
 9. Sections table: `[{ on: ["exercise_id"] }]`
-10. User_Exercise_Progress table: `[{ on: ["user_id"] }]`
-11. User_Exercise_Progress table: `[{ on: ["exercise_id"] }]`
-12. User_Progress table: `[{ on: ["user_id"] }]`
-13. User_Progress table: `[{ on: ["course_id"] }]`
-14. User_Progress table: `[{ on: ["current_section_id"] }]` (`references: () => [Sections.id]`)
+10. Student_Exercise_Progress table: `[{ on: ["student_id"] }]`
+11. Student_Exercise_Progress table: `[{ on: ["exercise_id"] }]`
+12. Student_Progress table: `[{ on: ["student_id"] }]`
+13. Student_Progress table: `[{ on: ["course_id"] }]`
+14. Student_Progress table: `[{ on: ["current_section_id"] }]` (`references: () => [Sections.id]`)
 
 ### Triggers
 
-> updated Oct 11, 2024 at 2:24:24 AM
-> 
+> updated Oct 30, 2024 at 3:38:23 PM
+> 10/30: changed references to student_progress and student_exercise_progress; changed references to user_id, where appropriate, to student_id
 > Need to identify a programmatic solution for triggers, libsql doesn't support them
 
 1. updating the updated_at columns
@@ -1174,13 +1179,13 @@ $$ language 'plpgsql';
 6. `create trigger update_exercises_updated_at before update on exercises for each row execute function update_updated_at_column();`
 7. `create trigger update_feedback_updated_at before update on feedback for each row execute function update_updated_at_column();`
 8. `create trigger update_notes_updated_at before update on notes for each row execute function update_updated_at_column();`
-9. `create trigger update_user_progress_updated_at before update on user_progress for each row execute function update_updated_at_column();`
-10. `create trigger update_user_exercise_progress_updated_at before update on user_exercise_progress for each row execute function update_updated_at_column();`
+9. `create trigger update_student_progress_updated_at before update on student_progress for each row execute function update_updated_at_column();`
+10. `create trigger update_student_exercise_progress_updated_at before update on student__exercise_progress for each row execute function update_updated_at_column();`
 
 ### Row level security
 
-> updated Oct 11, 2024 at 2:24:35 AM
-> 
+> updated Oct 30, 2024 at 3:39:45 PM
+> 10/30: changed to student_progress and student_exercise_progress
 > need to identify programmatic solution, libsql doesn't support this
 
 ```sql
@@ -1191,14 +1196,14 @@ alter table sections enable row level security;
 alter table exercises enable row level security;
 alter table feedback enable row level security;
 alter table notes enable row level security;
-alter table user_progress enable row level security;
-alter table user_exercise_progress enable row level security;
+alter table student_progress enable row level security;
+alter table student_exercise_progress enable row level security;
 ```
 
 ### Policies
 
-> updated Oct 11, 2024 at 2:24:59 AM
-> 
+> updated Oct 30, 2024 at 3:40:11 PM
+> 10/30: changed to student_progress, student_exercise_progress, student_id where appropriate
 > need to figure out programmatic solution, libsql doesn't support this 
 
 1. Question: shouldn't there be a policy on users for admins to edit users?
@@ -1215,22 +1220,22 @@ create policy edit_sections on sections for all to app_admin, course_admin, auth
 create policy view_exercises on exercises for select using (true);
 create policy edit_exercises on exercises for all to app_admin, course_admin, author using (true);
 create policy manage_all_feedback on feedback for all to app_admin, course_admin using (true);
-create policy view_own_feedback on feedback for select to student using (auth.uid() = user_id);
-create policy create_feedback on feedback for insert to student with check (auth.id() = user_id);
+create policy view_own_feedback on feedback for select to student using (auth.uid() = student_id);
+create policy create_feedback on feedback for insert to student with check (auth.id() = student_id);
 create policy view all notes on notes for select to app_admin, course_admin using (true);
-create policy manage_own_notes on notes for all to student using (auth.id() = user_id);
-create policy view_all_user_progress on user_progress for select to app_admin, course_admin using (true);
-create policy manage_own_progress on user_progress for all to student using (auth.id() = user_id);
-create policy view_all_user_exercise_progress on user_exercise_progress for select to app_admin, course_admin using (true);
-create policy manage_own_exercise_progress on user_exercise_progress for all to student using (auth.id() = user_id);
+create policy manage_own_notes on notes for all to student using (auth.id() = student_id);
+create policy view_all_student_progress on student_progress for select to app_admin, course_admin using (true);
+create policy manage_own_progress on student_progress for all to student using (auth.id() = student_id);
+create policy view_all_student_exercise_progress on student_exercise_progress for select to app_admin, course_admin using (true);
+create policy manage_own_exercise_progress on student_exercise_progress for all to student using (auth.id() = student_id);
 ```
 
 ## Project Directory Structure (high level only)
 
-> Last updated Oct 27, 2024 at 12:23:19 PM
+> Last updated Oct 30, 2024 at 3:41:45 PM
 > 
 > Note: the following tree command was used, to prune unneeded directory/file info:
-> `tree -a -L 4 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
+> `tree -a -L 5 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
 
 .
 ├── .DS_Store
@@ -1241,17 +1246,21 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 ├── .eslintrc.cjs
 ├── .gitattributes
 ├── .github
+│   ├── .DS_Store
 │   └── workflows
-│       └── assign_me.yml
+│       ├── assign_me.yml
+│       └── version-release.yml
 ├── .gitignore
 ├── .mise.toml
 ├── .prettierignore
 ├── .prettierrc.cjs
+├── .sentryclirc
 ├── .yarnrc.yml
 ├── LICENSE
 ├── README.md
 ├── astro.config.mjs
 ├── db
+│   ├── .DS_Store
 │   ├── config.ts
 │   ├── seed.ts
 │   ├── seedDataConfig.ts
@@ -1272,7 +1281,7 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 │   │       ├── seed-error-types.ts
 │   │       ├── seed-success-types.ts
 │   │       └── seed-types.ts
-│   ├── seed_old.ts
+│   ├── seed_old.md
 │   ├── seederFiles
 │   │   ├── chapters.ts
 │   │   ├── courses.ts
@@ -1294,21 +1303,18 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 │   └── favicon.svg
 ├── src
 │   ├── .DS_Store
-│   ├── content
-│   │   └── config.ts
 │   ├── env.d.ts
 │   ├── layouts
 │   │   ├── DocsLayout.astro
 │   │   └── Layout.astro
 │   ├── lib
-│   │   └── auth-middleware.ts
-│   ├── middleware.ts
 │   ├── pages
 │   │   ├── docs
 │   │   │   ├── api-reference.md
 │   │   │   ├── getting-started.md
 │   │   │   └── index.md
-│   │   └── index.astro
+│   │   ├── index.astro
+│   │   └── logTesting.astro
 │   ├── scripts
 │   │   └── runSeed.ts
 │   ├── styles
@@ -1316,6 +1322,8 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 │   └── utils
 │       ├── astrodb_utils.ts
 │       ├── general_utils.ts
+│       ├── logger.ts
+│       ├── sentry.ts
 │       └── temp_file_code.ts
 ├── tailwind.config.mjs
 ├── test-results
@@ -1328,4 +1336,4 @@ create policy manage_own_exercise_progress on user_exercise_progress for all to 
 ├── vitest.config.ts
 └── yarn.lock
 
-23 directories, 72 files
+22 directories, 76 files
