@@ -1,6 +1,6 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Oct 30, 2024 at 3:42:00 PM
+Last Updated: Nov 2, 2024, 9:20:00 AM
 
 ## Notes to the AI
 
@@ -39,8 +39,8 @@ Last Updated: Oct 30, 2024 at 3:42:00 PM
 3. Please note the following (also noted later in the document here)
     1. We're using TypeScript 5.5+, meaning we no longer need the _ adapter to integrate Effect with generator functions
 4. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file. 
-5. We need to use the effect/Schema library to set up schema validation
 
+1. We need to use the Zod library to set up schema validation
 ### General Hygiene Notes
 
 > NOTE TO AI: **DO NOT** remove any unedited content from this document. Please ONLY make updates and additions. If you need to delete something, please check with me first. **DO NOT** replace any of the content with `[content remains unchanged]`
@@ -690,6 +690,46 @@ This tooling setup ensures consistency across the development process and facili
   - `develop` as the staging branch
   - Using conventional commits and git flow for commit and branch management
 
+## State Machine Functionality
+
+> Last updated Nov 02, 2024 at 10:39:12 AM EDT
+> 11/02: added this section
+
+This section outlines how we'll use state machines in the application to help enforce consistent state management and transitions without impossible states, and with robust logging and error management. 
+
+### Definitions
+
+* States: discriminated unions with metadata
+* Events/Actions: aka transitions
+* Guards: conditions for transitions
+* State Machine class structure--overall definition of state machine functionality
+* Schema Validation: using zod
+
+### Implementation
+
+* Initialize defined state machine
+* Define transition logic
+* Set up event handlers
+* Implement guard conditions
+* Create Effect.gen generator function
+
+### Side Effects
+
+* Logging system (using Effect, log to file, console, and Sentry)
+* Error handling patterns
+* Error recovery/rollback strategies (if applicable)
+* Progress reporting
+* Resource cleanup
+* Telementry/metrics
+
+### Execution
+
+* Effect.runPromise/runSync setup
+* Concurrent operations configuration
+* Entry point definition
+* Error boundary establishment
+* Performance monitoring
+
 ## Database
 
 ### Courses Table
@@ -835,9 +875,9 @@ This table stores the users of the learning platform, administration platform, a
 
 > **note**: `astro db seed` is NOT an available command for the astro database. Valid commands are `astro db push`, `astro db verify`, `astro db execute <file-path>`, and `astro db shell --query <sql-string>`
 
-### Data Seeding layout
+### Data Seeding
 
-> Last updated Oct 30, 2024 at 3:17:18 PM
+> Last updated Nov 02, 2024 at 10:32:33 AM EDT
 >
 > Note: For all tables, when a column type is JSON, the seed data should use JSON objects.
 > Note: This almost certainly needs to be updated to match current state

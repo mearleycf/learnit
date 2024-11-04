@@ -1,4 +1,5 @@
 import { addMilliseconds, subDays } from 'date-fns'
+import { z } from 'zod'
 
 /**
  * Generates a random number within a specified range.
@@ -122,4 +123,33 @@ export const millisecondsPerDayCalc = () => {
   const MILLISECONDS_PER_HOUR = MINUTES_PER_HOUR * MILLISECONDS_PER_MINUTE
   const MILLISECONDS_PER_DAY = HOURS_PER_DAY * MILLISECONDS_PER_HOUR
   return MILLISECONDS_PER_DAY
+}
+
+/**
+ * Creates a refinement for number validation with precision and scale
+ * @param precision - The maximum number of total digits allowed
+ * @param scale - The maximum number of decimal places allowed
+ * @returns A refinement function for validating numbers
+ */
+export function createPrecisionScaleRefinement(precision: number, scale: number) {
+  return (n: number | undefined | null) => {
+    if (n === undefined || n === null) return true
+    const [integer, decimal = ''] = n.toString().split('.')
+    const integerStr = integer ?? ''
+    const totalDigits = integerStr.replace('-', '').length + decimal.length
+    const decimalPlaces = decimal.length
+    return totalDigits <= precision && decimalPlaces <= scale
+  }
+}
+
+/**
+ * Creates the error message for precision/scale validation
+ * @param precision - The maximum number of total digits allowed
+ * @param scale - The maximum number of decimal places allowed
+ * @returns An object with the error message
+ */
+export function createPrecisionScaleMessage(precision: number, scale: number) {
+  return {
+    message: `Number must have at most ${precision} total digits and ${scale} decimal places`,
+  }
 }
