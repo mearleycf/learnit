@@ -15,4 +15,6 @@ export const courseSchema = z.object({
     .optional()
     .refine(createPrecisionScaleRefinement(10, 2), createPrecisionScaleMessage(10, 2)),
   purchase_active_length: z.number().positive().optional(),
+  created_at: z.date(),
+  updated_at: z.date(),
 })
