@@ -25,7 +25,7 @@ export const courseData = {
           seedSequence: 1,
           chapter_display_number: 1,
           sort_order: 1,
-          estimated_time: '1 hour',
+          estimated_time_minutes: 1,
           sections: [
             {
               // course 1, chapter 1, section 1
@@ -63,7 +63,7 @@ export const courseData = {
                 hints: {},
                 difficulty: '',
                 default_solution: {},
-                user_solution: {},
+                student_solution: {},
                 estimated_time_minutes: 0,
               } as ExerciseConfig,
             } as SectionConfig,
@@ -90,7 +90,7 @@ export const courseData = {
           seedSequence: 2,
           chapter_display_number: 2,
           sort_order: 2,
-          estimated_time: '3 hours',
+          estimated_time_minutes: 3,
           sections: [
             {
               // course 1, chapter 2, section 1
@@ -157,7 +157,7 @@ export const courseData = {
           seedSequence: 3,
           chapter_display_number: 3,
           sort_order: 3,
-          estimated_time: '3 hours',
+          estimated_time_minutes: 3,
           sections: [
             {
               // course 1, chapter 3, section 1
@@ -315,7 +315,7 @@ export const courseData = {
           description: 'Learn the fundamentals of React',
           chapter_display_number: 1,
           sort_order: 1,
-          estimated_time: '1 hour',
+          estimated_time_minutes: 1,
           sections: [
             {
               // course 2, chapter 1, section 1
@@ -379,7 +379,7 @@ export const courseData = {
           description: 'Learn how to manage state in React',
           chapter_display_number: 2,
           sort_order: 2,
-          estimated_time: '1 hour',
+          estimated_time_minutes: 1,
           sections: [
             {
               // course 2, chapter 2, section 1
@@ -444,7 +444,7 @@ export const courseData = {
           description: 'Learn how to use React hooks',
           chapter_display_number: 3,
           sort_order: 3,
-          estimated_time: '3 hours',
+          estimated_time_minutes: 2,
           sections: [
             {
               // course 2, chapter 3, section 1
@@ -603,7 +603,7 @@ export const courseData = {
           description: 'Learn the basics of Python',
           chapter_display_number: 1,
           sort_order: 1,
-          estimated_time: '2 hours',
+          estimated_time_minutes: 2,
           sections: [
             {
               // course 3, chapter 1, section 1
@@ -739,7 +739,7 @@ export const courseData = {
           description: 'Learn how to work with data structures in Python',
           chapter_display_number: 2,
           sort_order: 2,
-          estimated_time: '2 hours',
+          estimated_time_minutes: 2,
           sections: [
             {
               // course 3, chapter 2, section 1
@@ -805,7 +805,7 @@ export const courseData = {
           description: 'Learn how to work with functions and modules in Python',
           chapter_display_number: 3,
           sort_order: 3,
-          estimated_time: '4 hours',
+          estimated_time_minutes: 4,
           sections: [
             {
               // course 3, chapter 3, section 1

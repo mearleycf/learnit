@@ -1,4 +1,5 @@
 import { addMilliseconds, subDays } from 'date-fns'
+import { Effect } from 'effect'
 import { z } from 'zod'
 
 /**
@@ -153,3 +154,30 @@ export function createPrecisionScaleMessage(precision: number, scale: number) {
     message: `Number must have at most ${precision} total digits and ${scale} decimal places`,
   }
 }
+
+/**
+ * function to validate a json serializable object for schema validation
+ * @param val - The value to validate
+ * @param context - The context object for which the validation is failing
+ * @returns A boolean indicating whether the value is JSON serializable
+ */
+
+export const jsonSerializableSchema = z.any().superRefine((val, context) => {
+  const result = Effect.runSync(
+    Effect.try({
+      try: () => {
+        JSON.stringify(val)
+        return true
+      },
+      catch: (error: unknown) => {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error during JSON serialization'
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Value must be JSON serializable: ${errorMessage}`,
+        })
+        return false
+      },
+    }),
+  )
+  return result
+})

@@ -1,4 +1,6 @@
 import type { DateOptions } from '@utils/general_utils'
+import type { SeedingError } from './seed-error-types'
+import type { LogInfo } from '@utils/logger'
 
 type BaseEntityConfig = {
   id: string
@@ -122,4 +124,55 @@ export type SeededCourse = {
   id: string
   createdAt: Date
   updatedAt: Date | null
+}
+
+type BaseTimestamps = {
+  stateStarted: Date
+  stateEnded: Date | null
+}
+
+type BaseState = {
+  timestamps: BaseTimestamps
+}
+
+type DataState<T> = BaseState & {
+  dataSet: T[]
+}
+
+type FailureState<T> = BaseState & {
+  error: SeedingError
+  lastValidState: SeederState<T>
+}
+
+export type SeederState<T> =
+  | (BaseState & { status: 'notStarted' })
+  | (DataState<T> & { status: 'buildingData' | 'builtData'; rowsBuilt: number })
+  | (DataState<T> & { status: 'insertingData' | 'insertedData'; rowsInserted: number })
+  | (DataState<T> & { status: 'returningData' | 'returnedData'; rowsReturned: number })
+  | (BaseState & { status: 'loggingResult' | 'loggedResult' })
+  | (FailureState<T> & { status: 'failing' | 'failed'; phase: 'building' | 'inserting' | 'returning' | 'logging' })
+  | (BaseState & { status: 'seederCompleted'; lastValidState: SeederState<T> })
+
+export type ValidationResult = {
+  isValid: boolean
+  error?: string
+}
+
+type BaseEvent = {
+  timestamps: BaseTimestamps
+  logInfo: LogInfo
+}
+
+type SeederEventType = 'start' | 'finish' | 'failed'
+type SeederPhase = 'building' | 'inserting' | 'returning' | 'logging'
+
+export type SeederEvent =
+  | (BaseEvent & { type: SeederEventType; phase: SeederPhase })
+  | (BaseEvent & { type: SeederEventType; error: SeedingError })
+
+export type Transition<T> = {
+  from: SeederState<T>
+  to: SeederState<T>
+  event: SeederEvent
+  validation?: ValidationResult
 }

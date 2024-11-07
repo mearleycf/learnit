@@ -44,16 +44,18 @@ export const customLogger = Logger.make(({ logLevel, message }) => {
   }
 })
 
+export type LogInfo = {
+  component: string
+  message: string
+  level: keyof typeof LogLevel
+  context: Record<string, unknown>
+}
+
 // Create the logger layer
 export const LoggerLive = Logger.replace(Logger.defaultLogger, customLogger)
 
 // Helper functions to create annotated effects
-export const logWithContext = (
-  component: string,
-  message: string,
-  level: keyof typeof LogLevel = 'Info',
-  context: Record<string, unknown> = {},
-) => {
+export const logWithContext = ({ component, message, level, context }: LogInfo) => {
   const effect =
     level === 'Error'
       ? Effect.logError(message)

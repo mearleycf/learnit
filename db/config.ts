@@ -8,7 +8,7 @@ const Courses = defineTable({
     slug: column.text({ unique: true }),
     subject_area: column.text(),
     level: column.text(),
-    tags: column.json(),
+    tags: column.json({ default: [] }),
     price: column.number({ optional: true, precision: 10, scale: 2 }),
     purchase_active_length: column.number({ optional: true }),
     created_at: column.date({ default: NOW }),

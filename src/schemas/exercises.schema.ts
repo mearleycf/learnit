@@ -1,3 +1,4 @@
+import { jsonSerializableSchema } from '@utils/general_utils'
 import { z } from 'zod'
 
 const browserHtmlEntrySchema = z.object({
@@ -34,7 +35,7 @@ const codeFileEntrySchema = z.object({
     'powershell',
     'plaintext',
   ]),
-  content: z.unknown(),
+  content: jsonSerializableSchema,
   isReadOnly: z.boolean().default(false),
   isHidden: z.boolean().default(false),
 })
@@ -48,7 +49,7 @@ const testEntrySchema = z.object({
   name: z.string(),
   testFunction: z.string(),
   description: z.string(),
-  expectedOutput: z.unknown(),
+  expectedOutput: jsonSerializableSchema,
   timeout: z.number().optional(),
 })
 
@@ -58,7 +59,7 @@ const testSchema = z.object({
 
 const hintEntrySchema = z.object({
   order: z.number(),
-  content: z.unknown(),
+  content: jsonSerializableSchema,
   type: z.enum(['text', 'code', 'image']).default('text'),
   showAfterAttempts: z.number().optional(),
 })
@@ -68,13 +69,13 @@ const hintSchema = z.object({
 })
 
 const defaultSolutionSchema = z.object({
-  content: z.unknown(),
-  explanation: z.unknown(),
+  content: jsonSerializableSchema,
+  explanation: jsonSerializableSchema,
 })
 
 const studentSolutionSchema = z.object({
-  content: z.unknown(),
-  explanation: z.unknown(),
+  content: jsonSerializableSchema,
+  explanation: jsonSerializableSchema,
 })
 
 export const exerciseSchema = z.object({
