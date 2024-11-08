@@ -163,16 +163,84 @@ type BaseEvent = {
   logInfo: LogInfo
 }
 
-type SeederEventType = 'start' | 'finish' | 'failed'
+type SeederEventType =
+  | 'START_BUILD'
+  | 'BUILD_COMPLETE'
+  | 'START_INSERT'
+  | 'INSERT_COMPLETE'
+  | 'START_RETURN'
+  | 'RETURN_COMPLETE'
+  | 'START_LOG'
+  | 'LOG_COMPLETE'
+  | 'FAILED'
 type SeederPhase = 'building' | 'inserting' | 'returning' | 'logging'
 
 export type SeederEvent =
   | (BaseEvent & { type: SeederEventType; phase: SeederPhase })
-  | (BaseEvent & { type: SeederEventType; error: SeedingError })
+  | (BaseEvent & { type: SeederEventType; phase: SeederPhase; error: SeedingError })
 
 export type Transition<T> = {
   from: SeederState<T>
   to: SeederState<T>
   event: SeederEvent
   validation?: ValidationResult
+}
+
+export type StateTransitionMap<T> = {
+  [K in SeederState<T>['status']]: {
+    [E in SeederEventType]: (state: Extract<SeederState<T>, { status: K }>, event: SeederEvent) => SeederState<T>
+  }
+}
+
+export const isBuildingState = <T>(
+  state: SeederState<T>,
+): state is DataState<T> & {
+  status: 'buildingData' | 'builtData'
+  rowsBuilt: number
+} => {
+  return ['buildingData', 'builtData'].includes(state.status)
+}
+
+export const isInsertingState = <T>(
+  state: SeederState<T>,
+): state is DataState<T> & {
+  status: 'insertingData' | 'insertedData'
+  rowsInserted: number
+} => {
+  return ['insertingData', 'insertedData'].includes(state.status)
+}
+
+export const isReturningState = <T>(
+  state: SeederState<T>,
+): state is DataState<T> & {
+  status: 'returningData' | 'returnedData'
+  rowsReturned: number
+} => {
+  return ['returningData', 'returnedData'].includes(state.status)
+}
+
+export const isLoggingState = <T>(
+  state: SeederState<T>,
+): state is BaseState & {
+  status: 'loggingResult' | 'loggedResult'
+} => {
+  return ['loggingResult', 'loggedResult'].includes(state.status)
+}
+
+export const isFailingState = <T>(
+  state: SeederState<T>,
+): state is FailureState<T> & {
+  status: 'failing' | 'failed'
+  phase: 'building' | 'inserting' | 'returning' | 'logging'
+} => {
+  return ['failing', 'failed'].includes(state.status)
+}
+
+export const isCompletedState = <T>(
+  state: SeederState<T>,
+): state is BaseState & {
+  status: 'seederCompleted'
+  lastValidState: SeederState<T>
+} => {
+  return state.status === 'seederCompleted'
 }
