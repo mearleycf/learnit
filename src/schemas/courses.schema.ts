@@ -1,7 +1,7 @@
 import { createPrecisionScaleRefinement, createPrecisionScaleMessage } from '@utils/general_utils'
 import { z } from 'zod'
 
-const CoursesSchema = z.object({
+export const courseSchema = z.object({
   id: z.string().ulid(),
   title: z.string().min(4),
   description: z.string(),
@@ -18,5 +18,3 @@ const CoursesSchema = z.object({
   created_at: z.date(),
   updated_at: z.date(),
 })
-
-export type Course = z.infer<typeof CoursesSchema>

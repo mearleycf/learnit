@@ -28,6 +28,7 @@
       "@icons/*": ["src/icons/*"],
       "@layouts/*": ["src/layouts/*"],
       "@pages/*": ["src/pages/*"],
+      "@schemas/*": ["src/schemas/*"],
       "@scripts/*": ["src/scripts/*"],
       "@styles/*": ["src/styles/*"],
       "@utils/*": ["src/utils/*"],

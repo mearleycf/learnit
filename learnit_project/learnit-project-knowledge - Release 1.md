@@ -1,6 +1,7 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Nov 06, 2024 at 02:23:19 PM EST
+Last Updated: Nov 09, 2024 at 08:07:22 AM EST
+11/09: Removed Tooling section; it is now located in `.cursorrules` in the project repository
 
 ## Notes to the AI
 
@@ -41,9 +42,6 @@ Last Updated: Nov 06, 2024 at 02:23:19 PM EST
    2. complete the remaining seeder files following courses.ts pattern
    3. ~~implement zod for validation~~
    4. I'd like to export the logs to a file in addition to exporting them to Sentry...
-1. Please note the following (also noted later in the document here)
-   1. We're using TypeScript 5.5+, meaning we no longer need the \_ adapter to integrate Effect with generator functions
-1. I need to know what changes we need to make to our Database sections of this document based on the current state of the seed.ts file and config.ts file.
 
 5. We need to use the Zod library to set up schema validation
 
@@ -529,7 +527,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## Key Decisions and Notes
 
-> Last updated Oct 27, 2024 at 12:19:09 PM
+> Last updated Nov 09, 2024 at 08:11:15 AM EST
+> 11/09: updated key decisions/notes to match current state
 
 1. Using Astro 5.x (currently in beta) for the frontend with React components.
 2. Database decisions:
@@ -537,23 +536,26 @@ Then, as a product owner, I could sell the core system to other organizations, a
    2. Made decision to use AstroDB for local development, with storage on either Turso or self-hosted as the online hosting service for the DB
    3. Implementing a strong/robust seed configuration and typing setup so that when we actually do the seed.ts file, we consistently build out a set of data that is as close to a production version of data as possible.
    4. We are using ulidx as the library for generating and accessing our ULID ids on our tables
-   5. We're going to use the effect library for a variety of concerns; one of those concerns is schema validation, using effect/Schema (instead of using zod for example)
-   6. Note: Effect no longer requires the \_ adapter functionality to interact with generator functions. As of version 5.5+ of typescript, it is no longer necessary.
-3. Error Handling, Logging, Metrics, Analytics
+   5. We're going to use the effect library for a variety of concerns, including creating state machines, error handling, logging, observability, etc ~~one of those concerns is schema validation, using effect/Schema (instead of using zod for example)~~
+   6. Will use Zod for schema validation
+   7. Note: Effect no longer requires the `_` adapter functionality to interact with generator functions. As of version 5.5+ of typescript, it is no longer necessary.
+1. Error Handling, Logging, Metrics, Analytics
    1. Going to implement Sentry for this purpose, in terms of storing/monitoring
    2. Locally, will use Effect's system to log problems and pass information to Sentry also
-4. Tailwind & Design decisions:
-   1. Will use the inter-veriable font as the primary font
-   2. Will use mononoki as the primary code/monospace font
+   3. When we are logging errors, we'll log all levels of logging to console and to a separate log file; errors and above will go to sentry
+1. Tailwind & Design decisions:
+   1. Will use the `inter-veriable` font as the primary font
+   2. Will use `mononoki` as the primary code/monospace font
    3. Installed the tailwind-merge package to simplify tailwind classes in production
    4. Installed the fluid-tailwind package to be able to use the 'clamp' feature of css in tailwind without a lot of overhead
-5. Installed the date-fns package to utilize for various date related functionality
-6. This means we need to fill some gaps!
+   5. Will use `shadcn UI` as the component library for general/common components
+1. Installed the `date-fns` package to utilize for various date related functionality
+2. This means we need to fill some gaps!
    1. real time subscriptions
    2. code execution
    3. edge functions if needed (I think vercel provides this)
    4. storage if needed (there aren't a lot of images in the initial courses)
-7. Made decision to switch from Hanko to Oslo for authentication
+1. Made decision to switch from Hanko to ~~Oslo for authentication~~ a different third party authentication solution, currently undecided
 
 ## Completed Steps/Tasks
 
@@ -565,7 +567,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## To-Do / Next Steps
 
-> Last updated Oct 30, 2024 at 3:51:47 PM
+> Last updated Nov 09, 2024 at 08:06:56 AM EST
+> 11/09: updating list of To-Dos and Next Steps to match current state
 > 10/30: updated point about error handling to include sub-points and notes on effect logging system; added point about sentry integration not working.
 
 1. Define remaining features:
@@ -625,81 +628,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 4. Explain Astro middleware. Discuss how Astro middleware works; make sure we implemented it correctly.
 5. Implement documentation: Astro for application docs, and README.md. README.md should explain the project, outline the tooling, outline the installation method, how to run dev, build, test, run the database, reseed the database, etc. Operate all tooling in other words. The application docs should document all of the APIs, other services, whatever would normally be documented so that someone else can use the application.
 6. Outline accessibility functionality, including keyboard navigation
-7. Are there any specific conventions or patterns being used in the project (e.g. naming conventions, file organization)? I can't think of anything, might come up later.
-8. AI asked for a brief description of the authentication and authorization strategy I'm implementing--honestly, I have no strategy here, so we probably need to define a strategy.
-9. Open question as to how we're going to manage the separation of concerns regarding Course content data storage (database, content collection, something else) and Platform data storage (users, etc)
-10. We previously created `middleware.ts`, `auth-middleware.ts`, `triggers.ts`, and `astrodb_utils.ts`, and I need to understand how these all interact with each other; I also need to complete all of them, because they're currently only stubbed out
-11. We need to pull out Hanko authentication and implement authentication using Oslo instead [Oslo](https://oslojs.dev)
-
-## Tooling
-
-> Last updated Oct 27, 2024 at 12:23:34 PM
-
-This tooling setup ensures consistency across the development process and facilitates efficient collaboration.
-
-### Backend / Database
-
-- Database: AstroDB, which is a version of Turso's libsql basically
-- ORM: AstroDB uses drizzle ORM
-- TablePlus: I'm also using TablePlus to access the database locally (and, eventually, remotely)
-- Authentication:
-  - ~~Hanko as the third party authentication provider (not installed)~~
-  - I think we're going to switch from Hanko to Oslo for authentication
-    hCaptcha for frontend authentication security (not configured)
-  - GitHub and Google planned for OAuth implementation (not configured)
-- Payment Processing: Stripe (not installed/configured)
-
-### Frontend
-
-- Meta-Framework: Astro 5.0.0-beta (currently 5.0.0-beta.2)
-  - Contains React islands for interactivity (or Astro Actions?)
-  - Manages content collections for courses
-  - Utilizes new content collections and content layer API functionality introduced in Astro 5.x
-- CSS Framework: Tailwind CSS
-- Installed Fonts
-  - Inter Variable
-  - Lilita One
-  - Righteous
-  - Mononoki (for code)
-  - Note: I'm using the unfont package to manage the fonts
-- Icon Sets
-  - `@iconify-json/simple-icons`
-  - `@iconify-json/solar`
-  - `astro-icon`
-- Frontend Framework: React with TypeScript for interactive islands, OR astro with astro actions?
-
-### Unit, Integration, and e2e Testing
-
-- Testing:
-  - Vitest for unit testing
-  - Playwright for integration and end-to-end testing
-
-### Development Environment
-
-- Package Management: yarn
-- Code Quality:
-  - ESLint for linting
-  - Prettier for code formatting
-- Version Management: `mise` application in the terminal for managing versions of node, python, and other tools
-- Operating System: macOS
-- Terminal Application: Kitty
-- Shell: Fish
-- Web Browser: Vivaldi
-- Code Editor: Cursor
-
-### Hosting / Production / DevOps
-
-- Hosting: Vercel
-- CI/CD: GitHub Actions
-- Analytics/Monitoring: Sentry
-
-### Project Management
-
-- Issue Tracking: GitHub Issues (for features, stories, and bug tracking)
-- Branch Management:
-  - `main` as the production branch
-  - `develop` as the staging branch
-  - Using conventional commits and git flow for commit and branch management
+7. AI asked for a brief description of the authentication and authorization strategy I'm implementing--honestly, I have no strategy here, so we probably need to define a strategy.
+8. Open question as to how we're going to manage the separation of concerns regarding Course content data storage (database, content collection, something else) and Platform data storage (users, etc)
 
 ## State Machine Functionality
 
