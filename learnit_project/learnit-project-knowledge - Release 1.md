@@ -1,7 +1,7 @@
 # Learnit Project Knowledge - Release 1
 
-Last Updated: Nov 09, 2024 at 08:07:22 AM EST
-11/09: Removed Tooling section; it is now located in `.cursorrules` in the project repository
+Last Updated: Nov 09, 2024 at 08:07:22 AM EST  
+11/09: Removed Tooling section; it is now located in `.cursorrules or other ai_instructions.md file` in the project repository.
 
 ## Notes to the AI
 
@@ -10,17 +10,19 @@ Last Updated: Nov 09, 2024 at 08:07:22 AM EST
 > Last updated Oct 30, 2024 at 3:42:06 PM
 
 1. We are doing the following, currently:
+
    1. ~~Moving to implement Effect's Console logging system~~
    2. ~~Logger testing page created at /logTesting~~
    3. ~~Need to fix typescript errors in runLog function params~~
    4. Convert current seeding process into a state machine using Effect
-   5. Need to implement better structured logging and add context
-   ~~6. Build out types for the generic Seeder state machine; types include:~~
-      ~~1. [x] SeederState~~
-      ~~2. [x] SeederEvent~~
-      ~~3. [x] Transition~~
+   5. Need to implement better structured logging and add context  
+      ~~6. Build out types for the generic Seeder state machine; types include:~~  
+      ~~1. [x] SeederState~~  
+      ~~2. [x] SeederEvent~~  
+      ~~3. [x] Transition~~  
       ~~4. [x] Any other types that help to clean up or simplify the above states~~
-   1. In the process of creating the separate seeder files for the remaining tables (we've done courses; need to do the rest)
+   6. In the process of creating the separate seeder files for the remaining tables (we've done courses; need to do the rest)
+
       1. [] Courses
       2. [] Chapters
       3. [] Sections
@@ -30,35 +32,40 @@ Last Updated: Nov 09, 2024 at 08:07:22 AM EST
       7. [] Notes
       8. [] Student Exercise Progress
       9. [] Student Progress
-   1. We need to identify any remaining database integration tasks (schema validation, error handling, etc)
+
+   7. We need to identify any remaining database integration tasks (schema validation, error handling, etc)
+
       1. [x] Initial AstroDB configuration
       2. [x] Schema definitions
       3. [x] Schema validation using zod
       4. [] error handling improvements
       5. [] database reset mechanism
       6. [] incremental seeding capability
-1. Immediate next steps:
+
+
+2. Immediate next steps:
+
    1. Work on conversion of seeding to state machine
    2. complete the remaining seeder files following courses.ts pattern
    3. ~~implement zod for validation~~
    4. I'd like to export the logs to a file in addition to exporting them to Sentry...
 
-5. We need to use the Zod library to set up schema validation
+3. We need to use the Zod library to set up schema validation
 
 ### General Hygiene Notes
 
 > NOTE TO AI: **DO NOT** remove any unedited content from this document. Please ONLY make updates and additions. If you need to delete something, please check with me first. **DO NOT** replace any of the content with `[content remains unchanged]`
->
+> 
 > NOTE TO AI: **DO NOT** try and print the full contents of this document into the chat response when I send it to you, it is **too long**. Just let me know you got it and we'll go from there.
->
+> 
 > NOTE TO AI: I use fish shell, yarn and kitty terminal, I do not use bash, and I don't use NPM; most of the time there isn't an issue, especially when dealing with commands from a 3rd party cli interface--however, sometimes it matters. **Please remember this**
->
+> 
 > NOTE TO AI: Please stop apologizing every time I correct an issue with something you helped me with. It's fine. I make mistakes, you make mistakes. I don't need to see a paragraph of you apologizing every time. Just get to the corrections.
 
 ## Summary of Project
 
-> Last updated on Oct 30, 2024 at 3:43:14 PM
-> 10/30: changed table names to student_progress, student_exercise_progress
+> Last updated on Oct 30, 2024 at 3:43:14 PM  
+10/30: changed table names to student_progress, student_exercise_progress
 
 I want to build a learning platform for learning development languages and frameworks. A good example is [Learn Javascript Online](https://learnjavascript.online)
 
@@ -67,74 +74,114 @@ I want to build a learning platform for learning development languages and frame
 #### The Learning Platform
 
 - So overall, a student would enroll in a course
+
   - a course would have a series of chapters
+
     - a chapter would have a series of sections (lessons, exercises, recap)
+
       - the first section would usually be a lesson section (markdown file explaining a concept)
+
         - links out to documentation for those language or framework features.
+
       - then the student would complete 1 or more exercises related to the lesson they just learned (so, the code editor stuff)
       - I want a code editor with a real-time console, syntax highlighting, and auto-completion.
+
         - The student should be able to run the code, which would both:
+
           - run the code itself
           - also execute tests to determine if the code meets requirements to pass the exercise.
+
+
       - the final section in a chapter would be a chapter recap section, which is also markdown
+
+
+
 - The course would have a spaced repitition learning system--i.e. flashcards basically.
+
   - The system would build notecards for the student as they learn, allowing them to use the notecards for refreshing their memory--spaced repetition learning, basically.
+
 
 #### The Feedback System
 
 - student submits feedback through learning platform (various ways to do this, which will in some instances set the category value)
 - course_admin and app_admin are notified of feedback submission
 - either of the admins updates the feedback--they need to determine if action needs to be taken; if action needs to be taken, they should take the action (mostly this is going to be updating a course section to correct content)...
+
   - they might need to create a github issue, in which case they should provide the github_issue_link value as well...
   - I think we need to update the possible statuses here, because if for example the app_admin looks at it, determines the author or course_admin needs to update content, then they should be able to (a) open an issue to notify the author or course_admin to make an update, set the status to 'assigned'
   - The author or course_admin or app_admin should be able to update it to 'in progress' if they're working on it but it's not done
   - When they're done, they should set it to 'pending', because most likely the change still needs to be published by an admin
   - once the change is completed, they should update status to resolved and close the github issue (but leave the link)
+
 - If action doesn't need to be taken, for whatever reason (maybe the feedback is just "Hey, I love the app!"), then we shouldn't use the 'ignored' status, but I'm not sure 'resolved' is the right status either...what other status could we use in this scenario?
 
 ### Definition of terms
 
 - Learning Platform: This is the application that a registered student who has registered for a course will use to engage in learning the course's content
+
   - Dashboard: The main page where a registered student can see their enrolled courses, payment status, progress, and achievements.
   - Course: A course is a group of concepts all related to learning a programming language or framework (or really, any group of related concepts), typically organized from most basic concept at the beginning, through to most complicated concepts at the end. The goal is that the user has functionally complete understanding of a course's concepts upon completion
   - Course Interface: This is the interface in the application that the student will see when they are inside a section of a course
+
     - Course Outline: A comprehensive view of all chapters and sections in a course.
     - Knowledge Map: A visual representation of the course structure and concept relationships.
     - Course Achievements: Rewards or recognition for completing certain milestones or tasks.
     - Course Chapter: This is one of one or more blocks of course sections, grouped by a specific concept within that programming language or framework (e.g. Objects, Arrays, etc)
+
       - Chapter Notes: Enables students to add personal annotations and highlight portions of text in the course content.
+
         - Highlight: this is a block of text within a content section or recap section that the student has highlighted, and selected to save to their notes (without a comment)
         - Highlight and Comment: same as a highlight, but the student has entered comments related to the highlighted text.
         - Comment: just a comment a student has added to their notes, that is not attached to highlighted text.
+
       - Chapter Section: This is one of one or more types of chapter learning materials
+
         - Section Type - Content: This is a type of section that contains explanatory text, code blocks, images, and links about a specific subset of a concept (e.g. Array destructuring)
         - Section Type - Exercise: This is a type of section that contains a challenge for the student to complete, in order to test their knowledge of the previous content section; a content section will typically have one or more exercise sections that accompany it; an exercise is a live code editor and testing interface
+
           - Exercise Instructions: the task or problem description for an exercise.
           - Exercise Code Editor: The interface where students write and edit code.
           - Exercise Console: The area where code output and errors are displayed.
           - Exercise Tests: Automated checks to verify if the student's code meets the exercise requirements.
+
         - Section Type - Chapter Recap: This is a type of section that reviews the material and concepts learned within the just-completed chapter
         - Bookmarks: Allows students to mark specific sections for easy reference.
+
+
     - Course Navigation: This is the interface the student will see that allows them to navigate between sections
     - Spaced Repitition: This is a learning concept/methodology in which a student is presented with questions regarding concepts they have recently learned, presented after a certain duration, which encourages long term memory formation through repetition of the concepts.
+
       - Flashcards: Part of the spaced repitition system, these are quick questions or prompts related to completed course content.
+
+
+
 - Content Management Platform: This is the application that a content creator will use to create courses and their related concepts, chapters, and sections.
+
   - Course Builder: The interface for creating and structuring courses.
   - Section Editor: Tools for creating and editing different types of sections (content, exercises, recaps)
   - Asset Manager: System for organizing and managing course-related media and files.
+
 - Administration Platform: This is the application that an administrator will use to manage users, payments, and courses, and to view analytics, error reporting, etc.
+
   - Student: A student is a registered user who engages with course content.
   - Content Creator: A user who creates and manages course content, and responds to inquiries and feedback.
   - Administrator: A user who manages the learning platform and content management platform, the related users and courses.
   - User Management Tools: tools for managing user accounts and permissions.
   - Analytics Dashboard: interface for viewing course and user statistics
+
 - Marketing Website: This is the website/application that will contain all information related to all courses, pricing, and other details necessary to guide student into using the learning platform and purchasing courses.
+
   - Guest: A guest is a visitor to the marketing website who is a potential future student or content creator.
+
 - Technical Terms
+
   - API: Application Programming Interface, used for integrating external services or data
   - Database: the system used to store course content, user data, and progress information
+
 - Terms we are **not** using:
+
   - none that I can think of at this time
+
 
 ### Overall System Functionality summary
 
@@ -156,7 +203,9 @@ Then, as a product owner, I could sell the core system to other organizations, a
 - from there, they would create the course--chapters, sections, content for those sections, etc.
 - they would have a status for the course, like 'draft' and 'finished'
 - a 'published' course could then be branched basically--i.e. start a version to make updates that don't go live until they are finished by the content creator
+
   - any updated sections would have their last updated timestamp updated as well--but only those sections
+
 
 ### Platform Administration
 
@@ -179,11 +228,11 @@ Then, as a product owner, I could sell the core system to other organizations, a
    - Admin Dashboard
    - CMS Interface
 
-1. Astro Content Collections
+2. Astro Content Collections
 
    - Needf to better understand how to integrate astro db with content collections and the content layer API introduced in Astro v5.x
 
-1. Astro API Routes
+3. Astro API Routes
 
    - Content Serving
    - User Management
@@ -192,7 +241,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
    - Note Management
    - What else?
 
-1. Backend Services
+4. Backend Services
 
    - libsql database (by way of AstroDB)
    - Authentication through Oslo (including OAuth)
@@ -200,11 +249,13 @@ Then, as a product owner, I could sell the core system to other organizations, a
    - Storage (service tbd)
    - Code Execution (for exercises) (service tbd)
 
-1. External Services Integration
+5. External Services Integration
+
    - Stripe Payment
    - Vercel Deployment
    - Oslo authentication
    - Sentry analytics/monitoring
+
 
 ## Epics & Features
 
@@ -398,60 +449,84 @@ Then, as a product owner, I could sell the core system to other organizations, a
 #### Overall Learnit Landing page
 
 - search site
+
   - What does it search? Search course names? Course chapters/sections? all course content? Other content (resources)? Help?
+
 - view all available courses (aka catalog)
+
   - view popular courses
   - view all courses
+
     - note: codecademy example is massive overkill for us; we're doing larger courses, and fewer of them to start--it would be more important later on, but not at the outset
+
   - view career paths (a grouping of courses)
+
 - view learning platform functionality (e.g. flashcards, projects, exercises, sample lists of things you'll learn)
 - view testimonials
 - view companies using product
 - view about the instructor/creator (i.e. me in the case of learnit)
 - view call to action--why learn the selected course through this platform?
 - view pricing information
+
   - view free trial information (general info--specific info would be unique to each course)
   - view pricing for every course (list?)
+
     - should we do recurring or one-time payment model?
     - Pricing different for individuals, students, and businesses/teams?
+
   - view pricing faqs
+
     - how much do the courses cost
     - what are the purchase options
     - can i get a refund
     - how long do i have access to the course
+
+
 - select individual course (navigates to a course's dashboard if logged in, course landing page logged out)
 - start individual course (what flow do I want here? they probably need to register first, then sign in, then it will start them)
 - view footer
+
   - contact
+
     - link to any profiles--linkedin, youtube, twitter, instagram, facebook, tiktok, discord?
     - view discord link (follow discord prompts to authenticate, launch app, whatever applies)
+
   - privacy policy
   - cookie policy
   - terms and conditions
   - 'made by mike earley'
   - copyright date
   - `${programming_language} is a copyright of ${whatever corporation}. We are not endorsed by or affiliated with ${said corporation}.`
-  -
+  - 
+
 - view header (does the site need a header?)
+
   - I don't know if we need a header, and if we do, I don't know what should be in it
   - link to support or discord?
   - user profile if signed in?
   - call to sign in if signed out?
   - call to register?
+
 - View resources
+
   - (note: this is a down the road feature for sure)
   - View documentation for programming languages taught on platform (e.g. MDN web docs for javascript)
   - View learning and practice tools
+
     - View articles
     - View cheatsheets
     - View code challenges (that aren't inside of the platform courses)
     - View projects
     - View videos
     - View workspaces (a place to build projects in the browser)
+
   - View career advice
+
     - View answers to coding career questions
     - View learning tips--where to start, how to stay motivated, etc.
     - View job readiness tracker (analyze compatibility with tech roles, using AI)
+
+
 
 #### Individual Course Landing Page (guest user)
 
@@ -460,39 +535,59 @@ Then, as a product owner, I could sell the core system to other organizations, a
 - view skills you'll gain after course completion
 - view course summary
 - view course syllabus/outline
+
   - view section details (accordion expander)
+
 - view frequently asked javascript questions (accordion)
+
   - this is things like:
+
     - what does JS do
     - what kinds of jobs can i get
     - why is it so popular
     - what do i need to know before learning js
     - are java and js the same
+
+
 - view related courses
+
   - for example, if I have a learn programming basics, or learn react, or learn html/css, it would go here
+
 - view related paths
+
   - codecademy has a concept of paths, which is a block of courses all related to one thing (aka skill paths)
+
     - e.g. 'create a back end app with javascript'
     - skill path is identical landing page to course page, except its outline starts a level higher (path > courses > sections)
+
+
 - start course
 - view course controls tutorial
+
   - what are flashcards, how do i use them
   - what do i do if i get stuck
   - can i use the app on mobile, desktop, tablet?
   - course controls--all of the various things the user can click on and what they do
   - number of sections that are provided for free before user has to purchase course
+
 - is there anything unique/different for a course? (sure, but is it just content, or are there different sections)
+
   - Codecademy has (not sure I want these):
+
     - star rating from previous learners, # of ratings
     - view ratings details
+
       - view # of ratings
       - view overall rating average
       - view ratings breakdown by stars (1, 2, 3, 4, 5 stars)
       - view testimonials about course
+
     - number of learners enrolled
     - view skill level
     - view time to complete
     - view # of projects (or challenges?)
+
+
 
 #### Individual Course Landing Page (logged in student)
 
@@ -501,20 +596,26 @@ Then, as a product owner, I could sell the core system to other organizations, a
 #### Support Landing Page (logged in student)
 
 - not sure what all goes here…
+
   - faqs?
   - contact form?
   - discord link?
 
+
 #### Support Landing Page (guest user)
 
 - not sure what content here is different from logged in user
+
   - no access to discord?
+
 
 #### Learnit Platform registration
 
 - register new student
+
   - oauth from github and google
   - view password requirements
+
 - learnit terms of service and privacy policy links
 - view login page instead of registration page
 
@@ -527,11 +628,12 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## Key Decisions and Notes
 
-> Last updated Nov 09, 2024 at 08:11:15 AM EST
-> 11/09: updated key decisions/notes to match current state
+> Last updated Nov 09, 2024 at 08:11:15 AM EST  
+11/09: updated key decisions/notes to match current state
 
 1. Using Astro 5.x (currently in beta) for the frontend with React components.
 2. Database decisions:
+
    1. Made decision to stop using supabase due to platform concerns and issues
    2. Made decision to use AstroDB for local development, with storage on either Turso or self-hosted as the online hosting service for the DB
    3. Implementing a strong/robust seed configuration and typing setup so that when we actually do the seed.ts file, we consistently build out a set of data that is as close to a production version of data as possible.
@@ -539,23 +641,30 @@ Then, as a product owner, I could sell the core system to other organizations, a
    5. We're going to use the effect library for a variety of concerns, including creating state machines, error handling, logging, observability, etc ~~one of those concerns is schema validation, using effect/Schema (instead of using zod for example)~~
    6. Will use Zod for schema validation
    7. Note: Effect no longer requires the `_` adapter functionality to interact with generator functions. As of version 5.5+ of typescript, it is no longer necessary.
-1. Error Handling, Logging, Metrics, Analytics
+
+3. Error Handling, Logging, Metrics, Analytics
+
    1. Going to implement Sentry for this purpose, in terms of storing/monitoring
    2. Locally, will use Effect's system to log problems and pass information to Sentry also
    3. When we are logging errors, we'll log all levels of logging to console and to a separate log file; errors and above will go to sentry
-1. Tailwind & Design decisions:
+
+4. Tailwind & Design decisions:
+
    1. Will use the `inter-veriable` font as the primary font
    2. Will use `mononoki` as the primary code/monospace font
    3. Installed the tailwind-merge package to simplify tailwind classes in production
    4. Installed the fluid-tailwind package to be able to use the 'clamp' feature of css in tailwind without a lot of overhead
    5. Will use `shadcn UI` as the component library for general/common components
-1. Installed the `date-fns` package to utilize for various date related functionality
-2. This means we need to fill some gaps!
+
+5. Installed the `date-fns` package to utilize for various date related functionality
+6. This means we need to fill some gaps!
+
    1. real time subscriptions
    2. code execution
    3. edge functions if needed (I think vercel provides this)
    4. storage if needed (there aren't a lot of images in the initial courses)
-1. Made decision to switch from Hanko to ~~Oslo for authentication~~ a different third party authentication solution, currently undecided
+
+7. Made decision to switch from Hanko to ~~Oslo for authentication~~ a different third party authentication solution, currently undecided
 
 ## Completed Steps/Tasks
 
@@ -567,58 +676,72 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## To-Do / Next Steps
 
-> Last updated Nov 09, 2024 at 08:06:56 AM EST
-> 11/09: updating list of To-Dos and Next Steps to match current state
-> 10/30: updated point about error handling to include sub-points and notes on effect logging system; added point about sentry integration not working.
+> Last updated Nov 09, 2024 at 08:06:56 AM EST  
+11/09: updating list of To-Dos and Next Steps to match current state  
+10/30: updated point about error handling to include sub-points and notes on effect logging system; added point about sentry integration not working.
 
 1. Define remaining features:
+
    1. Administration: flesh out all features and turn into user stories, subject only
    2. Content Management Platform: flesh out all features and turn into user stories, subject only
    3. Marketing Website: take features already listed in this doc and turn into user stories, subject only
    4. Learning Platform: user stories created, need to be fleshed out for all stories
+
 2. Implement error handling and logging
+
    1. set up ErroyBoundary components for React Islands within Astro pages (still needed?)
    2. Continue to implement a global error handling strategy using Effect
    3. Ensure the Effect logging system we've configured will work holistically for our application
    4. Sentry integration isn't sending errors to Sentry for some reason; resolve.
+
 3. Resolve the following error: `21:20:29 [ERROR] [astro:db] [vite] cannot find entry point module 'astro:db'.` (appears in console when running `yarn astro dev`
 4. Revisit authentication solution--should we use Hanko, or Auth.js, or auth-astro, or oslo and custom-written auth (akin to lucia auth, which is being sunset)
+
    1. I think we're going to go with Oslo
+
 5. Once we've updated Notes and Student Progress seeding to be more dynamic, we can do the following:
+
    1. implement error handling (use Effect for this, with Sentry integration)
    2. Create a mechanism to easily reset the database to its seeded state for testing purposes
    3. Implement a way to seed data incrementally or update existing seed data
    4. Add data validation checks before inserting seed data
+
 6. need to write functions that update the enrollment_date, purchase_date, expiration_date columns appropriately
 7. We need to write a function that automatically assigns newly created courses to any users of role 'app_admin', so it doesn't have to be done manually
 8. Courses table needs new fields:
+
    1. course status column--"published", "archived", "draft"
    2. course last_edited_by column (it's a foreign key reference to users)
    3. course last_edited_on column (date)
+
 9. I'm going to take a guess that we also need those exact same columns for "Chapters", "Sections", and "Exercises"...
 10. I need to know how sqlite handles historical changes--i.e. if an 'author' makes changes to a course, and saves the course changes, the new version of the course is not 'published' until an app_admin or course_admin 'publishes' the course; so we would have to somehow maintain 2 versions of the course? Or handle draft changes to a published course in a different manner, so that when an admin changes it from 'draft' to 'published', we apply the changes to the existing course row? Or do we just create a new course row, new copies of all of its descendants including any changes made to them (chapters > sections & exercises), update all users, student_progress, student_exercise_progress? That option sounds like a nightmare. I'm open to whatever ideas you have here.
 11. Implement the Effect typescript library, including OpenTelemetry
-    1. I don't know anything about either of these libraries, you're going to have to walk me through them
-    2. Effect apparently has some advanced features beyond just error management:
-       1. First, implementing the Effect type functionality, creating and running the effects
-       2. Using Effect.gen, to create generators instead of async/await blocks
-       3. pipelines
-       4. Error management
-       5. Services and Layers
-       6. Scope and Patterns
-       7. Observability
-       8. Runtime
-       9. Scheduling
-       10. State Management
-       11. Batching
-       12. Caching
-       13. Concurrency
-       14. Streaming
-       15. Testing
-       16. Control Flow
-       17. Code Style
-       18. Schema
-       19. Platform
+
+   1. I don't know anything about either of these libraries, you're going to have to walk me through them
+   2. Effect apparently has some advanced features beyond just error management:
+
+      1. First, implementing the Effect type functionality, creating and running the effects
+      2. Using Effect.gen, to create generators instead of async/await blocks
+      3. pipelines
+      4. Error management
+      5. Services and Layers
+      6. Scope and Patterns
+      7. Observability
+      8. Runtime
+      9. Scheduling
+      10. State Management
+      11. Batching
+      12. Caching
+      13. Concurrency
+      14. Streaming
+      15. Testing
+      16. Control Flow
+      17. Code Style
+      18. Schema
+      19. Platform
+
+
 
 ## Open Questions / Concerns
 
@@ -633,8 +756,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
 ## State Machine Functionality
 
-> Last updated Nov 02, 2024 at 10:39:12 AM EDT
-> 11/02: added this section
+> Last updated Nov 02, 2024 at 10:39:12 AM EDT  
+11/02: added this section
 
 This section outlines how we'll use state machines in the application to help enforce consistent state management and transitions without impossible states, and with robust logging and error management.
 
@@ -674,11 +797,13 @@ This section outlines how we'll use state machines in the application to help en
 ## Database
 
 - Most tables have some form of the following fields, although not all of them:
+
   - id (or user_id, or student_id): this is a ULID-based text string uniquely identifying that table row, they're all primary keys, and they're all text columns
   - title: where applicable, it is a title of that row in whichever table it's in
   - description: where applicable, it is a summary description of that row in whichever table it's in
   - created_at: the timestamp of when that row in the table was initially created
   - updated_at: the timestamp of when that row in the table was last updated
+
 
 > **note**: `astro db seed` is NOT an available command for the astro database. Valid commands are `astro db push`, `astro db verify`, `astro db execute <file-path>`, and `astro db shell --query <sql-string>`
 
@@ -699,8 +824,8 @@ await db.run(sql`
 
 ### Courses Table
 
-> updated Nov 04, 2024 at 07:14:49 PM EST
-> 11/04: merged a section from another part of the doc into this section.
+> updated Nov 04, 2024 at 07:14:49 PM EST  
+11/04: merged a section from another part of the doc into this section.
 
 #### Courses Column Explanations
 
@@ -708,9 +833,11 @@ A course is the highest level of related blocks of content. Students register fo
 
 - subject_area: A descriptive field defining the broad area of study. Examples from the seed data include 'Programming', 'Web Development', and 'Python Development'.
 - tags: A JSON array containing relevant keywords and version information. For example:
+
   - JavaScript course: `['javascript', 'web development', 'programming', 'ES14', 'ECMAScript 2023']`
   - React course: `['react', 'javascript', 'frontend', 'typescript', 'react18', 'react19']`
   - Python course: `['python', 'backend']`
+
 - price: A decimal number with up to 10 digits and 2 decimal places.
 - purchase_active_length: Number of days the course remains accessible after purchase.
 
@@ -742,8 +869,8 @@ Note: The AstroDB configuration uses the column.number type for price (with prec
 
 ### Chapters Table
 
-> updated Nov 04, 2024 at 07:15:41 PM EST
-> 11/04: merged a section from another part of the doc into this section.
+> updated Nov 04, 2024 at 07:15:41 PM EST  
+11/04: merged a section from another part of the doc into this section.
 
 #### Chapters Column Explanations
 
@@ -775,9 +902,9 @@ A chapter row is a subset of a course. A chapter consists of multiple sections.
 
 ### Exercises Table
 
-> updated Nov 04, 2024 at 07:19:31 PM EST
-> 11/04: moved another section of doc into this section
-> 10/30: changed name from user_solution to student_solution
+> updated Nov 04, 2024 at 07:19:31 PM EST  
+11/04: moved another section of doc into this section  
+10/30: changed name from user_solution to student_solution
 
 This table represents a breakout of sections that have a type of 'exercise'. Exercise content is stored separately from lesson or recap content due to its complexity and the need to track student progress.
 
@@ -786,12 +913,16 @@ This table represents a breakout of sections that have a type of 'exercise'. Exe
 - instructions: Markdown-formatted text explaining how to complete the exercise
 - browser_html (JSON): An object containing HTML file content for exercises that require browser rendering
 - code_files (JSON): An array of objects, each containing:
+
   - filename: name of the file
   - content: initial code content
   - language: programming language for syntax highlighting
+
 - tests (JSON): An array of test cases, each containing:
+
   - description: what the test verifies
   - test_code: the actual test implementation
+
 - hints (JSON): An array of progressive hints to help students
 - difficulty: One of: 'beginner', 'intermediate', 'advanced'
 - default_solution (JSON): The reference solution from the course author
@@ -824,9 +955,9 @@ This table represents a breakout of sections that have a type of 'exercise'. Exe
 
 ### Feedback Table
 
-> updated Nov 04, 2024 at 07:20:47 PM EST
-> 11/04: moved different section of doc to this section
-> 10/30: changed user_id to student_id
+> updated Nov 04, 2024 at 07:20:47 PM EST  
+11/04: moved different section of doc to this section  
+10/30: changed user_id to student_id
 
 #### Feedback Column Explanations
 
@@ -866,9 +997,9 @@ This table represents feedback submitted by students through the learning platfo
 
 ### Notes Table
 
-> updated Nov 04, 2024 at 07:22:05 PM EST
-> 11/04: moved different section of doc into this section
-> 10/30: changed user_id to student_id
+> updated Nov 04, 2024 at 07:22:05 PM EST  
+11/04: moved different section of doc into this section  
+10/30: changed user_id to student_id
 
 #### Notes Column Explanations
 
@@ -876,7 +1007,9 @@ This table represents notes that the student takes during a course. Each row is 
 
 - note_text (JSON, optional, default {}): any notes the user has added to a particular section
 - highlighted_text (JSON, optional, default {}): any sections of text in the chapter recap or lesson content that the user has highlighted to add to their notes
+
   - note: there can be notes text without a highlight, and a highlight without notes text, and a combination of note text and highlights for a single row/entry
+
 
 #### Notes Table Structure
 
@@ -897,8 +1030,8 @@ This table represents notes that the student takes during a course. Each row is 
 
 ### Sections Table
 
-> updated Nov 04, 2024 at 07:17:45 PM EST
-> 11/04: merged section from other part of doc into this section.
+> updated Nov 04, 2024 at 07:17:45 PM EST  
+11/04: merged section from other part of doc into this section.
 
 #### Sections Column Explanations
 
@@ -909,13 +1042,17 @@ A section represents a specific learning unit within a chapter. Each section can
 - section_display_number: A number indicating the section's position within the chapter; resets to 1 at the start of each chapter
 - sort_order: An integer determining the section's sorting for the purposes of queries, indexes, UI sorting, etc.
 - content_type: One of three types:
+
   - 'lesson': A teaching section with explanatory content
   - 'exercise': A practical section where students complete coding tasks
   - 'recap': A review section summarizing chapter content
+
 - content: JSON field containing the section's content (optional, primarily used for lesson and recap types)
 - access_level: Controls section accessibility:
+
   - 'free': Available after course enrollment without purchase
   - 'purchased' (default): Only available after course purchase
+
 
 Note: For sections with content_type 'exercise', the actual exercise content is stored in the Exercises table, referenced by the section's id.
 
@@ -944,9 +1081,9 @@ Note: For sections with content_type 'exercise', the actual exercise content is 
 
 ### Student_Exercise_Progress Table
 
-> updated Nov 04, 2024 at 07:22:41 PM EST
-> 11/04: moved different section of doc into this section
-> 10/30: changed name to Student*... instead of User*...; changed user_id to student_id
+> updated Nov 04, 2024 at 07:22:41 PM EST  
+11/04: moved different section of doc into this section  
+10/30: changed name to Student*... instead of User*...; changed user_id to student_id
 
 #### Student Exercise Progress Column Explanations
 
@@ -982,9 +1119,9 @@ This table tracks a student's progress in one exercise per row. Each row is uniq
 
 ### Student_Progress Table Structure
 
-> updated Nov 04, 2024 at 07:23:45 PM EST
-> 11/04: moved different section of doc into this section
-> 10/30: changed name from User*... to Student*...; renamed user_id to student_id
+> updated Nov 04, 2024 at 07:23:45 PM EST  
+11/04: moved different section of doc into this section  
+10/30: changed name from User*... to Student*...; renamed user_id to student_id
 
 #### Student Progress Column Explanations
 
@@ -1001,19 +1138,19 @@ This table tracks a student's progress in one course. Each row represents one st
 
 #### Student Progress Table Structure
 
-| field              | type | default | required | notes                      |
-| ------------------ | ---- | ------- | -------- | -------------------------- |
-| id                 | text | n/a     | not null | primary_key                |
-| student_id         | text | n/a     | not null | foreign_key (users.id)     |
-| course_id          | text | n/a     | not null | foreign_key (courses.id)   |
-| current_section_id | text | n/a     | not null | foreign_key (sections.id)  |
-| completed_sections | json | '[]'    | not null |                            |
-| last_accessed_at   | date | n/a     | optional |                            |
-| enrollment_date    | date | n/a     | not null |                            |
-| purchase_date      | date | n/a     | optional |                            |
-| expiration_date    | date | n/a     | optional |                            |
-| created_at         | date | NOW     | not null |                            |
-| updated_at         | date | NOW     | not null |                            |
+| field              | type | default | required | notes                     |
+| ------------------ | ---- | ------- | -------- | ------------------------- |
+| id                 | text | n/a     | not null | primary_key               |
+| student_id         | text | n/a     | not null | foreign_key (users.id)    |
+| course_id          | text | n/a     | not null | foreign_key (courses.id)  |
+| current_section_id | text | n/a     | not null | foreign_key (sections.id) |
+| completed_sections | json | '[]'    | not null |                           |
+| last_accessed_at   | date | n/a     | optional |                           |
+| enrollment_date    | date | n/a     | not null |                           |
+| purchase_date      | date | n/a     | optional |                           |
+| expiration_date    | date | n/a     | optional |                           |
+| created_at         | date | NOW     | not null |                           |
+| updated_at         | date | NOW     | not null |                           |
 
 #### Indexes for Student Progress Table
 
@@ -1023,8 +1160,8 @@ This table tracks a student's progress in one course. Each row represents one st
 
 ### Users Table
 
-> updated Nov 04, 2024 at 07:24:35 PM EST
-> 11/04: moved different section of doc to this section
+> updated Nov 04, 2024 at 07:24:35 PM EST  
+11/04: moved different section of doc to this section
 
 #### Users Column Explanations
 
@@ -1039,10 +1176,12 @@ This table stores all users of the learning platform, administration platform, a
 - auth_provider (optional): The authentication provider used (e.g., 'github', 'google')
 - auth_provider_id (optional): External identifier from the auth provider
 - Provider-specific fields (all optional):
+
   - github_username
   - google_id
   - gitlab_username
   - bitbucket_username
+
 - last_sign_in (optional): Timestamp of user's most recent sign in
 
 #### Users Table Structure
@@ -1073,9 +1212,9 @@ This table stores all users of the learning platform, administration platform, a
 
 ### Triggers
 
-> updated Oct 30, 2024 at 3:38:23 PM
-> 10/30: changed references to student_progress and student_exercise_progress; changed references to user_id, where appropriate, to student_id
-> Need to identify a programmatic solution for triggers, libsql doesn't support them
+> updated Oct 30, 2024 at 3:38:23 PM  
+10/30: changed references to student_progress and student_exercise_progress; changed references to user_id, where appropriate, to student_id  
+Need to identify a programmatic solution for triggers, libsql doesn't support them
 
 1. updating the updated_at columns
 
@@ -1103,9 +1242,9 @@ This table stores all users of the learning platform, administration platform, a
 
 ### Row level security
 
-> updated Oct 30, 2024 at 3:39:45 PM
-> 10/30: changed to student_progress and student_exercise_progress
-> need to identify programmatic solution, libsql doesn't support this
+> updated Oct 30, 2024 at 3:39:45 PM  
+10/30: changed to student_progress and student_exercise_progress  
+need to identify programmatic solution, libsql doesn't support this
 
 ```sql
 alter table users enable row level security;
@@ -1121,9 +1260,9 @@ alter table student_exercise_progress enable row level security;
 
 ### Policies
 
-> updated Oct 30, 2024 at 3:40:11 PM
-> 10/30: changed to student_progress, student_exercise_progress, student_id where appropriate
-> need to figure out programmatic solution, libsql doesn't support this
+> updated Oct 30, 2024 at 3:40:11 PM  
+10/30: changed to student_progress, student_exercise_progress, student_id where appropriate  
+need to figure out programmatic solution, libsql doesn't support this
 
 1. Question: shouldn't there be a policy on users for admins to edit users?
 
@@ -1153,118 +1292,118 @@ create policy manage_own_exercise_progress on student_exercise_progress for all 
 ## Project Directory Structure (high level only)
 
 > Last updated Oct 30, 2024 at 3:41:45 PM
->
-> Note: the following tree command was used, to prune unneeded directory/file info:
-> `tree -a -L 5 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
+> 
+> Note: the following tree command was used, to prune unneeded directory/file info:  
+`tree -a -L 5 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
 
-.
-├── .DS_Store
-├── .editorconfig
-├── .env
-├── .env.development
-├── .env.production
-├── .eslintrc.cjs
-├── .gitattributes
-├── .github
-│   ├── .DS_Store
-│   ├── copilot-instructions.md
-│   └── workflows
-│   ├── assign_me.yml
-│   └── version-release.yml
-├── .gitignore
-├── .mise.toml
-├── .prettierignore
-├── .prettierrc.cjs
-├── .sentryclirc
-├── .yarnrc.yml
-├── LICENSE
-├── README.md
-├── astro.config.mjs
-├── db
-│   ├── .DS_Store
-│   ├── config.ts
-│   ├── seed.ts
-│   ├── seedDataConfig.ts
-│   ├── seed_config
-│   │   ├── .DS_Store
-│   │   ├── index.ts
-│   │   ├── seed
-│   │   │   ├── .DS_Store
-│   │   │   ├── courses
-│   │   │   │   ├── advanced-react.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── javascript-fundamentals.ts
-│   │   │   │   └── python-fundamentals.ts
-│   │   │   ├── date-options.ts
-│   │   │   ├── exercise-content.ts
-│   │   │   └── utils.ts
-│   │   └── types
-│   │   ├── seed-error-types.ts
-│   │   ├── seed-success-types.ts
-│   │   └── seed-types.ts
-│   ├── seed_old.md
-│   ├── seederFiles
-│   │   ├── chapters.ts
-│   │   ├── courses.ts
-│   │   ├── exercises.ts
-│   │   ├── feedback.ts
-│   │   ├── index.ts
-│   │   ├── notes.ts
-│   │   ├── sections.ts
-│   │   ├── student-exercise-progress.ts
-│   │   ├── student-progress.ts
-│   │   └── users.ts
-│   └── triggers.ts
-├── db.d.ts
-├── package.json
-├── playwright-report
-│   └── index.html
-├── playwright.config.ts
-├── public
-│   └── favicon.svg
-├── src
-│   ├── .DS_Store
-│   ├── env.d.ts
-│   ├── layouts
-│   │   ├── DocsLayout.astro
-│   │   └── Layout.astro
-│   ├── lib
-│   ├── pages
-│   │   ├── docs
-│   │   │   ├── api-reference.md
-│   │   │   ├── getting-started.md
-│   │   │   └── index.md
-│   │   ├── index.astro
-│   │   └── logTesting.astro
-│   ├── schemas
-│   │   ├── chapters.schema.ts
-│   │   ├── courses.schema.ts
-│   │   ├── exercises.schema.ts
-│   │   ├── feedback.schema.ts
-│   │   ├── notes.schema.ts
-│   │   ├── sections.schema.ts
-│   │   ├── student_exercise_progress.schema.ts
-│   │   ├── student_progress.schema.ts
-│   │   └── users.schema.ts
-│   ├── scripts
-│   │   └── runSeed.ts
-│   ├── styles
-│   │   └── global.css
-│   └── utils
-│   ├── astrodb_utils.ts
-│   ├── general_utils.ts
-│   ├── logger.ts
-│   ├── sentry.ts
-│   └── temp_file_code.ts
-├── tailwind.config.mjs
-├── test-results
-│   └── .last-run.json
-├── tests
-│   └── example.spec.ts
-├── tests-examples
-│   └── demo-todo-app.spec.ts
-├── tsconfig.json
-├── vitest.config.ts
+.  
+├── .DS_Store  
+├── .editorconfig  
+├── .env  
+├── .env.development  
+├── .env.production  
+├── .eslintrc.cjs  
+├── .gitattributes  
+├── .github  
+│   ├── .DS_Store  
+│   ├── copilot-instructions.md  
+│   └── workflows  
+│   ├── assign_me.yml  
+│   └── version-release.yml  
+├── .gitignore  
+├── .mise.toml  
+├── .prettierignore  
+├── .prettierrc.cjs  
+├── .sentryclirc  
+├── .yarnrc.yml  
+├── LICENSE  
+├── README.md  
+├── astro.config.mjs  
+├── db  
+│   ├── .DS_Store  
+│   ├── config.ts  
+│   ├── seed.ts  
+│   ├── seedDataConfig.ts  
+│   ├── seed_config  
+│   │   ├── .DS_Store  
+│   │   ├── index.ts  
+│   │   ├── seed  
+│   │   │   ├── .DS_Store  
+│   │   │   ├── courses  
+│   │   │   │   ├── advanced-react.ts  
+│   │   │   │   ├── index.ts  
+│   │   │   │   ├── javascript-fundamentals.ts  
+│   │   │   │   └── python-fundamentals.ts  
+│   │   │   ├── date-options.ts  
+│   │   │   ├── exercise-content.ts  
+│   │   │   └── utils.ts  
+│   │   └── types  
+│   │   ├── seed-error-types.ts  
+│   │   ├── seed-success-types.ts  
+│   │   └── seed-types.ts  
+│   ├── seed_old.md  
+│   ├── seederFiles  
+│   │   ├── chapters.ts  
+│   │   ├── courses.ts  
+│   │   ├── exercises.ts  
+│   │   ├── feedback.ts  
+│   │   ├── index.ts  
+│   │   ├── notes.ts  
+│   │   ├── sections.ts  
+│   │   ├── student-exercise-progress.ts  
+│   │   ├── student-progress.ts  
+│   │   └── users.ts  
+│   └── triggers.ts  
+├── db.d.ts  
+├── package.json  
+├── playwright-report  
+│   └── index.html  
+├── playwright.config.ts  
+├── public  
+│   └── favicon.svg  
+├── src  
+│   ├── .DS_Store  
+│   ├── env.d.ts  
+│   ├── layouts  
+│   │   ├── DocsLayout.astro  
+│   │   └── Layout.astro  
+│   ├── lib  
+│   ├── pages  
+│   │   ├── docs  
+│   │   │   ├── api-reference.md  
+│   │   │   ├── getting-started.md  
+│   │   │   └── index.md  
+│   │   ├── index.astro  
+│   │   └── logTesting.astro  
+│   ├── schemas  
+│   │   ├── chapters.schema.ts  
+│   │   ├── courses.schema.ts  
+│   │   ├── exercises.schema.ts  
+│   │   ├── feedback.schema.ts  
+│   │   ├── notes.schema.ts  
+│   │   ├── sections.schema.ts  
+│   │   ├── student_exercise_progress.schema.ts  
+│   │   ├── student_progress.schema.ts  
+│   │   └── users.schema.ts  
+│   ├── scripts  
+│   │   └── runSeed.ts  
+│   ├── styles  
+│   │   └── global.css  
+│   └── utils  
+│   ├── astrodb_utils.ts  
+│   ├── general_utils.ts  
+│   ├── logger.ts  
+│   ├── sentry.ts  
+│   └── temp_file_code.ts  
+├── tailwind.config.mjs  
+├── test-results  
+│   └── .last-run.json  
+├── tests  
+│   └── example.spec.ts  
+├── tests-examples  
+│   └── demo-todo-app.spec.ts  
+├── tsconfig.json  
+├── vitest.config.ts  
 └── yarn.lock
 
 23 directories, 86 files
