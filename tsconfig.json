@@ -1,18 +1,26 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "allowSyntheticDefaultImports": true,
+    // base options
     "esModuleInterop": true,
-    "strict": true,
-    "jsx": "react-jsx",
-    "baseUrl": ".",
+    "skipLibCheck": true,
+    "target": "ES2022",
     "allowJs": true,
-    "rootDir": ".",
-    "strictNullChecks": true,
-    "types": ["astro/client"],
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "baseUrl": ".",
+    // strictness options
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    // running in the DOM
+    "lib": ["es2022", "dom", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "types": ["vite/client"],
+    // path aliases
     "paths": {
       "@assets/*": ["src/assets/*"],
       "@components/*": ["src/components/*"],
@@ -20,13 +28,13 @@
       "@icons/*": ["src/icons/*"],
       "@layouts/*": ["src/layouts/*"],
       "@pages/*": ["src/pages/*"],
+      "@schemas/*": ["src/schemas/*"],
       "@scripts/*": ["src/scripts/*"],
       "@styles/*": ["src/styles/*"],
       "@utils/*": ["src/utils/*"],
-      "@lib/*": ["src/lib/*"]
-    },
-    "jsxImportSource": "react"
+      "@lib/*": ["src/lib/*"],
+      "@db/*": ["db/*"]
+    }
   },
-  "include": ["src/**/*", ".eslintrc.cjs", "astro.config.mjs", "tailwind.config.mjs", ".astro/types.d.ts"],
-  "exclude": ["node_modules", "dist", ".yarn", ".vscode", "public"]
+  "exclude": ["dist"]
 }

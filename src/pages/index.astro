@@ -1,7 +1,20 @@
 ---
 import Layout from '@layouts/Layout.astro'
+import '@utils/temp_file_code'
+import '@utils/general_utils'
 ---
 
 <Layout title="Login">
   <h1>Hello World</h1>
+  <button id="error-button">Throw test error</button>
 </Layout>
+
+<script>
+  function handleClick() {
+    throw new Error('Test error')
+  }
+  const errorButton = document.querySelector('#error-button')
+  if (errorButton) {
+    errorButton.addEventListener('click', handleClick)
+  }
+</script>

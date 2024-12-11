@@ -1,0 +1,69 @@
+graph TD
+    subgraph Frontend["Frontend (Astro + React)"]
+        A[Marketing Site]
+        B[Learning Platform]
+        C[Admin Dashboard]
+        D[CMS Interface]
+    end
+
+    subgraph ContentCollections["Astro Content Collections"]
+        E[Courses Collection]
+        F[Chapters Collection]
+        G[Exercises Collection]
+    end
+
+    subgraph APIRoutes["Astro API Routes"]
+        H[Content Serving]
+        I[User Management]
+        J[Progress Tracking]
+        K[Feedback System]
+        L[Note Management]
+    end
+
+    subgraph BackendServices["Backend Services"]
+        M[AstroDB libsql]
+        N[Hanko Authentication]
+        O[Real-time Subscriptions TBD]
+        P[Storage TBD]
+        Q[Code Execution TBD]
+    end
+
+    subgraph ExternalServices["External Services"]
+        R[Stripe Payment]
+        S[Vercel Deployment]
+        T[GitHub OAuth]
+        U[Google OAuth]
+    end
+
+    A --> H
+    B --> H
+    B --> I
+    B --> J
+    B --> K
+    B --> L
+    C --> I
+    C --> J
+    C --> K
+    D --> E
+    D --> F
+    D --> G
+
+    H --> M
+    I --> M
+    J --> M
+    K --> M
+    L --> M
+
+    I --> N
+    I --> T
+    I --> U
+
+    B --> O
+    B --> P
+    B --> Q
+
+    I --> R
+    A --> S
+    B --> S
+    C --> S
+    D --> S

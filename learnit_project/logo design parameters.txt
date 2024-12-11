@@ -1,0 +1,12 @@
+I need help generating a logo for my new website. 
+The business name is 'learnit' (all lower case). It is an online learning platform for learning programming languages and frameworks. 
+The industry is, as mentioned, development. 
+Target audience is people wanting to learn or enhance their development skills.
+I'm not sure what my brand values are. 
+I want a retro style logo. Specifically, an old school/retro robot--something more on the kawaii/cute side basically. I want the head to be a monitor, with the eyes being like this: { oo }
+I want the robot to have an antenna with a flashing led on top of it. 
+I want it to use retro/synthwave colors. 
+In terms of the fonts, I do like monospace fonts for the development connection--I like fonts like cpmono_v07, martianmono nerd font, or profont llx nerd font mono. I'm also open to the vcr osd mono. 
+I think we can do some fun glowing effects and animations with svg if you can use svg instead of webp. 
+I think initially I don't want a background--just the mascot and business name. 
+
