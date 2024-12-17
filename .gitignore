@@ -161,3 +161,6 @@ dist
 
 # Copilot instructions
 copilot-instructions.md
+
+# Aider
+.aider.conf.yml
