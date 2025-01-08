@@ -5,67 +5,20 @@ Last Updated: Nov 09, 2024 at 08:07:22 AM EST
 
 ## Notes to the AI
 
-### What you need to know
-
-> Last updated Oct 30, 2024 at 3:42:06 PM
-
-1. We are doing the following, currently:
-
-   1. ~~Moving to implement Effect's Console logging system~~
-   2. ~~Logger testing page created at /logTesting~~
-   3. ~~Need to fix typescript errors in runLog function params~~
-   4. Convert current seeding process into a state machine using Effect
-   5. Need to implement better structured logging and add context  
-      ~~6. Build out types for the generic Seeder state machine; types include:~~  
-      ~~1. [x] SeederState~~  
-      ~~2. [x] SeederEvent~~  
-      ~~3. [x] Transition~~  
-      ~~4. [x] Any other types that help to clean up or simplify the above states~~
-   6. In the process of creating the separate seeder files for the remaining tables (we've done courses; need to do the rest)
-
-      1. [] Courses
-      2. [] Chapters
-      3. [] Sections
-      4. [] Exercises
-      5. [] Users
-      6. [] Feedback
-      7. [] Notes
-      8. [] Student Exercise Progress
-      9. [] Student Progress
-
-   7. We need to identify any remaining database integration tasks (schema validation, error handling, etc)
-
-      1. [x] Initial AstroDB configuration
-      2. [x] Schema definitions
-      3. [x] Schema validation using zod
-      4. [] error handling improvements
-      5. [] database reset mechanism
-      6. [] incremental seeding capability
-
-
-2. Immediate next steps:
-
-   1. Work on conversion of seeding to state machine
-   2. complete the remaining seeder files following courses.ts pattern
-   3. ~~implement zod for validation~~
-   4. I'd like to export the logs to a file in addition to exporting them to Sentry...
-
-3. We need to use the Zod library to set up schema validation
-
 ### General Hygiene Notes
 
 > NOTE TO AI: **DO NOT** remove any unedited content from this document. Please ONLY make updates and additions. If you need to delete something, please check with me first. **DO NOT** replace any of the content with `[content remains unchanged]`
-> 
+>
 > NOTE TO AI: **DO NOT** try and print the full contents of this document into the chat response when I send it to you, it is **too long**. Just let me know you got it and we'll go from there.
-> 
+>
 > NOTE TO AI: I use fish shell, yarn and kitty terminal, I do not use bash, and I don't use NPM; most of the time there isn't an issue, especially when dealing with commands from a 3rd party cli interface--however, sometimes it matters. **Please remember this**
-> 
+>
 > NOTE TO AI: Please stop apologizing every time I correct an issue with something you helped me with. It's fine. I make mistakes, you make mistakes. I don't need to see a paragraph of you apologizing every time. Just get to the corrections.
 
 ## Summary of Project
 
 > Last updated on Oct 30, 2024 at 3:43:14 PM  
-10/30: changed table names to student_progress, student_exercise_progress
+> 10/30: changed table names to student_progress, student_exercise_progress
 
 I want to build a learning platform for learning development languages and frameworks. A good example is [Learn Javascript Online](https://learnjavascript.online)
 
@@ -91,15 +44,11 @@ I want to build a learning platform for learning development languages and frame
           - run the code itself
           - also execute tests to determine if the code meets requirements to pass the exercise.
 
-
       - the final section in a chapter would be a chapter recap section, which is also markdown
-
-
 
 - The course would have a spaced repitition learning system--i.e. flashcards basically.
 
   - The system would build notecards for the student as they learn, allowing them to use the notecards for refreshing their memory--spaced repetition learning, basically.
-
 
 #### The Feedback System
 
@@ -147,13 +96,10 @@ I want to build a learning platform for learning development languages and frame
         - Section Type - Chapter Recap: This is a type of section that reviews the material and concepts learned within the just-completed chapter
         - Bookmarks: Allows students to mark specific sections for easy reference.
 
-
     - Course Navigation: This is the interface the student will see that allows them to navigate between sections
     - Spaced Repitition: This is a learning concept/methodology in which a student is presented with questions regarding concepts they have recently learned, presented after a certain duration, which encourages long term memory formation through repetition of the concepts.
 
       - Flashcards: Part of the spaced repitition system, these are quick questions or prompts related to completed course content.
-
-
 
 - Content Management Platform: This is the application that a content creator will use to create courses and their related concepts, chapters, and sections.
 
@@ -182,7 +128,6 @@ I want to build a learning platform for learning development languages and frame
 
   - none that I can think of at this time
 
-
 ### Overall System Functionality summary
 
 As the product owner, I want a core system that does all of the functionality itself:
@@ -205,7 +150,6 @@ Then, as a product owner, I could sell the core system to other organizations, a
 - a 'published' course could then be branched basically--i.e. start a version to make updates that don't go live until they are finished by the content creator
 
   - any updated sections would have their last updated timestamp updated as well--but only those sections
-
 
 ### Platform Administration
 
@@ -255,7 +199,6 @@ Then, as a product owner, I could sell the core system to other organizations, a
    - Vercel Deployment
    - Oslo authentication
    - Sentry analytics/monitoring
-
 
 ## Epics & Features
 
@@ -481,7 +424,6 @@ Then, as a product owner, I could sell the core system to other organizations, a
     - can i get a refund
     - how long do i have access to the course
 
-
 - select individual course (navigates to a course's dashboard if logged in, course landing page logged out)
 - start individual course (what flow do I want here? they probably need to register first, then sign in, then it will start them)
 - view footer
@@ -497,7 +439,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
   - 'made by mike earley'
   - copyright date
   - `${programming_language} is a copyright of ${whatever corporation}. We are not endorsed by or affiliated with ${said corporation}.`
-  - 
+  -
 
 - view header (does the site need a header?)
 
@@ -526,8 +468,6 @@ Then, as a product owner, I could sell the core system to other organizations, a
     - View learning tips--where to start, how to stay motivated, etc.
     - View job readiness tracker (analyze compatibility with tech roles, using AI)
 
-
-
 #### Individual Course Landing Page (guest user)
 
 - basically the stuff that is above for learnit platform
@@ -548,7 +488,6 @@ Then, as a product owner, I could sell the core system to other organizations, a
     - what do i need to know before learning js
     - are java and js the same
 
-
 - view related courses
 
   - for example, if I have a learn programming basics, or learn react, or learn html/css, it would go here
@@ -559,7 +498,6 @@ Then, as a product owner, I could sell the core system to other organizations, a
 
     - e.g. 'create a back end app with javascript'
     - skill path is identical landing page to course page, except its outline starts a level higher (path > courses > sections)
-
 
 - start course
 - view course controls tutorial
@@ -587,8 +525,6 @@ Then, as a product owner, I could sell the core system to other organizations, a
     - view time to complete
     - view # of projects (or challenges?)
 
-
-
 #### Individual Course Landing Page (logged in student)
 
 - see Course Functionality section
@@ -601,13 +537,11 @@ Then, as a product owner, I could sell the core system to other organizations, a
   - contact form?
   - discord link?
 
-
 #### Support Landing Page (guest user)
 
 - not sure what content here is different from logged in user
 
   - no access to discord?
-
 
 #### Learnit Platform registration
 
@@ -629,7 +563,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
 ## Key Decisions and Notes
 
 > Last updated Nov 09, 2024 at 08:11:15 AM EST  
-11/09: updated key decisions/notes to match current state
+> 11/09: updated key decisions/notes to match current state
 
 1. Using Astro 5.x (currently in beta) for the frontend with React components.
 2. Database decisions:
@@ -677,8 +611,8 @@ Then, as a product owner, I could sell the core system to other organizations, a
 ## To-Do / Next Steps
 
 > Last updated Nov 09, 2024 at 08:06:56 AM EST  
-11/09: updating list of To-Dos and Next Steps to match current state  
-10/30: updated point about error handling to include sub-points and notes on effect logging system; added point about sentry integration not working.
+> 11/09: updating list of To-Dos and Next Steps to match current state  
+> 10/30: updated point about error handling to include sub-points and notes on effect logging system; added point about sentry integration not working.
 
 1. Define remaining features:
 
@@ -718,30 +652,28 @@ Then, as a product owner, I could sell the core system to other organizations, a
 10. I need to know how sqlite handles historical changes--i.e. if an 'author' makes changes to a course, and saves the course changes, the new version of the course is not 'published' until an app_admin or course_admin 'publishes' the course; so we would have to somehow maintain 2 versions of the course? Or handle draft changes to a published course in a different manner, so that when an admin changes it from 'draft' to 'published', we apply the changes to the existing course row? Or do we just create a new course row, new copies of all of its descendants including any changes made to them (chapters > sections & exercises), update all users, student_progress, student_exercise_progress? That option sounds like a nightmare. I'm open to whatever ideas you have here.
 11. Implement the Effect typescript library, including OpenTelemetry
 
-   1. I don't know anything about either of these libraries, you're going to have to walk me through them
-   2. Effect apparently has some advanced features beyond just error management:
+12. I don't know anything about either of these libraries, you're going to have to walk me through them
+13. Effect apparently has some advanced features beyond just error management:
 
-      1. First, implementing the Effect type functionality, creating and running the effects
-      2. Using Effect.gen, to create generators instead of async/await blocks
-      3. pipelines
-      4. Error management
-      5. Services and Layers
-      6. Scope and Patterns
-      7. Observability
-      8. Runtime
-      9. Scheduling
-      10. State Management
-      11. Batching
-      12. Caching
-      13. Concurrency
-      14. Streaming
-      15. Testing
-      16. Control Flow
-      17. Code Style
-      18. Schema
-      19. Platform
-
-
+    1. First, implementing the Effect type functionality, creating and running the effects
+    2. Using Effect.gen, to create generators instead of async/await blocks
+    3. pipelines
+    4. Error management
+    5. Services and Layers
+    6. Scope and Patterns
+    7. Observability
+    8. Runtime
+    9. Scheduling
+    10. State Management
+    11. Batching
+    12. Caching
+    13. Concurrency
+    14. Streaming
+    15. Testing
+    16. Control Flow
+    17. Code Style
+    18. Schema
+    19. Platform
 
 ## Open Questions / Concerns
 
@@ -757,7 +689,7 @@ Then, as a product owner, I could sell the core system to other organizations, a
 ## State Machine Functionality
 
 > Last updated Nov 02, 2024 at 10:39:12 AM EDT  
-11/02: added this section
+> 11/02: added this section
 
 This section outlines how we'll use state machines in the application to help enforce consistent state management and transitions without impossible states, and with robust logging and error management.
 
@@ -804,7 +736,6 @@ This section outlines how we'll use state machines in the application to help en
   - created_at: the timestamp of when that row in the table was initially created
   - updated_at: the timestamp of when that row in the table was last updated
 
-
 > **note**: `astro db seed` is NOT an available command for the astro database. Valid commands are `astro db push`, `astro db verify`, `astro db execute <file-path>`, and `astro db shell --query <sql-string>`
 
 ### Notes on SQLite, AstroDB, and Drizzle working together
@@ -825,7 +756,7 @@ await db.run(sql`
 ### Courses Table
 
 > updated Nov 04, 2024 at 07:14:49 PM EST  
-11/04: merged a section from another part of the doc into this section.
+> 11/04: merged a section from another part of the doc into this section.
 
 #### Courses Column Explanations
 
@@ -870,7 +801,7 @@ Note: The AstroDB configuration uses the column.number type for price (with prec
 ### Chapters Table
 
 > updated Nov 04, 2024 at 07:15:41 PM EST  
-11/04: merged a section from another part of the doc into this section.
+> 11/04: merged a section from another part of the doc into this section.
 
 #### Chapters Column Explanations
 
@@ -903,8 +834,8 @@ A chapter row is a subset of a course. A chapter consists of multiple sections.
 ### Exercises Table
 
 > updated Nov 04, 2024 at 07:19:31 PM EST  
-11/04: moved another section of doc into this section  
-10/30: changed name from user_solution to student_solution
+> 11/04: moved another section of doc into this section  
+> 10/30: changed name from user_solution to student_solution
 
 This table represents a breakout of sections that have a type of 'exercise'. Exercise content is stored separately from lesson or recap content due to its complexity and the need to track student progress.
 
@@ -956,8 +887,8 @@ This table represents a breakout of sections that have a type of 'exercise'. Exe
 ### Feedback Table
 
 > updated Nov 04, 2024 at 07:20:47 PM EST  
-11/04: moved different section of doc to this section  
-10/30: changed user_id to student_id
+> 11/04: moved different section of doc to this section  
+> 10/30: changed user_id to student_id
 
 #### Feedback Column Explanations
 
@@ -998,8 +929,8 @@ This table represents feedback submitted by students through the learning platfo
 ### Notes Table
 
 > updated Nov 04, 2024 at 07:22:05 PM EST  
-11/04: moved different section of doc into this section  
-10/30: changed user_id to student_id
+> 11/04: moved different section of doc into this section  
+> 10/30: changed user_id to student_id
 
 #### Notes Column Explanations
 
@@ -1009,7 +940,6 @@ This table represents notes that the student takes during a course. Each row is 
 - highlighted_text (JSON, optional, default {}): any sections of text in the chapter recap or lesson content that the user has highlighted to add to their notes
 
   - note: there can be notes text without a highlight, and a highlight without notes text, and a combination of note text and highlights for a single row/entry
-
 
 #### Notes Table Structure
 
@@ -1031,7 +961,7 @@ This table represents notes that the student takes during a course. Each row is 
 ### Sections Table
 
 > updated Nov 04, 2024 at 07:17:45 PM EST  
-11/04: merged section from other part of doc into this section.
+> 11/04: merged section from other part of doc into this section.
 
 #### Sections Column Explanations
 
@@ -1052,7 +982,6 @@ A section represents a specific learning unit within a chapter. Each section can
 
   - 'free': Available after course enrollment without purchase
   - 'purchased' (default): Only available after course purchase
-
 
 Note: For sections with content_type 'exercise', the actual exercise content is stored in the Exercises table, referenced by the section's id.
 
@@ -1082,8 +1011,8 @@ Note: For sections with content_type 'exercise', the actual exercise content is 
 ### Student_Exercise_Progress Table
 
 > updated Nov 04, 2024 at 07:22:41 PM EST  
-11/04: moved different section of doc into this section  
-10/30: changed name to Student*... instead of User*...; changed user_id to student_id
+> 11/04: moved different section of doc into this section  
+> 10/30: changed name to Student*... instead of User*...; changed user_id to student_id
 
 #### Student Exercise Progress Column Explanations
 
@@ -1120,8 +1049,8 @@ This table tracks a student's progress in one exercise per row. Each row is uniq
 ### Student_Progress Table Structure
 
 > updated Nov 04, 2024 at 07:23:45 PM EST  
-11/04: moved different section of doc into this section  
-10/30: changed name from User*... to Student*...; renamed user_id to student_id
+> 11/04: moved different section of doc into this section  
+> 10/30: changed name from User*... to Student*...; renamed user_id to student_id
 
 #### Student Progress Column Explanations
 
@@ -1161,7 +1090,7 @@ This table tracks a student's progress in one course. Each row represents one st
 ### Users Table
 
 > updated Nov 04, 2024 at 07:24:35 PM EST  
-11/04: moved different section of doc to this section
+> 11/04: moved different section of doc to this section
 
 #### Users Column Explanations
 
@@ -1213,8 +1142,8 @@ This table stores all users of the learning platform, administration platform, a
 ### Triggers
 
 > updated Oct 30, 2024 at 3:38:23 PM  
-10/30: changed references to student_progress and student_exercise_progress; changed references to user_id, where appropriate, to student_id  
-Need to identify a programmatic solution for triggers, libsql doesn't support them
+> 10/30: changed references to student_progress and student_exercise_progress; changed references to user_id, where appropriate, to student_id  
+> Need to identify a programmatic solution for triggers, libsql doesn't support them
 
 1. updating the updated_at columns
 
@@ -1243,8 +1172,8 @@ Need to identify a programmatic solution for triggers, libsql doesn't support th
 ### Row level security
 
 > updated Oct 30, 2024 at 3:39:45 PM  
-10/30: changed to student_progress and student_exercise_progress  
-need to identify programmatic solution, libsql doesn't support this
+> 10/30: changed to student_progress and student_exercise_progress  
+> need to identify programmatic solution, libsql doesn't support this
 
 ```sql
 alter table users enable row level security;
@@ -1261,8 +1190,8 @@ alter table student_exercise_progress enable row level security;
 ### Policies
 
 > updated Oct 30, 2024 at 3:40:11 PM  
-10/30: changed to student_progress, student_exercise_progress, student_id where appropriate  
-need to figure out programmatic solution, libsql doesn't support this
+> 10/30: changed to student_progress, student_exercise_progress, student_id where appropriate  
+> need to figure out programmatic solution, libsql doesn't support this
 
 1. Question: shouldn't there be a policy on users for admins to edit users?
 
@@ -1292,9 +1221,9 @@ create policy manage_own_exercise_progress on student_exercise_progress for all 
 ## Project Directory Structure (high level only)
 
 > Last updated Oct 30, 2024 at 3:41:45 PM
-> 
+>
 > Note: the following tree command was used, to prune unneeded directory/file info:  
-`tree -a -L 5 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
+> `tree -a -L 5 -I 'node_modules|.astro|.git|.venv|.vercel|.vscode|.yarn|learnit-project'`
 
 .  
 ├── .DS_Store  
