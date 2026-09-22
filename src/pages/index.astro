@@ -10,24 +10,24 @@ const formatPrice = (price: number | null) => (price == null || price === 0 ? 'F
 <Layout title="Courses">
   <main class="mx-auto max-w-3xl px-4 py-12">
     <h1 class="font-display text-4xl tracking-tight">Courses</h1>
-    <p class="mt-2 text-gray-600">{courses.length} available</p>
+    <p class="mt-2 text-(--color-muted)">{courses.length} available</p>
 
     <ul class="mt-8 space-y-4">
       {
         courses.map(course => (
-          <li class="rounded-lg border border-gray-200 p-5 transition hover:border-gray-400">
+          <li class="rounded-lg border border-(--color-edge) p-5 transition hover:border-(--color-faint)">
             <a href={`/courses/${course.slug}`} class="block">
               <div class="flex items-baseline justify-between gap-4">
                 <h2 class="text-xl font-semibold">{course.title}</h2>
-                <span class="shrink-0 text-sm text-gray-500">{formatPrice(course.price)}</span>
+                <span class="shrink-0 text-sm text-(--color-muted)">{formatPrice(course.price)}</span>
               </div>
-              <p class="mt-1 text-gray-600">{course.description}</p>
+              <p class="mt-1 text-(--color-muted)">{course.description}</p>
               <div class="mt-3 flex flex-wrap gap-2">
-                <span class="rounded bg-gray-100 px-2 py-0.5 text-xs uppercase tracking-wide text-gray-700">
+                <span class="rounded bg-(--color-raised) px-2 py-0.5 text-xs uppercase tracking-wide text-(--color-muted)">
                   {course.level}
                 </span>
                 {course.tags?.map(tag => (
-                  <span class="rounded bg-gray-50 px-2 py-0.5 text-xs text-gray-600">{tag}</span>
+                  <span class="rounded bg-(--color-raised) px-2 py-0.5 text-xs text-(--color-muted)">{tag}</span>
                 ))}
               </div>
             </a>

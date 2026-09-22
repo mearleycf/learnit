@@ -13,19 +13,19 @@ const outline = await getCourseOutline(course.id)
 const sectionCount = outline.reduce((total, chapter) => total + chapter.sections.length, 0)
 
 const badge: Record<string, string> = {
-  lesson: 'bg-sky-100 text-sky-800',
-  exercise: 'bg-amber-100 text-amber-800',
-  recap: 'bg-violet-100 text-violet-800',
+  lesson: 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200',
+  exercise: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200',
+  recap: 'bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200',
 }
 ---
 
 <Layout title={course.title}>
   <main class="mx-auto max-w-3xl px-4 py-12">
-    <a href="/" class="text-sm text-gray-500 hover:underline">&larr; All courses</a>
+    <a href="/" class="text-sm text-(--color-muted) hover:underline">&larr; All courses</a>
 
     <h1 class="font-display mt-4 text-4xl tracking-tight">{course.title}</h1>
-    <p class="mt-2 text-gray-600">{course.description}</p>
-    <p class="mt-4 text-sm text-gray-500">
+    <p class="mt-2 text-(--color-muted)">{course.description}</p>
+    <p class="mt-4 text-sm text-(--color-muted)">
       {outline.length} chapters &middot; {sectionCount} sections &middot; {course.level}
     </p>
 
@@ -34,23 +34,23 @@ const badge: Record<string, string> = {
         outline.map(chapter => (
           <section>
             <h2 class="text-lg font-semibold">
-              <span class="text-gray-400">{chapter.chapter_display_number}.</span> {chapter.title}
+              <span class="text-(--color-faint)">{chapter.chapter_display_number}.</span> {chapter.title}
             </h2>
-            <p class="mt-1 text-sm text-gray-600">{chapter.description}</p>
+            <p class="mt-1 text-sm text-(--color-muted)">{chapter.description}</p>
 
-            <ul class="mt-3 divide-y divide-gray-100 border-y border-gray-100">
+            <ul class="mt-3 divide-y divide-(--color-edge) border-y border-(--color-edge)">
               {chapter.sections.map(section => (
                 <li>
                   <a
                     href={`/courses/${course.slug}/${chapter.chapter_display_number}/${section.section_display_number}`}
-                    class="flex items-center gap-3 py-2.5 hover:bg-gray-50"
+                    class="flex items-center gap-3 py-2.5 hover:bg-(--color-raised)"
                   >
-                    <span class="w-6 text-right text-sm text-gray-400">{section.section_display_number}</span>
+                    <span class="w-6 text-right text-sm text-(--color-faint)">{section.section_display_number}</span>
                     <span class="flex-1">{section.title}</span>
-                    <span class={`rounded px-2 py-0.5 text-xs ${badge[section.content_type] ?? 'bg-gray-100'}`}>
+                    <span class={`rounded px-2 py-0.5 text-xs ${badge[section.content_type] ?? 'bg-(--color-raised)'}`}>
                       {section.content_type}
                     </span>
-                    {section.content === null && <span class="text-xs italic text-gray-400">no content yet</span>}
+                    {section.content === null && <span class="text-xs italic text-(--color-faint)">no content yet</span>}
                   </a>
                 </li>
               ))}

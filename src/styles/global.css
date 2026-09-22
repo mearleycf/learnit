@@ -10,3 +10,39 @@
   --font-display: "Lilita One", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Mononoki", ui-monospace, monospace;
 }
+
+/*
+ * Semantic surface tokens.
+ *
+ * The page must declare its own background and foreground. Without these the
+ * body is transparent with black text, which renders black on black once the
+ * browser reports a dark colour scheme.
+ */
+:root {
+  --color-page: var(--color-white);
+  --color-ink: var(--color-gray-900);
+  --color-muted: var(--color-gray-600);
+  --color-faint: var(--color-gray-400);
+  --color-edge: var(--color-gray-200);
+  --color-raised: var(--color-gray-50);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-page: var(--color-gray-950);
+    --color-ink: var(--color-gray-100);
+    --color-muted: var(--color-gray-400);
+    --color-faint: var(--color-gray-500);
+    --color-edge: var(--color-gray-800);
+    --color-raised: var(--color-gray-900);
+  }
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-ink);
+}
