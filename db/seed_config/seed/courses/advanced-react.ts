@@ -1,11 +1,9 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
-import { ulid } from 'ulidx'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
 
 export const advancedReact: CourseConfig = {
   // course 2
-  id: ulid(),
   seedSequence: 2,
   title: 'Advanced React Development',
   description: 'Master React and build complex applications',
@@ -18,7 +16,6 @@ export const advancedReact: CourseConfig = {
   chapters: [
     {
       // course 2, chapter 1
-      id: ulid(),
       title: 'React Fundamentals Review',
       description: 'Quick review of React fundamentals before diving into advanced concepts',
       seedSequence: 4,
@@ -27,7 +24,6 @@ export const advancedReact: CourseConfig = {
       sections: [
         {
           // course 2, chapter 1, section 1
-          id: ulid(),
           seedSequence: 13,
           title: 'Component Architecture',
           description: 'Understanding React component architecture and patterns',
@@ -38,7 +34,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 1, section 2
-          id: ulid(),
           seedSequence: 14,
           title: 'Component Architecture Practice',
           description: 'Practice implementing React component patterns',
@@ -56,7 +51,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 1, section 3
-          id: ulid(),
           seedSequence: 15,
           title: 'React Fundamentals Recap',
           description: 'Review of core React concepts',
@@ -69,7 +63,6 @@ export const advancedReact: CourseConfig = {
     } as ChapterConfig,
     {
       // course 2, chapter 2
-      id: ulid(),
       title: 'Advanced State Management',
       description: 'Deep dive into complex state management patterns',
       seedSequence: 5,
@@ -78,7 +71,6 @@ export const advancedReact: CourseConfig = {
       sections: [
         {
           // course 2, chapter 2, section 1
-          id: ulid(),
           seedSequence: 16,
           title: 'Complex State Patterns',
           description: 'Understanding advanced state management patterns',
@@ -89,7 +81,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 2, section 2
-          id: ulid(),
           seedSequence: 17,
           title: 'useReducer Deep Dive',
           description: 'Advanced usage of useReducer hook',
@@ -100,7 +91,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 2, section 3
-          id: ulid(),
           seedSequence: 18,
           title: 'State Machine Implementation',
           description: 'Implement a state machine using useReducer',
@@ -118,7 +108,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 2, section 4
-          id: ulid(),
           seedSequence: 19,
           title: 'Custom State Manager',
           description: 'Build a custom state management solution',
@@ -136,7 +125,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 2, section 5
-          id: ulid(),
           seedSequence: 20,
           title: 'State Synchronization',
           description: 'Managing state across components',
@@ -154,7 +142,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 2, section 6
-          id: ulid(),
           seedSequence: 21,
           title: 'State Management Recap',
           description: 'Review of advanced state management concepts',
@@ -167,7 +154,6 @@ export const advancedReact: CourseConfig = {
     } as ChapterConfig,
     {
       // course 2, chapter 3
-      id: ulid(),
       title: 'Performance Optimization',
       description: 'Advanced techniques for React performance optimization',
       seedSequence: 6,
@@ -176,7 +162,6 @@ export const advancedReact: CourseConfig = {
       sections: [
         {
           // course 2, chapter 3, section 1
-          id: ulid(),
           seedSequence: 22,
           title: 'React Performance Fundamentals',
           description: 'Understanding React performance and optimization techniques',
@@ -187,7 +172,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 3, section 2
-          id: ulid(),
           seedSequence: 23,
           title: 'Memoization Patterns',
           description: 'Advanced memoization techniques in React',
@@ -205,7 +189,6 @@ export const advancedReact: CourseConfig = {
         } as SectionConfig,
         {
           // course 2, chapter 3, section 3
-          id: ulid(),
           seedSequence: 24,
           title: 'Performance Optimization Recap',
           description: 'Review of performance optimization techniques',

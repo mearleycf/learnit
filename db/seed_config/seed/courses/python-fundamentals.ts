@@ -1,11 +1,9 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
-import { ulid } from 'ulidx'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
 
 export const pythonFundamentals: CourseConfig = {
   // course 3
-  id: ulid(),
   seedSequence: 3,
   title: 'Python Fundamentals',
   description: 'Master Python and build complex applications',
@@ -18,7 +16,6 @@ export const pythonFundamentals: CourseConfig = {
   chapters: [
     {
       // course 3, chapter 1
-      id: ulid(),
       title: 'Python Basics',
       description: 'Learn the fundamentals of Python syntax and basic programming concepts',
       seedSequence: 7,
@@ -27,7 +24,6 @@ export const pythonFundamentals: CourseConfig = {
       sections: [
         {
           // course 3, chapter 1, section 1
-          id: ulid(),
           seedSequence: 25,
           title: 'Introduction to Python',
           description: 'Getting started with Python programming',
@@ -38,7 +34,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 1, section 2
-          id: ulid(),
           seedSequence: 26,
           title: 'Python Syntax Basics',
           description: 'Understanding Python syntax and basic programming concepts',
@@ -56,7 +51,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 1, section 3
-          id: ulid(),
           seedSequence: 27,
           title: 'Variables and Data Types',
           description: 'Learn about Python variables and fundamental data types',
@@ -67,7 +61,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 1, section 4
-          id: ulid(),
           seedSequence: 28,
           title: 'Working with Numbers',
           description: 'Practice working with numerical data in Python',
@@ -85,7 +78,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 1, section 5
-          id: ulid(),
           seedSequence: 29,
           title: 'String Operations',
           description: 'Practice working with strings in Python',
@@ -103,7 +95,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 1, section 6
-          id: ulid(),
           seedSequence: 30,
           title: 'Python Basics Recap',
           description: 'Review fundamental Python concepts and practices',
@@ -116,7 +107,6 @@ export const pythonFundamentals: CourseConfig = {
     } as ChapterConfig,
     {
       // course 3, chapter 2
-      id: ulid(),
       title: 'Data Structures in Python',
       description: 'Understanding Python built-in data structures and their applications',
       seedSequence: 8,
@@ -125,7 +115,6 @@ export const pythonFundamentals: CourseConfig = {
       sections: [
         {
           // course 3, chapter 2, section 1
-          id: ulid(),
           seedSequence: 31,
           title: 'Lists and Tuples',
           description: 'Understanding Python sequences: lists and tuples',
@@ -136,7 +125,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 2, section 2
-          id: ulid(),
           seedSequence: 32,
           title: 'List Operations',
           description: 'Working with Python lists',
@@ -154,7 +142,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 2, section 3
-          id: ulid(),
           seedSequence: 33,
           title: 'Data Structures Recap',
           description: 'Review of Python data structures concepts',
@@ -167,7 +154,6 @@ export const pythonFundamentals: CourseConfig = {
     } as ChapterConfig,
     {
       // course 3, chapter 3
-      id: ulid(),
       title: 'Functions and Modules',
       description: 'Mastering Python functions and modular programming',
       seedSequence: 9,
@@ -176,7 +162,6 @@ export const pythonFundamentals: CourseConfig = {
       sections: [
         {
           // course 3, chapter 3, section 1
-          id: ulid(),
           seedSequence: 34,
           title: 'Function Basics',
           description: 'Introduction to Python functions',
@@ -187,7 +172,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 3, section 2
-          id: ulid(),
           seedSequence: 35,
           title: 'Advanced Functions',
           description: 'Understanding advanced function concepts',
@@ -198,7 +182,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 3, section 3
-          id: ulid(),
           seedSequence: 36,
           title: 'Basic Function Practice',
           description: 'Practice writing Python functions',
@@ -216,7 +199,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 3, section 4
-          id: ulid(),
           seedSequence: 37,
           title: 'Advanced Function Practice',
           description: 'Practice with advanced function concepts',
@@ -234,7 +216,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 3, section 5
-          id: ulid(),
           seedSequence: 38,
           title: 'Module Development',
           description: 'Practice creating Python modules',
@@ -252,7 +233,6 @@ export const pythonFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 3, chapter 3, section 6
-          id: ulid(),
           seedSequence: 39,
           title: 'Functions and Modules Recap',
           description: 'Review of functions and modules concepts',

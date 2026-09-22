@@ -1,5 +1,3 @@
-import { randomDateGenerator } from '@utils/general_utils'
-
 import { client, db } from './client'
 import {
   chapters,
@@ -13,7 +11,7 @@ import {
   users,
 } from './schema'
 import { courseData } from './seed_config/seed/courses/index'
-import { courseDateOptions } from './seed_config/seed/date-options'
+import { seedDate, seedUlid } from './seed_config/seed/deterministic'
 import type { ExerciseDifficulty } from './seed_config/types/seed-types'
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']
@@ -27,9 +25,15 @@ const parseEstimatedTime = (value: string | undefined, fallback = 60): number =>
   return /^h/i.test(match[2]) ? Math.round(amount * 60) : Math.round(amount)
 }
 
-const dates = (options: Parameters<typeof randomDateGenerator>[0]) => {
-  const { createdDate, updatedDate } = randomDateGenerator(options)
-  return { created_at: createdDate, updated_at: updatedDate ?? createdDate }
+/**
+ * Stable created/updated pair for an entity, derived from its natural key.
+ *
+ * `updated_at` always lands at or after `created_at`.
+ */
+const dates = (key: string, daysBefore: number, daysAfter: number) => {
+  const created_at = seedDate(key, daysBefore, daysAfter)
+  const updated = seedDate(`${key}:updated`, daysBefore, daysAfter)
+  return { created_at, updated_at: updated > created_at ? updated : created_at }
 }
 
 /**
@@ -56,8 +60,11 @@ export const seedDb = async (): Promise<void> => {
   let exerciseCount = 0
 
   for (const course of courseData.courses) {
+    const courseKey = `course:${course.slug}`
+    const courseId = seedUlid(courseKey)
+
     await db.insert(courses).values({
-      id: course.id,
+      id: courseId,
       title: course.title,
       description: course.description,
       slug: course.slug,
@@ -66,32 +73,38 @@ export const seedDb = async (): Promise<void> => {
       tags: course.tags,
       price: course.price ?? null,
       purchase_active_length: course.purchase_active_length ?? null,
-      ...dates(course.dateConfig ?? courseDateOptions.courses),
+      ...dates(courseKey, -720, -365),
     })
 
     let chapterSort = 0
     for (const chapter of course.chapters) {
       chapterSort += 1
       chapterCount += 1
+      const chapterKey = `${courseKey}:chapter:${chapterSort}`
+      const chapterId = seedUlid(chapterKey)
+
       await db.insert(chapters).values({
-        id: chapter.id,
-        course_id: course.id,
+        id: chapterId,
+        course_id: courseId,
         title: chapter.title,
         description: chapter.description,
         chapter_display_number: chapter.chapter_display_number,
         sort_order: chapterSort,
         estimated_time_minutes: chapter.estimated_time_minutes ?? parseEstimatedTime(chapter.estimated_time),
-        ...dates(chapter.dateConfig ?? courseDateOptions.chapters),
+        ...dates(chapterKey, -364, -182),
       })
 
       let sectionSort = 0
       for (const section of chapter.sections) {
         sectionSort += 1
         sectionCount += 1
+        const sectionKey = `${chapterKey}:section:${sectionSort}`
+        const sectionId = seedUlid(sectionKey)
+
         await db.insert(sections).values({
-          id: section.id,
-          course_id: course.id,
-          chapter_id: chapter.id,
+          id: sectionId,
+          course_id: courseId,
+          chapter_id: chapterId,
           title: section.title,
           description: section.description,
           section_display_number: section.section_display_number,
@@ -99,16 +112,18 @@ export const seedDb = async (): Promise<void> => {
           content_type: section.content_type,
           content: section.content ?? null,
           access_level: section.access_level,
-          ...dates(section.dateConfig ?? courseDateOptions.sections),
+          ...dates(sectionKey, -181, -90),
         })
 
         const exercise = section.exercise
         if (!exercise) continue
 
         exerciseCount += 1
+        const exerciseKey = `${sectionKey}:exercise:${exercise.exercise_display_number}`
+
         await db.insert(exercises).values({
-          id: exercise.id,
-          section_id: section.id,
+          id: seedUlid(exerciseKey),
+          section_id: sectionId,
           exercise_display_number: exercise.exercise_display_number,
           sort_order: exercise.exercise_display_number,
           instructions: exercise.instructions,
@@ -120,7 +135,7 @@ export const seedDb = async (): Promise<void> => {
           default_solution: exercise.default_solution ?? {},
           student_solution: exercise.student_solution ?? {},
           estimated_time_minutes: exercise.estimated_time_minutes || 15,
-          ...dates(exercise.dateConfig ?? courseDateOptions.exercises),
+          ...dates(exerciseKey, -89, -30),
         })
       }
     }

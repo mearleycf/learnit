@@ -1,5 +1,4 @@
 import { millisecondsPerDayCalc } from '@utils/general_utils'
-import { ulid } from 'ulidx'
 import type { ExerciseConfig } from '../types/seed-types'
 import { courseDateOptions } from './date-options'
 
@@ -19,7 +18,6 @@ export const createExerciseData = (
   instructions: string,
   comment?: string,
 ): ExerciseConfig => ({
-  id: ulid(),
   seedSequence: seedSeq,
   exercise_display_number: displayNum,
   instructions,

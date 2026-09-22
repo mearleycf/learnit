@@ -10,7 +10,11 @@ import type { DateOptions } from '@utils/general_utils'
  * columns the data never carried and produced most of the type-check failures.
  */
 type BaseEntityConfig = {
-  id: string
+  /**
+   * Derived by the seeder from a natural key, never authored. Present only so
+   * existing fixtures that still set it keep type-checking.
+   */
+  id?: string
   seedSequence: number
   /** Overrides the default date distribution for this entity. */
   dateConfig?: DateOptions

@@ -1,11 +1,9 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
-import { ulid } from 'ulidx'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
 
 export const javascriptFundamentals: CourseConfig = {
   // course 1
-  id: ulid(),
   seedSequence: 1,
   title: 'JavaScript Fundamentals',
   description: 'Learn the fundamentals of JavaScript programming',
@@ -18,7 +16,6 @@ export const javascriptFundamentals: CourseConfig = {
   chapters: [
     {
       // course 1, chapter 1
-      id: ulid(),
       title: 'Javascript Basics',
       description: 'Learn the basics of JavaScript',
       seedSequence: 1,
@@ -27,7 +24,6 @@ export const javascriptFundamentals: CourseConfig = {
       sections: [
         {
           // course 1, chapter 1, section 1
-          id: ulid(),
           seedSequence: 1,
           title: 'Introduction to JavaScript',
           description: 'Learn the basics of JavaScript',
@@ -38,7 +34,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 1, section 2
-          id: ulid(),
           seedSequence: 2,
           title: 'Variables and Data Types',
           description: 'Learn about variables and data types in JavaScript',
@@ -55,7 +50,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 1, section 3
-          id: ulid(),
           seedSequence: 3,
           title: 'JavaScript Basics Recap',
           description: 'Learn about variables and data types in JavaScript',
@@ -69,7 +63,6 @@ export const javascriptFundamentals: CourseConfig = {
     } as ChapterConfig,
     {
       // course 1, chapter 2
-      id: ulid(),
       title: 'Javascript Functions',
       description: 'Learn how to write functions in JavaScript',
       seedSequence: 2,
@@ -78,7 +71,6 @@ export const javascriptFundamentals: CourseConfig = {
       sections: [
         {
           // course 1, chapter 2, section 1
-          id: ulid(),
           seedSequence: 4,
           title: 'Functions in JavaScript',
           description: 'Learn about functions in JavaScript',
@@ -89,7 +81,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 2, section 2
-          id: ulid(),
           seedSequence: 5,
           title: 'Object-Oriented JavaScript',
           description: 'Explore object-oriented programming in JavaScript',
@@ -106,7 +97,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 2, section 3
-          id: ulid(),
           seedSequence: 6,
           title: 'Functions and Objects Recap',
           description: 'Review functions and object-oriented concepts in JavaScript',
@@ -120,7 +110,6 @@ export const javascriptFundamentals: CourseConfig = {
     } as ChapterConfig,
     {
       // course 1, chapter 3
-      id: ulid(),
       seedSequence: 3,
       title: 'Javascript Arrays',
       description: 'Learn how to work with arrays in JavaScript',
@@ -129,7 +118,6 @@ export const javascriptFundamentals: CourseConfig = {
       sections: [
         {
           // course 1, chapter 3, section 1
-          id: ulid(),
           seedSequence: 7,
           title: 'Introduction to Arrays',
           description: 'Learn the basics of arrays in JavaScript',
@@ -140,7 +128,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 3, section 2
-          id: ulid(),
           seedSequence: 8,
           title: 'Array Methods',
           description: 'Explore commonly used array methods in JavaScript',
@@ -151,7 +138,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 3, section 3
-          id: ulid(),
           seedSequence: 9,
           title: 'Basic Array Manipulation',
           description: 'Practice basic array manipulation',
@@ -168,7 +154,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 3, section 4
-          id: ulid(),
           seedSequence: 10,
           title: 'Array Methods Practice',
           description: 'Practice using array methods in JavaScript',
@@ -185,7 +170,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 3, section 5
-          id: ulid(),
           seedSequence: 11,
           title: 'Array Methods Practice 2',
           description: 'Practice using array methods in JavaScript',
@@ -202,7 +186,6 @@ export const javascriptFundamentals: CourseConfig = {
         } as SectionConfig,
         {
           // course 1, chapter 3, section 6
-          id: ulid(),
           seedSequence: 12,
           title: 'Array Recap',
           description: 'Review array concepts in JavaScript',
