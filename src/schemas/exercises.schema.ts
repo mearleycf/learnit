@@ -79,8 +79,8 @@ const studentSolutionSchema = z.object({
 })
 
 export const exerciseSchema = z.object({
-  id: z.string().ulid(),
-  section_id: z.string().ulid(),
+  id: z.ulid(),
+  section_id: z.ulid(),
   exercise_display_number: z.number(),
   sort_order: z.number(),
   instructions: z.string(),

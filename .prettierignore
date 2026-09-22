@@ -1,3 +1,9 @@
 #Ignore artifacts
 build
 coverage
+db/migrations
+.astro
+.vercel
+dist
+yarn.lock
+learnit_project

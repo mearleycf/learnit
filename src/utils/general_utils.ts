@@ -1,5 +1,4 @@
 import { addMilliseconds, subDays } from 'date-fns'
-import { Effect } from 'effect'
 import { z } from 'zod'
 
 /**
@@ -87,15 +86,11 @@ export const randomDateGenerator = (options: DateOptions = {}): { createdDate: D
     return addMilliseconds(startDate, Math.random() * timeDiff)
   }
 
-  let startDate
-  mergedOptions.start instanceof Date
-    ? (startDate = mergedOptions.start)
-    : (startDate = subDays(mergedOptions.reference, mergedOptions.start))
+  const startDate =
+    mergedOptions.start instanceof Date ? mergedOptions.start : subDays(mergedOptions.reference, mergedOptions.start)
 
-  let endDate
-  mergedOptions.end instanceof Date
-    ? (endDate = mergedOptions.end)
-    : (endDate = subDays(mergedOptions.reference, mergedOptions.end))
+  const endDate =
+    mergedOptions.end instanceof Date ? mergedOptions.end : subDays(mergedOptions.reference, mergedOptions.end)
 
   const createdDate = generateRandomDate(startDate, endDate)
 
@@ -156,28 +151,18 @@ export function createPrecisionScaleMessage(precision: number, scale: number) {
 }
 
 /**
- * function to validate a json serializable object for schema validation
- * @param val - The value to validate
- * @param context - The context object for which the validation is failing
- * @returns A boolean indicating whether the value is JSON serializable
+ * Zod schema accepting any value that survives JSON.stringify.
+ *
+ * Used for the JSON-backed columns (lesson content, hints, solutions).
  */
-
-export const jsonSerializableSchema = z.any().superRefine((val, context) => {
-  const result = Effect.runSync(
-    Effect.try({
-      try: () => {
-        JSON.stringify(val)
-        return true
-      },
-      catch: (error: unknown) => {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error during JSON serialization'
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Value must be JSON serializable: ${errorMessage}`,
-        })
-        return false
-      },
-    }),
-  )
-  return result
+export const jsonSerializableSchema = z.unknown().superRefine((val, context) => {
+  try {
+    JSON.stringify(val)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error during JSON serialization'
+    context.addIssue({
+      code: 'custom',
+      message: `Value must be JSON serializable: ${errorMessage}`,
+    })
+  }
 })

@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 export const chapterSchema = z.object({
-  id: z.string().ulid(),
-  course_id: z.string().ulid(),
+  id: z.ulid(),
+  course_id: z.ulid(),
   title: z.string(),
   description: z.string(),
   chapter_display_number: z.number(),

@@ -2,10 +2,10 @@ import { jsonSerializableSchema } from '@utils/general_utils'
 import { z } from 'zod'
 
 export const feedbackSchema = z.object({
-  id: z.string().ulid(),
-  student_id: z.string().ulid(),
-  section_id: z.string().ulid(),
-  assigned_to_id: z.string().ulid().optional(),
+  id: z.ulid(),
+  student_id: z.ulid(),
+  section_id: z.ulid(),
+  assigned_to_id: z.ulid().optional(),
   feedback_text: jsonSerializableSchema,
   rating: z.number().optional(),
   status: z.enum(['submitted', 'assigned', 'in_progress', 'pending_publication', 'resolved', 'no_action_required']),

@@ -1,28 +1,23 @@
-import vercel from '@astrojs/vercel/serverless'
-import { defineConfig } from 'astro/config'
-import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
-import react from '@astrojs/react'
-import icon from 'astro-icon'
-import db from '@astrojs/db'
-
+import vercel from '@astrojs/vercel'
 import sentry from '@sentry/astro'
+import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from 'astro/config'
+import icon from 'astro-icon'
 
 // https://astro.build/config
 export default defineConfig({
   site: 'https://fivestarcode.cc',
+  output: 'server',
+  adapter: vercel(),
   integrations: [
-    tailwind({
-      applyBaseStyles: false,
-    }),
     sitemap({
       changefreq: 'weekly',
       priority: 0.8,
       lastmod: new Date(),
     }),
     icon(),
-    react(),
-    db(),
+    // Sentry stays inert without a DSN, so local development needs no secrets.
     sentry({
       sourceMapsUploadOptions: {
         dsn: process.env.SENTRY_DSN,
@@ -32,21 +27,10 @@ export default defineConfig({
     }),
   ],
   vite: {
+    // Tailwind 4 is a Vite plugin; the former @astrojs/tailwind integration is
+    // capped at Astro 5 and Tailwind 3, so it was removed.
+    plugins: [tailwindcss()],
     envDir: '.',
     envPrefix: ['PUBLIC_'],
-    server: {
-      hmr: {
-        overlay: false,
-      },
-      watch: {
-        usePolling: true,
-      },
-    },
-    // Add this ssr configuration
-    ssr: {
-      noExternal: [],
-    },
   },
-  output: 'server',
-  adapter: vercel(),
 })

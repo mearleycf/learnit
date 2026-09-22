@@ -161,3 +161,9 @@ dist
 
 # Copilot instructions
 copilot-instructions.md
+
+# local libSQL database created by drizzle-kit / yarn db:seed
+local.db
+local.db-journal
+*.db-shm
+*.db-wal

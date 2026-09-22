@@ -1,16 +1,12 @@
-@tailwind/base;
-@tailwind/components;
-@tailwind/utilities;
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
 
-@layer base {
-    @font-face {
-      font-family: 'Inter';
-      font-style: normal;
-      font-weight: 400;
-      font-display: swap;
-      src: url('/fonts/inter-var-latin.woff2') format('woff2');
-    }
-  }
-  
-  @layer components {
-  }
+/*
+ * Tailwind 4 is configured in CSS rather than tailwind.config.mjs.
+ * Design tokens belong in this @theme block.
+ */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Lilita One', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Mononoki', ui-monospace, monospace;
+}

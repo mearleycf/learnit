@@ -5,13 +5,6 @@ module.exports = {
   printWidth: 120,
   singleAttributePerLine: false,
   arrowParens: 'avoid',
-  plugins: [
-    'prettier-plugin-astro',
-    'prettier-plugin-packagejson',
-    'prettier-plugin-organize-attributes',
-    'prettier-plugin-sort-imports',
-    'prettier-plugin-astro-organize-imports',
-    'prettier-plugin-tailwindcss',
-  ],
-  attributeGroups: ['$CODE_GUIDE'],
+  plugins: ['prettier-plugin-astro', 'prettier-plugin-packagejson', 'prettier-plugin-tailwindcss'],
+  overrides: [{ files: '*.astro', options: { parser: 'astro' } }],
 }
