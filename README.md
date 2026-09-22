@@ -15,6 +15,7 @@ programming languages and frameworks online.
 | Validation      | Zod 4                                             |
 | Errors          | Sentry (inert without a DSN)                      |
 | Tests           | Vitest (unit), Playwright (end to end)            |
+| Lint / format   | Biome (replaces ESLint and Prettier)              |
 
 ## Getting started
 
@@ -57,8 +58,8 @@ order and timestamps, so seed files only carry the content.
 | `yarn build`         | Type check, then production build           |
 | `yarn build:release` | Build, then upload source maps to Sentry    |
 | `yarn check`         | `astro check`                               |
-| `yarn lint`          | ESLint (flat config)                        |
-| `yarn format`        | Prettier                                    |
+| `yarn lint`       | Biome (lint, format and import sorting)     |
+| `yarn format`     | Biome formatter, writes in place            |
 | `yarn test`          | Vitest in watch mode                        |
 | `yarn test:e2e`      | Playwright (`yarn playwright install` once) |
 

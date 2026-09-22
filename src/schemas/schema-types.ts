@@ -1,13 +1,13 @@
 import type {
-  courseSchema,
   chapterSchema,
-  sectionSchema,
+  courseSchema,
   exerciseSchema,
-  noteSchema,
   feedbackSchema,
-  userSchema,
-  studentProgressSchema,
+  noteSchema,
+  sectionSchema,
   studentExerciseProgressSchema,
+  studentProgressSchema,
+  userSchema,
 } from '@schemas/index'
 import type { z } from 'zod'
 

@@ -1,8 +1,6 @@
 import { randomDateGenerator } from '@utils/general_utils'
 
 import { client, db } from './client'
-import { courseData } from './seed_config/seed/courses/index'
-import { courseDateOptions } from './seed_config/seed/date-options'
 import {
   chapters,
   courses,
@@ -14,6 +12,8 @@ import {
   student_progress,
   users,
 } from './schema'
+import { courseData } from './seed_config/seed/courses/index'
+import { courseDateOptions } from './seed_config/seed/date-options'
 import type { ExerciseDifficulty } from './seed_config/types/seed-types'
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']

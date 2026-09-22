@@ -1,7 +1,7 @@
-import type { CourseConfig, SectionConfig, ExerciseConfig, ChapterConfig } from '@db/seed_config/types/seed-types'
+import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import { ulid } from 'ulidx'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
-import { ulid } from 'ulidx'
 
 export const javascriptFundamentals: CourseConfig = {
   // course 1

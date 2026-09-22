@@ -72,8 +72,11 @@ This tooling setup ensures consistency across the development process and facili
 
 - Package Management: yarn berry (currently in v4.x)
 - Code Quality:
-  - ESLint for linting
-  - Prettier for code formatting
+  - Biome for linting and formatting; it replaces ESLint and Prettier, which are not installed
+  - `yarn lint` runs `biome check`; `yarn lint:fix` applies safe fixes
+  - Biome parses only the frontmatter of `.astro` files, not the template. Unused-symbol
+    rules are disabled for `.astro` in biome.json because anything used solely in markup
+    would otherwise look unused
 - Version Management: `mise` application in the terminal for managing versions of node, python, and other tools
 - Operating System: macOS
 - Terminal Application: Kitty

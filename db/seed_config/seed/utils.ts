@@ -1,7 +1,7 @@
 import { millisecondsPerDayCalc } from '@utils/general_utils'
+import { ulid } from 'ulidx'
 import type { ExerciseConfig } from '../types/seed-types'
 import { courseDateOptions } from './date-options'
-import { ulid } from 'ulidx'
 
 /**
  * Creates exercise data for seeding the database.

@@ -1,25 +1,25 @@
 {
   "folders": [
     {
-      "path": "..",
-    },
+      "path": ".."
+    }
   ],
   "settings": {
     "workbench.colorCustomizations": {
       "activityBar.background": "#39283B",
       "titleBar.activeBackground": "#503753",
-      "titleBar.activeForeground": "#FBFAFB",
+      "titleBar.activeForeground": "#FBFAFB"
     },
     "github.copilot.chat.codeGeneration.instructions": [
       {
-        "text": "Remember that Typescript above version 5.5+ does not require the _ adapter in Effect code. You can remove it.",
+        "text": "Remember that Typescript above version 5.5+ does not require the _ adapter in Effect code. You can remove it."
       },
       {
-        "file": ".copilot-instructions.md",
+        "file": ".copilot-instructions.md"
       },
       {
-        "file": "./db/config.ts",
-      },
-    ],
-  },
+        "file": "./db/config.ts"
+      }
+    ]
+  }
 }

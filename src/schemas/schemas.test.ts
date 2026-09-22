@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'vitest'
-
 import { createPrecisionScaleRefinement, jsonSerializableSchema } from '@utils/general_utils'
+import { describe, expect, it } from 'vitest'
 
 import { courseSchema } from './courses.schema'
 import { sectionContentSchema } from './sections.schema'

@@ -1,12 +1,12 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/forms';
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
 
 /*
  * Tailwind 4 is configured in CSS rather than tailwind.config.mjs.
  * Design tokens belong in this @theme block.
  */
 @theme {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Lilita One', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Mononoki', ui-monospace, monospace;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Lilita One", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Mononoki", ui-monospace, monospace;
 }

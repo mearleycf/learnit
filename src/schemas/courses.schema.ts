@@ -1,4 +1,4 @@
-import { createPrecisionScaleRefinement, createPrecisionScaleMessage } from '@utils/general_utils'
+import { createPrecisionScaleMessage, createPrecisionScaleRefinement } from '@utils/general_utils'
 import { z } from 'zod'
 
 export const courseSchema = z.object({

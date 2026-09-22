@@ -8,10 +8,7 @@ import { index, integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core
  * timestamp column defaulting to `unixepoch()`. Drizzle hands these back as
  * JavaScript `Date` objects via `mode: 'timestamp'`.
  */
-const createdAt = () =>
-  integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .default(sql`(unixepoch())`)
+const createdAt = () => integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
 
 const updatedAt = () =>
   integer('updated_at', { mode: 'timestamp' })

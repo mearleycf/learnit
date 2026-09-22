@@ -5,7 +5,7 @@ export const initSentry = () => {
   Sentry.init({
     dsn: import.meta.env.SENTRY_DSN,
     environment: import.meta.env.PROD ? 'production' : 'development',
-    release: 'learnit@' + process.env.npm_package_version,
+    release: `learnit@${process.env.npm_package_version}`,
     tracesSampleRate: 1.0,
     tracePropagationTargets: ['localhost', '127.0.0.1'],
     debug: !import.meta.env.PROD,
