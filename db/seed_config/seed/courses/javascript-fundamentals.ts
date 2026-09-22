@@ -1,4 +1,5 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import { introToJavascriptLesson, jsBasicsRecap, variablesExercise } from '../content/js-basics'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
 
@@ -26,9 +27,9 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 1, section 1
           seedSequence: 1,
           title: 'Introduction to JavaScript',
-          description: 'Learn the basics of JavaScript',
+          description: 'What JavaScript is, where it runs, and how a program is structured',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: introToJavascriptLesson },
           section_display_number: 1,
           access_level: 'free',
         } as SectionConfig,
@@ -36,25 +37,20 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 1, section 2
           seedSequence: 2,
           title: 'Variables and Data Types',
-          description: 'Learn about variables and data types in JavaScript',
+          description: 'Store values with const and let, and meet the primitive types',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 2,
           access_level: 'free',
-          exercise: createExerciseData(
-            1,
-            1,
-            'Fill in the blank',
-            'course 1, chapter 1, section 2 exercise 1 of 1',
-          ) as ExerciseConfig,
+          exercise: variablesExercise,
         } as SectionConfig,
         {
           // course 1, chapter 1, section 3
           seedSequence: 3,
           title: 'JavaScript Basics Recap',
-          description: 'Learn about variables and data types in JavaScript',
+          description: 'What to take away from JavaScript Basics',
           content_type: 'recap',
-          content: {},
+          content: { content_type: 'recap', recap: jsBasicsRecap },
           section_display_number: 3,
           access_level: 'free',
         } as SectionConfig,

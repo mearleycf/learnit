@@ -1,3 +1,5 @@
+import { sectionContentSchema } from '@schemas/sections.schema'
+
 import { client, db } from './client'
 import {
   chapters,
@@ -15,6 +17,25 @@ import { seedDate, seedUlid } from './seed_config/seed/deterministic'
 import type { ExerciseDifficulty } from './seed_config/types/seed-types'
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']
+
+/**
+ * Normalises and validates a section's authored content.
+ *
+ * Seed files historically used `{}` to mean "not written yet", which is not a
+ * valid payload. That is stored as NULL so the gap is visible in the data
+ * rather than hidden behind an empty object. Anything else must satisfy
+ * sectionContentSchema, and a failure aborts the seed with the section named.
+ */
+export const resolveContent = (raw: unknown, sectionKey: string): unknown => {
+  if (raw == null) return null
+  if (typeof raw === 'object' && Object.keys(raw as object).length === 0) return null
+
+  const parsed = sectionContentSchema.safeParse(raw)
+  if (!parsed.success) {
+    throw new Error(`Invalid content for ${sectionKey}: ${JSON.stringify(parsed.error.issues, null, 2)}`)
+  }
+  return parsed.data
+}
 
 /** Parses a human-authored duration such as "3 hours" or "45 minutes" into minutes. */
 const parseEstimatedTime = (value: string | undefined, fallback = 60): number => {
@@ -58,6 +79,7 @@ export const seedDb = async (): Promise<void> => {
   let chapterCount = 0
   let sectionCount = 0
   let exerciseCount = 0
+  let authoredCount = 0
 
   for (const course of courseData.courses) {
     const courseKey = `course:${course.slug}`
@@ -88,7 +110,10 @@ export const seedDb = async (): Promise<void> => {
         course_id: courseId,
         title: chapter.title,
         description: chapter.description,
-        chapter_display_number: chapter.chapter_display_number,
+        // Display numbers are positional, so they are derived like sort_order
+        // and IDs. The authored values disagreed between courses: some
+        // numbered sections globally, others restarted each chapter.
+        chapter_display_number: chapterSort,
         sort_order: chapterSort,
         estimated_time_minutes: chapter.estimated_time_minutes ?? parseEstimatedTime(chapter.estimated_time),
         ...dates(chapterKey, -364, -182),
@@ -100,6 +125,8 @@ export const seedDb = async (): Promise<void> => {
         sectionCount += 1
         const sectionKey = `${chapterKey}:section:${sectionSort}`
         const sectionId = seedUlid(sectionKey)
+        const content = resolveContent(section.content, `${section.title} (${sectionKey})`)
+        if (content !== null) authoredCount += 1
 
         await db.insert(sections).values({
           id: sectionId,
@@ -107,10 +134,10 @@ export const seedDb = async (): Promise<void> => {
           chapter_id: chapterId,
           title: section.title,
           description: section.description,
-          section_display_number: section.section_display_number,
+          section_display_number: sectionSort,
           sort_order: sectionSort,
           content_type: section.content_type,
-          content: section.content ?? null,
+          content,
           access_level: section.access_level,
           ...dates(sectionKey, -181, -90),
         })
@@ -145,16 +172,21 @@ export const seedDb = async (): Promise<void> => {
     `Seeded ${courseData.courses.length} courses, ${chapterCount} chapters, ` +
       `${sectionCount} sections, ${exerciseCount} exercises.`,
   )
+  console.info(`${authoredCount} of ${sectionCount} sections have authored content; the rest are NULL.`)
 }
 
-// Run directly via `yarn db:seed`.
-seedDb()
-  .then(async () => {
-    client.close()
-    console.info('Seed complete.')
-  })
-  .catch(async (error: unknown) => {
-    console.error('Seed failed:', error)
-    client.close()
-    process.exitCode = 1
-  })
+// Run directly via `yarn db:seed`, but stay importable from tests.
+const invokedDirectly = process.argv[1]?.endsWith('seed.ts') ?? false
+
+if (invokedDirectly) {
+  seedDb()
+    .then(() => {
+      client.close()
+      console.info('Seed complete.')
+    })
+    .catch((error: unknown) => {
+      console.error('Seed failed:', error)
+      client.close()
+      process.exitCode = 1
+    })
+}

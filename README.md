@@ -47,8 +47,21 @@ default is a file-backed database at `./local.db`.
 | `DATABASE_URL`        | libSQL URL; defaults to `file:./local.db` |
 | `DATABASE_AUTH_TOKEN` | Auth token for a hosted (Turso) database  |
 
-Seed data is authored under `db/seed_config/seed/courses/`. The seeder derives foreign keys, sort
-order and timestamps, so seed files only carry the content.
+Seed data is authored under `db/seed_config/seed/courses/`, with longer prose in
+`db/seed_config/seed/content/`. Seed files carry content only. The seeder derives IDs, foreign
+keys, sort order, display numbers and timestamps.
+
+Seeding is **deterministic**: every run produces byte-identical rows, so you can link to a fixture,
+assert on it in a test, and compare screenshots between runs. IDs come from `seedUlid`, which
+hashes a natural key such as `course:javascript-fundamentals:chapter:1:section:2`. Dates are
+anchored to a fixed `SEED_EPOCH` rather than the current clock.
+
+Section content is validated against `sectionContentSchema` before insert, and a malformed payload
+aborts the seed naming the section. A section with no authored content stores `NULL` rather than an
+empty object, so the gap is visible. The seeder reports how many sections are authored on each run.
+
+Content coverage is deliberately incremental. Chapter 1 of JavaScript Fundamentals is fully
+authored, and the remaining 36 sections are structural only.
 
 ## Scripts
 
