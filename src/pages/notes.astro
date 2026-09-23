@@ -26,7 +26,7 @@ const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'nume
 ---
 
 <Layout title="Notes">
-  <main class="mx-auto max-w-3xl px-4 py-12">
+  <main id="main" class="mx-auto max-w-3xl px-4 py-12">
     <a href="/" class="text-(--color-link) text-sm hover:underline">&larr; All courses</a>
 
     <h1 class="font-display mt-4 text-4xl tracking-tight">Notes</h1>
@@ -71,7 +71,8 @@ const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'nume
                 name="markdown"
                 rows="3"
                 required
-                class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:outline-none"
+                aria-label="Edit note"
+                class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
                 >{note.markdown}</textarea
               >
               <div class="mt-2 flex gap-2">

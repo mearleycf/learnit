@@ -587,3 +587,47 @@ test('pages fit a phone without sideways scrolling', async ({ page }) => {
     expect(overflows, `${path} scrolls sideways`).toBe(false)
   }
 })
+
+test('every page offers a skip link to its content', async ({ page }) => {
+  for (const path of ['/', '/notes', '/feedback', '/search', '/courses/javascript-fundamentals']) {
+    await page.goto(path)
+    const skip = page.getByRole('link', { name: 'Skip to content' })
+    await expect(skip, `${path} has no skip link`).toBeAttached()
+    await expect(page.locator('#main'), `${path} has no skip target`).toBeAttached()
+  }
+})
+
+test('the skip link becomes visible on focus', async ({ page }) => {
+  await page.goto('/')
+  const skip = page.getByRole('link', { name: 'Skip to content' })
+  await expect(skip).not.toBeInViewport()
+  await skip.focus()
+  await expect(skip).toBeInViewport()
+})
+
+test('every interactive control has an accessible name', async ({ page }) => {
+  for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/3/3']) {
+    await page.goto(path)
+    const unlabelled = await page.evaluate(() =>
+      [...document.querySelectorAll('button, a, input, textarea, select')]
+        .filter(
+          el =>
+            !el.textContent?.trim() &&
+            !el.getAttribute('aria-label') &&
+            !el.getAttribute('title') &&
+            (el as HTMLInputElement).type !== 'hidden',
+        )
+        .map(el => `${el.tagName}[${el.getAttribute('placeholder') ?? (el as HTMLInputElement).type ?? ''}]`),
+    )
+    expect(unlabelled, `${path} has unlabelled controls`).toEqual([])
+  }
+})
+
+test('the code editor is named after the file it shows', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/3')
+  const editor = page.locator('[data-role="editor"]')
+  await expect(editor).toHaveAttribute('aria-label', /render\.js/)
+
+  await page.getByRole('button', { name: /data\.js/ }).click()
+  await expect(editor).toHaveAttribute('aria-label', /data\.js, read only/)
+})

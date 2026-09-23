@@ -108,7 +108,7 @@ const savedSolution = attempt?.solution ?? null
 ---
 
 <Layout title={`${section.title} — ${course.title}`}>
-  <main class="mx-auto max-w-3xl px-4 py-12">
+  <main id="main" class="mx-auto max-w-3xl px-4 py-12">
     <a href={`/courses/${course.slug}`} class="text-sm text-(--color-link) hover:underline">&larr; {course.title}</a>
 
     <p class="mt-4 text-xs uppercase tracking-wide text-(--color-faint)">
@@ -245,14 +245,16 @@ const savedSolution = attempt?.solution ?? null
               name="markdown"
               rows="3"
               required
+              aria-label="Note text"
               placeholder="What do you want to remember from this section?"
-              class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:outline-none"
+              class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
             />
             <input
               type="text"
               name="quote"
+              aria-label="Passage this note is about"
               placeholder="Optional: the passage this is about"
-              class="mt-2 w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:outline-none"
+              class="mt-2 w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
             />
             {noteError && <p class="text-rose mt-2 text-sm">{noteError.message}</p>}
             <button
@@ -317,8 +319,9 @@ const savedSolution = attempt?.solution ?? null
                   name="markdown"
                   rows="3"
                   required
+                  aria-label="What is wrong"
                   placeholder="What is wrong?"
-                  class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:outline-none"
+                  class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
                 />
                 <button
                   type="submit"
