@@ -2,6 +2,7 @@
 import { actions } from 'astro:actions'
 
 import Layout from '@layouts/Layout.astro'
+import { PROSE_COMPACT, renderAll } from '@utils/markdown'
 import { listAllNotes } from '@utils/notes'
 import { getCurrentUser } from '@utils/progress'
 
@@ -17,6 +18,9 @@ const courses = [...new Map(notes.map(note => [note.course.slug, note.course])).
 )
 
 const countFor = (slug: string) => notes.filter(note => note.course.slug === slug).length
+
+/** Rendered bodies, in the same order as `visible`. */
+const bodies = await renderAll(visible.map(note => note.markdown))
 
 const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 ---
@@ -51,7 +55,7 @@ const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'nume
 
     <ul class="mt-8 space-y-4">
       {
-        visible.map(note => (
+        visible.map((note, index) => (
           <li class="rounded-lg border border-(--color-edge) p-5" data-role="note">
             {note.quote && (
               <blockquote class="border-sky text-(--color-muted) border-l-2 pl-3 text-sm italic">
@@ -59,9 +63,7 @@ const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'nume
               </blockquote>
             )}
 
-            <p class="mt-2 text-sm leading-relaxed whitespace-pre-wrap" data-role="note-text">
-              {note.markdown}
-            </p>
+            <div class={`mt-2 text-sm leading-relaxed ${PROSE_COMPACT}`} data-role="note-text" set:html={bodies[index]} />
 
             <form method="POST" action={actions.editNote} class="mt-2 hidden" data-role="note-edit">
               <input type="hidden" name="noteId" value={note.id} />

@@ -1,6 +1,7 @@
 ---
 import Layout from '@layouts/Layout.astro'
 import { courseSummaries, openFeedbackCount } from '@utils/dashboard'
+import { PROSE_COMPACT, renderAll } from '@utils/markdown'
 import { listAllNotes } from '@utils/notes'
 import { getCurrentUser } from '@utils/progress'
 
@@ -17,6 +18,7 @@ const next =
   started.find(course => course.percent < 100 && course.resume) ?? summaries.find(course => course.resume) ?? null
 
 const recentNotes = notes.slice(0, 3)
+const recentBodies = await renderAll(recentNotes.map(note => note.markdown))
 
 const formatPrice = (price: number | null) => (price == null || price === 0 ? 'Free' : `$${price.toFixed(2)}`)
 const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
@@ -90,9 +92,9 @@ const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'nume
             </a>
           </div>
           <ul class="mt-4 space-y-3">
-            {recentNotes.map(note => (
+            {recentNotes.map((note, index) => (
               <li class="rounded-lg border border-(--color-edge) p-4">
-                <p class="text-sm leading-relaxed">{note.markdown}</p>
+                <div class={`text-sm leading-relaxed ${PROSE_COMPACT}`} set:html={recentBodies[index]} />
                 <p class="text-(--color-faint) mt-2 text-xs">
                   <a
                     href={`/courses/${note.course.slug}/${note.chapterDisplay}/${note.section.display}`}

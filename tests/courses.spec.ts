@@ -476,18 +476,18 @@ test('a note can be edited in place', async ({ page }) => {
   await note.locator('textarea').fill(edited)
   await note.getByRole('button', { name: 'Save' }).click()
 
-  await expect(page.locator('[data-role="note-text"]').first()).toHaveText(edited)
+  await expect(page.locator('[data-role="note-text"]').first()).toContainText(edited)
 
   // Survives a reload, so it reached the database.
   await page.reload()
-  await expect(page.locator('[data-role="note-text"]').first()).toHaveText(edited)
+  await expect(page.locator('[data-role="note-text"]').first()).toContainText(edited)
 
   // Put the seeded text back; later tests assert on it.
   const restored = page.locator('[data-role="note"]').first()
   await restored.getByRole('button', { name: 'Edit' }).click()
   await restored.locator('textarea').fill(original)
   await restored.getByRole('button', { name: 'Save' }).click()
-  await expect(page.locator('[data-role="note-text"]').first()).toHaveText(original)
+  await expect(page.locator('[data-role="note-text"]').first()).toContainText(original.trim())
 })
 
 test('cancelling an edit leaves the note alone', async ({ page }) => {
@@ -499,7 +499,7 @@ test('cancelling an edit leaves the note alone', async ({ page }) => {
   await note.locator('textarea').fill('discard me')
   await note.getByRole('button', { name: 'Cancel' }).click()
 
-  await expect(note.locator('[data-role="note-text"]')).toHaveText(before ?? '')
+  await expect(note.locator('[data-role="note-text"]')).toContainText((before ?? '').trim())
 })
 
 test('notes can be filtered to one course', async ({ page }) => {
@@ -553,4 +553,17 @@ test('search reports when nothing matched', async ({ page }) => {
 test('search asks for a longer term when given one character', async ({ page }) => {
   await page.goto('/search?q=a')
   await expect(page.getByText('Type at least two characters.')).toBeVisible()
+})
+
+test('note markdown is rendered, not shown literally', async ({ page }) => {
+  await page.goto('/notes')
+  // A seeded note contains `console.log` in backticks.
+  await expect(page.locator('[data-role="note-text"] code').first()).toBeVisible()
+  await expect(page.locator('[data-role="note-text"]').first()).not.toContainText('`')
+})
+
+test('lesson markdown still renders after sharing the processor', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/1')
+  await expect(page.getByRole('heading', { name: 'What JavaScript is' })).toBeVisible()
+  await expect(page.locator('pre code').first()).toBeVisible()
 })
