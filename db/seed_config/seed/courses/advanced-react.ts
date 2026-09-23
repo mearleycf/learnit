@@ -1,4 +1,12 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import {
+  complexStateLesson,
+  stateMachineExercise,
+  stateManagementRecap,
+  storeExercise,
+  syncExercise,
+  useReducerLesson,
+} from '../content/react-state'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
 
@@ -75,7 +83,7 @@ export const advancedReact: CourseConfig = {
           title: 'Complex State Patterns',
           description: 'Understanding advanced state management patterns',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: complexStateLesson },
           section_display_number: 1,
           access_level: 'purchased',
         } as SectionConfig,
@@ -85,7 +93,7 @@ export const advancedReact: CourseConfig = {
           title: 'useReducer Deep Dive',
           description: 'Advanced usage of useReducer hook',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: useReducerLesson },
           section_display_number: 2,
           access_level: 'purchased',
         } as SectionConfig,
@@ -95,16 +103,11 @@ export const advancedReact: CourseConfig = {
           title: 'State Machine Implementation',
           description: 'Implement a state machine using useReducer',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 3,
           access_level: 'purchased',
           // course 2, chapter 2, section 3, exercise 1 of 3
-          exercise: createExerciseData(
-            7,
-            1,
-            'Create a complex form wizard using useReducer to manage multiple steps, validation, and state transitions. Implement proper state machine patterns.',
-            'course 2, chapter 2, section 3, exercise 1 of 3',
-          ) as ExerciseConfig,
+          exercise: stateMachineExercise,
         } as SectionConfig,
         {
           // course 2, chapter 2, section 4
@@ -112,16 +115,11 @@ export const advancedReact: CourseConfig = {
           title: 'Custom State Manager',
           description: 'Build a custom state management solution',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 4,
           access_level: 'purchased',
           // course 2, chapter 2, section 4, exercise 2 of 3
-          exercise: createExerciseData(
-            8,
-            2,
-            'Implement a custom state management solution using React Context and useReducer that includes middleware support and devtools integration.',
-            'course 2, chapter 2, section 4, exercise 2 of 3',
-          ) as ExerciseConfig,
+          exercise: storeExercise,
         } as SectionConfig,
         {
           // course 2, chapter 2, section 5
@@ -129,16 +127,11 @@ export const advancedReact: CourseConfig = {
           title: 'State Synchronization',
           description: 'Managing state across components',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 5,
           access_level: 'purchased',
           // course 2, chapter 2, section 5, exercise 3 of 3
-          exercise: createExerciseData(
-            9,
-            3,
-            'Create a system for synchronizing state across multiple components using custom hooks and context, handling race conditions and optimistic updates.',
-            'course 2, chapter 2, section 5, exercise 3 of 3',
-          ) as ExerciseConfig,
+          exercise: syncExercise,
         } as SectionConfig,
         {
           // course 2, chapter 2, section 6
@@ -146,7 +139,7 @@ export const advancedReact: CourseConfig = {
           title: 'State Management Recap',
           description: 'Review of advanced state management concepts',
           content_type: 'recap',
-          content: {},
+          content: { content_type: 'recap', recap: stateManagementRecap },
           section_display_number: 6,
           access_level: 'purchased',
         } as SectionConfig,
