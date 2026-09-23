@@ -65,3 +65,74 @@ export const localNotes = [
     markdown: 'This is the rule I keep breaking. `const` first, then loosen it only when the reassign is real.',
   },
 ]
+
+/**
+ * Feedback reports, one per status.
+ *
+ * Deliberately covers every status and most categories, so the triage UI has
+ * a real example of each state to render rather than one happy path.
+ */
+export const localFeedback = [
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 1,
+    status: 'submitted' as const,
+    category: 'typo_or_grammar' as const,
+    markdown: 'The sentence about semicolons reads oddly. "JavaScript inserts them for you" could use a comma.',
+    rating: 4,
+  },
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 1,
+    status: 'assigned' as const,
+    category: 'clarity_improvement' as const,
+    markdown: 'Worth saying explicitly that the console is opened with the browser dev tools, not the terminal.',
+    rating: 3,
+    assigned: true,
+  },
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 2,
+    status: 'in_progress' as const,
+    category: 'incorrect_content' as const,
+    markdown: 'The fifth check calls describeProgress(false), but the starter signature takes no arguments.',
+    rating: 2,
+    assigned: true,
+    adminNotes: 'Real bug. Either the starter takes an optional parameter or the check should set isEnrolled.',
+  },
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 2,
+    status: 'pending_publication' as const,
+    category: 'feature_request' as const,
+    markdown: 'It would help to see which check failed rather than just a count.',
+    assigned: true,
+    adminNotes: 'Fix written, waiting on the exercise runner to ship.',
+    github: 'https://github.com/mearleycf/learnit/issues/141',
+  },
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 3,
+    status: 'resolved' as const,
+    category: 'technical_issue' as const,
+    markdown: 'The recap key points were rendering as one run-on paragraph.',
+    rating: 5,
+    assigned: true,
+    adminNotes: 'Fixed when the recap moved to a real list.',
+  },
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 3,
+    status: 'no_action_required' as const,
+    category: 'general_feedback' as const,
+    markdown: 'Could the recap come before the exercise instead of after?',
+    rating: 4,
+    adminNotes: 'Recap after the exercise is deliberate: it summarises what the exercise just taught.',
+  },
+]

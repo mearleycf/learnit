@@ -75,8 +75,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 
 Local-only, single user. No auth, by decision.
 
-Seeded: everything except feedback.
-Empty: feedback.
+All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
 Authored content: JavaScript Fundamentals chapter 1 only. The other 36 sections are structural.

@@ -14,7 +14,7 @@ import {
 } from './schema'
 import { courseData } from './seed_config/seed/courses/index'
 import { seedDate, seedUlid } from './seed_config/seed/deterministic'
-import { localNotes, localProgress, localUser } from './seed_config/seed/local-user'
+import { localFeedback, localNotes, localProgress, localUser } from './seed_config/seed/local-user'
 import type { ExerciseDifficulty } from './seed_config/types/seed-types'
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']
@@ -83,6 +83,30 @@ const seedLocalUser = async ({ sectionIndex, exerciseBySection, courseIdBySlug }
     last_sign_in: seedDate('user:local:signin', -3, 0),
     ...dates('user:local', -400, -380),
   })
+
+  let feedbackCount = 0
+  for (const report of localFeedback) {
+    const sectionId = sectionIndex.get(`${report.course}:${report.chapter}:${report.section}`)
+    if (!sectionId) {
+      throw new Error(`Feedback references missing section ${report.course} ${report.chapter}.${report.section}`)
+    }
+
+    feedbackCount += 1
+    const key = `feedback:${report.course}:${report.chapter}:${report.section}:${feedbackCount}`
+    await db.insert(feedback).values({
+      id: seedUlid(key),
+      student_id: userId,
+      section_id: sectionId,
+      assigned_to_id: report.assigned ? userId : null,
+      feedback_text: { markdown: report.markdown },
+      rating: report.rating ?? null,
+      status: report.status,
+      category: report.category,
+      admin_notes: report.adminNotes ?? null,
+      github_issue_link: report.github ?? null,
+      ...dates(key, -45, -1),
+    })
+  }
 
   let noteCount = 0
   for (const note of localNotes) {

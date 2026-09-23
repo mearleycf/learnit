@@ -97,3 +97,39 @@ test('an empty note is rejected', async ({ page }) => {
   await expect(textarea).toHaveAttribute('required', '')
   await expect(page.getByText('No notes on this section yet.')).toBeVisible()
 })
+
+test('the feedback page lists every seeded status', async ({ page }) => {
+  await page.goto('/feedback')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Feedback')
+
+  for (const label of ['Submitted', 'Assigned', 'In progress', 'Pending publication', 'Resolved']) {
+    await expect(page.getByRole('link', { name: new RegExp(`^${label} \\(`) })).toBeVisible()
+  }
+})
+
+test('filtering by status narrows the list', async ({ page }) => {
+  await page.goto('/feedback?status=resolved')
+  await expect(page.getByText('recap key points were rendering')).toBeVisible()
+  await expect(page.getByText('It would help to see which check failed')).toHaveCount(0)
+})
+
+test('a report can be filed and then triaged', async ({ page }) => {
+  const body = `Report from the test run ${Date.now()}`
+
+  await page.goto('/courses/javascript-fundamentals/1/3')
+  await page.getByText('Report a problem with this section').click()
+  await page.getByLabel('Problem category').selectOption('technical_issue')
+  await page.getByPlaceholder('What is wrong?').fill(body)
+  await page.getByRole('button', { name: 'Send report' }).click()
+
+  await page.goto('/feedback?status=submitted')
+  const card = page.locator('li', { hasText: body })
+  await expect(card).toBeVisible()
+
+  await card.getByRole('combobox').selectOption('resolved')
+  await card.getByRole('button', { name: 'Update' }).click()
+
+  await expect(page.locator('li', { hasText: body })).toHaveCount(0)
+  await page.goto('/feedback?status=resolved')
+  await expect(page.locator('li', { hasText: body })).toBeVisible()
+})

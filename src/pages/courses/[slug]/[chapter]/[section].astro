@@ -4,6 +4,7 @@ import { actions } from 'astro:actions'
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 
 import Layout from '@layouts/Layout.astro'
+import { CATEGORY_LABELS, FEEDBACK_CATEGORIES } from '@schemas/feedback.schema'
 import {
   flattenSections,
   getCourseBySlug,
@@ -37,6 +38,7 @@ const isComplete = result?.data ? result.data.complete : completedSet(progress).
 
 const notes = user ? await listNotes(user.id, section.id) : []
 const noteError = Astro.getActionResult(actions.addNote)?.error
+const reported = Astro.getActionResult(actions.reportFeedback)?.data?.reported ?? false
 
 const outline = await getCourseOutline(course.id)
 const ordered = flattenSections(outline)
@@ -224,6 +226,47 @@ const checks = (exercise?.tests as { tests?: Check[] } | null)?.tests ?? []
           </ul>
 
           {notes.length === 0 && <p class="text-(--color-faint) mt-4 text-sm">No notes on this section yet.</p>}
+        </section>
+      )
+    }
+
+    {
+      user && (
+        <section class="mt-10">
+          <details class="rounded-lg border border-(--color-edge) p-4" open={Boolean(noteError) === false && reported}>
+            <summary class="text-(--color-muted) cursor-pointer text-sm">Report a problem with this section</summary>
+
+            {reported ? (
+              <p class="text-teal mt-3 text-sm">Thanks. Logged in <a href="/feedback" class="underline">feedback</a>.</p>
+            ) : (
+              <form method="POST" action={actions.reportFeedback} class="mt-3 space-y-2">
+                <input type="hidden" name="sectionId" value={section.id} />
+                <select
+                  name="category"
+                  required
+                  aria-label="Problem category"
+                  class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-2 text-sm"
+                >
+                  {FEEDBACK_CATEGORIES.map(category => (
+                    <option value={category}>{CATEGORY_LABELS[category]}</option>
+                  ))}
+                </select>
+                <textarea
+                  name="markdown"
+                  rows="3"
+                  required
+                  placeholder="What is wrong?"
+                  class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  class="rounded-lg border border-(--color-edge) px-4 py-2 text-sm transition hover:bg-(--color-raised)"
+                >
+                  Send report
+                </button>
+              </form>
+            )}
+          </details>
         </section>
       )
     }

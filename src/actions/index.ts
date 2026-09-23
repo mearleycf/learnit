@@ -1,6 +1,8 @@
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
+import { FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from '@schemas/feedback.schema'
+import { createFeedback, setFeedbackStatus } from '@utils/feedback'
 import { createNote, deleteNote } from '@utils/notes'
 import { getCurrentUser, setSectionComplete } from '@utils/progress'
 
@@ -37,6 +39,34 @@ export const server = {
       const user = await requireUser()
       await createNote(user.id, sectionId, markdown, quote || undefined)
       return { added: true }
+    },
+  }),
+
+  reportFeedback: defineAction({
+    accept: 'form',
+    input: z.object({
+      sectionId: z.string(),
+      markdown: z.string().trim().min(1, 'Describe the problem first.').max(10_000),
+      category: z.enum(FEEDBACK_CATEGORIES),
+      rating: z.coerce.number().int().min(1).max(5).optional(),
+    }),
+    handler: async ({ sectionId, markdown, category, rating }) => {
+      const user = await requireUser()
+      await createFeedback(user.id, sectionId, markdown, category, rating)
+      return { reported: true }
+    },
+  }),
+
+  updateFeedbackStatus: defineAction({
+    accept: 'form',
+    input: z.object({
+      feedbackId: z.string(),
+      status: z.enum(FEEDBACK_STATUSES),
+    }),
+    handler: async ({ feedbackId, status }) => {
+      await requireUser()
+      await setFeedbackStatus(feedbackId, status)
+      return { status }
     },
   }),
 
