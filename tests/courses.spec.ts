@@ -529,3 +529,28 @@ test('the dashboard links to notes and open feedback', async ({ page }) => {
   await page.getByRole('link', { name: /^Feedback/ }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Feedback')
 })
+
+test('search finds lesson prose and links to the section', async ({ page }) => {
+  await page.goto('/search?q=reduce')
+  await expect(page.getByText(/results for/)).toBeVisible()
+
+  const hits = page.locator('[data-role="hit"]')
+  await expect(hits.first()).toBeVisible()
+  await hits.first().click()
+  await expect(page).toHaveURL(/\/courses\//)
+})
+
+test('search finds the student own notes', async ({ page }) => {
+  await page.goto('/search?q=parallel')
+  await expect(page.getByText('Your note')).toBeVisible()
+})
+
+test('search reports when nothing matched', async ({ page }) => {
+  await page.goto('/search?q=zzzznotathing')
+  await expect(page.getByText('Nothing matched.')).toBeVisible()
+})
+
+test('search asks for a longer term when given one character', async ({ page }) => {
+  await page.goto('/search?q=a')
+  await expect(page.getByText('Type at least two characters.')).toBeVisible()
+})

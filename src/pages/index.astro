@@ -27,6 +27,7 @@ const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'nume
     <div class="flex items-baseline justify-between gap-4">
       <h1 class="font-display text-4xl tracking-tight">learnit</h1>
       <div class="flex gap-4 text-sm">
+        <a href="/search" class="text-(--color-link) hover:underline">Search</a>
         <a href="/notes" class="text-(--color-link) hover:underline">Notes</a>
         <a href="/feedback" class="text-(--color-link) hover:underline">
           Feedback{openFeedback > 0 && <span class="text-peach"> ({openFeedback})</span>}
