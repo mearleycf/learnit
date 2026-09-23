@@ -90,14 +90,18 @@ type HtmlFile = { filename: string; content: string; isHidden?: boolean }
 const html = exercise?.browser_html as { files?: HtmlFile[]; defaultView?: string } | null
 const htmlFiles = (html?.files ?? []).filter(file => !file.isHidden)
 const previewHtml = (htmlFiles.find(file => file.filename === html?.defaultView) ?? htmlFiles[0])?.content ?? null
-type Hint = { order: number; content: unknown }
-const hints = (exercise?.hints as { hints?: Hint[] } | null)?.hints ?? []
+type Hint = { order: number; content: unknown; showAfterAttempts?: number }
+const hints = ((exercise?.hints as { hints?: Hint[] } | null)?.hints ?? []).slice().sort((a, b) => a.order - b.order)
 type Check = { name: string; description: string; testFunction: string; timeout?: number }
 const checks = (exercise?.tests as { tests?: Check[] } | null)?.tests ?? []
 
 type Solution = { content?: unknown; explanation?: unknown }
 const worked = exercise?.default_solution as Solution | null
 const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.id) : null
+const attemptCount = attempt?.attempts ?? 0
+
+/** Work already saved for this exercise, keyed by filename. */
+const savedSolution = attempt?.solution ?? null
 ---
 
 <Layout title={`${section.title} — ${course.title}`}>
@@ -153,6 +157,8 @@ const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.i
               solution={worked?.content ? String(worked.content) : null}
               solutionExplanation={worked?.explanation ? String(worked.explanation) : null}
               previewHtml={previewHtml}
+              savedSolution={savedSolution}
+              attempt={attempt ? { attempts: attempt.attempts, score: attempt.score, completed: attempt.completed } : null}
             />
           )}
           {attempt && (
@@ -163,12 +169,29 @@ const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.i
           )}
 
           {hints.length > 0 && (
-            <details class="rounded-lg border border-(--color-edge) p-4">
+            <details class="rounded-lg border border-(--color-edge) p-4" data-role="hints">
               <summary class="cursor-pointer text-sm font-medium">Hints ({hints.length})</summary>
               <ol class="mt-3 space-y-2">
-                {hints.map(hint => (
-                  <li class="ml-5 list-decimal text-sm leading-relaxed">{String(hint.content)}</li>
-                ))}
+                {hints.map(hint => {
+                  const needed = hint.showAfterAttempts ?? 0
+                  const locked = attemptCount < needed
+                  return (
+                    <li
+                      class="ml-5 list-decimal text-sm leading-relaxed"
+                      data-role="hint"
+                      data-needed={needed}
+                      data-content={String(hint.content)}
+                    >
+                      {locked ? (
+                        <span class="text-(--color-faint) italic">
+                          Unlocks after {needed} attempt{needed === 1 ? '' : 's'}
+                        </span>
+                      ) : (
+                        String(hint.content)
+                      )}
+                    </li>
+                  )
+                })}
               </ol>
             </details>
           )}

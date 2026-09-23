@@ -101,6 +101,14 @@ by postMessage and forwards console output and errors.
 Only exercises that carry `browser_html` get a preview button. Pure-logic exercises omit it
 rather than showing an empty frame.
 
+Student work is saved to `student_exercise_progress.solution`, keyed by filename, debounced as
+they type. localStorage is a per-browser fallback; the server copy wins on load. Reset clears
+both. Hints are gated on `showAfterAttempts` and unlock as the attempt count rises.
+
+End-to-end tests share one libSQL file and saved work is durable, so Playwright runs serially
+(`fullyParallel: false`, one worker) and tests needing a clean editor call `openExercise`,
+which resets before starting.
+
 Astro actions work from forms (`?_action=`), but the `/_actions/[...path]` RPC route is not
 registered in this setup. Anything called from client script needs a plain API route under
 `src/pages/api/` instead.

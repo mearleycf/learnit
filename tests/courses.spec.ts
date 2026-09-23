@@ -1,4 +1,19 @@
-import { expect, test } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
+
+/**
+ * Opens an exercise with a known starting point.
+ *
+ * The suite shares one database and saved work is durable, so a test that
+ * needs the starter must reset rather than assume it. Clears the local draft,
+ * then the server copy, and waits for the debounced save to land.
+ */
+const openExercise = async (page: Page, path: string) => {
+  await page.goto(path)
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+  await page.getByRole('button', { name: 'Reset to starter' }).click()
+  await page.waitForTimeout(1200)
+}
 
 test('the courses list links through to a course', async ({ page }) => {
   await page.goto('/')
@@ -137,9 +152,7 @@ test('a report can be filed and then triaged', async ({ page }) => {
 })
 
 test('a correct solution passes every check and records an attempt', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   await page
     .locator('[data-role="editor"]')
@@ -163,9 +176,7 @@ test('a correct solution passes every check and records an attempt', async ({ pa
 })
 
 test('a wrong solution reports which checks failed and why', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   await page.locator('[data-role="editor"]').fill(["const courseName = 'Wrong'", 'export { courseName }'].join('\n'))
   await page.getByRole('button', { name: 'Run checks' }).click()
@@ -175,9 +186,7 @@ test('a wrong solution reports which checks failed and why', async ({ page }) =>
 })
 
 test('an endless loop times out instead of hanging the page', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   await page.locator('[data-role="editor"]').fill('while (true) {}\nexport const courseName = "x"')
   await page.getByRole('button', { name: 'Run checks' }).click()
@@ -188,9 +197,7 @@ test('an endless loop times out instead of hanging the page', async ({ page }) =
 })
 
 test('reset restores the starter code', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   const editor = page.locator('[data-role="editor"]')
   await editor.fill('throwaway')
@@ -207,9 +214,7 @@ test('chapter 2 renders its authored lesson and recap', async ({ page }) => {
 })
 
 test('a multi-file exercise opens on the editable entry file', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/2/2')
 
   await expect(page.getByRole('button', { name: /format\.js/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /progress\.js/ })).toBeVisible()
@@ -221,9 +226,7 @@ test('a multi-file exercise opens on the editable entry file', async ({ page }) 
 })
 
 test('a read-only file can be viewed but not edited', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/2/2')
 
   await page.getByRole('button', { name: /format\.js/ }).click()
   const editor = page.locator('[data-role="editor"]')
@@ -232,9 +235,7 @@ test('a read-only file can be viewed but not edited', async ({ page }) => {
 })
 
 test('a solution importing from a sibling file passes every check', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/2/2')
 
   await page
     .locator('[data-role="editor"]')
@@ -256,9 +257,7 @@ test('a solution importing from a sibling file passes every check', async ({ pag
 })
 
 test('an import with no matching file fails without crashing', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/2/2')
 
   await page.locator('[data-role="editor"]').fill("import { nope } from './missing.js'\nexport const a = 1")
   await page.getByRole('button', { name: 'Run checks' }).click()
@@ -268,9 +267,7 @@ test('an import with no matching file fails without crashing', async ({ page }) 
 })
 
 test('console output is captured and attributed to its check', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   await page
     .locator('[data-role="editor"]')
@@ -296,9 +293,7 @@ test('console output is captured and attributed to its check', async ({ page }) 
 })
 
 test('the console pane stays hidden when nothing is printed', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   await page.getByRole('button', { name: 'Run checks' }).click()
   await expect(page.locator('[data-role="summary"]')).toContainText('checks passing')
@@ -306,9 +301,7 @@ test('the console pane stays hidden when nothing is printed', async ({ page }) =
 })
 
 test('dev tooling chatter never reaches the console pane', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/2')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   await page.locator('[data-role="editor"]').fill("console.log('mine')\nexport const courseName = 'x'")
   await page.getByRole('button', { name: 'Run checks' }).click()
@@ -349,9 +342,7 @@ test('chapter 3 renders its authored lesson and recap', async ({ page }) => {
 })
 
 test('a DOM exercise is graded despite the worker having no document', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/3/3')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/3/3')
 
   await page.locator('[data-role="editor"]').fill(ARRAY_SOLUTION)
   await page.getByRole('button', { name: 'Run checks' }).click()
@@ -360,9 +351,7 @@ test('a DOM exercise is graded despite the worker having no document', async ({ 
 })
 
 test('the preview renders student output into a real document', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/3/3')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/3/3')
 
   await page.locator('[data-role="editor"]').fill(ARRAY_SOLUTION)
   await page.getByRole('button', { name: 'Run preview' }).click()
@@ -374,9 +363,7 @@ test('the preview renders student output into a real document', async ({ page })
 })
 
 test('console output from the preview reaches the workspace', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/3/3')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/3/3')
 
   await page.locator('[data-role="editor"]').fill(ARRAY_SOLUTION)
   await page.getByRole('button', { name: 'Run preview' }).click()
@@ -385,9 +372,7 @@ test('console output from the preview reaches the workspace', async ({ page }) =
 })
 
 test('an error in the preview is reported, not swallowed', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/3/3')
-  await page.evaluate(() => localStorage.clear())
-  await page.reload()
+  await openExercise(page, '/courses/javascript-fundamentals/3/3')
 
   await page.locator('[data-role="editor"]').fill("throw new Error('preview blew up')\nexport const a = 1")
   await page.getByRole('button', { name: 'Run preview' }).click()
@@ -399,4 +384,76 @@ test('an exercise with no markup has no preview button', async ({ page }) => {
   await page.goto('/courses/javascript-fundamentals/2/2')
   await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Run preview' })).toHaveCount(0)
+})
+
+test('hints are locked or shown according to the attempt count', async ({ page }) => {
+  await openExercise(page, '/courses/javascript-fundamentals/3/3')
+
+  // Other tests share this database, so assert the rule rather than a fixed count.
+  const attemptsText = (await page.locator('[data-role="attempts"]').textContent()) ?? ''
+  const attempts = Number(/^(\d+)/.exec(attemptsText.trim())?.[1] ?? 0)
+
+  const hints = page.locator('[data-role="hint"]')
+  await expect(hints).toHaveCount(4)
+
+  for (let i = 0; i < 4; i += 1) {
+    const hint = hints.nth(i)
+    const needed = Number(await hint.getAttribute('data-needed'))
+    if (attempts >= needed) {
+      await expect(hint).not.toContainText('Unlocks after')
+    } else {
+      await expect(hint).toContainText(`Unlocks after ${needed} attempt`)
+    }
+  }
+})
+
+test('running an exercise unlocks any hint the new count has earned', async ({ page }) => {
+  await openExercise(page, '/courses/javascript-fundamentals/3/3')
+
+  await page.getByRole('button', { name: 'Run checks' }).click()
+  await expect(page.locator('[data-role="attempts"]')).toContainText('attempt')
+
+  const attemptsText = (await page.locator('[data-role="attempts"]').textContent()) ?? ''
+  const attempts = Number(/^(\d+)/.exec(attemptsText.trim())?.[1] ?? 0)
+
+  const hints = page.locator('[data-role="hint"]')
+  for (let i = 0; i < 4; i += 1) {
+    const hint = hints.nth(i)
+    if (attempts >= Number(await hint.getAttribute('data-needed'))) {
+      await expect(hint).not.toContainText('Unlocks after')
+    }
+  }
+})
+
+test('work is restored from the server after local storage is cleared', async ({ page }) => {
+  const marker = `// probe ${Date.now()}`
+
+  await openExercise(page, '/courses/javascript-fundamentals/2/2')
+
+  await page.locator('[data-role="editor"]').fill(`${marker}\nexport const a = 1`)
+  // The save is debounced, so give it a moment to reach the server.
+  await page.waitForTimeout(1500)
+
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await expect(page.locator('[data-role="editor"]')).toHaveValue(new RegExp(marker.replace(/\//g, '\\/')))
+
+  // Put the exercise back, since the rest of the suite shares this database.
+  await page.getByRole('button', { name: 'Reset to starter' }).click()
+  await page.waitForTimeout(1200)
+})
+
+test('reset clears saved work on the server too', async ({ page }) => {
+  // Uses 1/2 so it does not race the persistence test, which owns 2/2.
+  await openExercise(page, '/courses/javascript-fundamentals/1/2')
+
+  await page.locator('[data-role="editor"]').fill('// throwaway')
+  await page.waitForTimeout(1200)
+  await page.getByRole('button', { name: 'Reset to starter' }).click()
+  await page.waitForTimeout(1200)
+
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+  await expect(page.locator('[data-role="editor"]')).toHaveValue(/A value that never changes/)
 })

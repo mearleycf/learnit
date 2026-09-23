@@ -78,6 +78,7 @@ export const recordExerciseAttempt = async (
   exerciseId: string,
   passed: number,
   total: number,
+  solution?: Record<string, string>,
 ): Promise<{ attempts: number; score: number; completed: boolean }> => {
   const score = total === 0 ? 0 : Math.round((passed / total) * 100)
   const completed = total > 0 && passed === total
@@ -96,6 +97,7 @@ export const recordExerciseAttempt = async (
       attempts: 1,
       score,
       completed,
+      solution: solution ?? null,
       last_attempt_at: new Date(),
     })
     return { attempts: 1, score, completed }
@@ -109,7 +111,12 @@ export const recordExerciseAttempt = async (
 
   await db
     .update(student_exercise_progress)
-    .set({ ...next, last_attempt_at: new Date() })
+    .set({
+      ...next,
+      // Keep the last saved work if this run did not carry any.
+      solution: solution ?? existing.solution,
+      last_attempt_at: new Date(),
+    })
     .where(eq(student_exercise_progress.id, existing.id))
 
   return next
@@ -122,4 +129,33 @@ export const getExerciseAttempts = async (userId: string, exerciseId: string) =>
     .where(and(eq(student_exercise_progress.student_id, userId), eq(student_exercise_progress.exercise_id, exerciseId)))
     .limit(1)
   return row ?? null
+}
+
+/**
+ * Saves the student's work without counting it as an attempt.
+ *
+ * Called as they type, so a browser change or a cleared cache does not lose
+ * the work. Creates the progress row if this is the first thing they do.
+ */
+export const saveExerciseSolution = async (
+  userId: string,
+  exerciseId: string,
+  solution: Record<string, string>,
+): Promise<void> => {
+  const existing = await getExerciseAttempts(userId, exerciseId)
+
+  if (!existing) {
+    await db.insert(student_exercise_progress).values({
+      id: ulid(),
+      student_id: userId,
+      exercise_id: exerciseId,
+      attempts: 0,
+      score: 0,
+      completed: false,
+      solution,
+    })
+    return
+  }
+
+  await db.update(student_exercise_progress).set({ solution }).where(eq(student_exercise_progress.id, existing.id))
 }

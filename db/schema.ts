@@ -200,6 +200,14 @@ export const student_exercise_progress = sqliteTable(
     score: integer('score').default(0),
     completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
     attempts: integer('attempts').notNull().default(0),
+    /**
+     * The student's work in progress.
+     *
+     * Keyed by filename, since an exercise can span several files. This lives
+     * here rather than on `exercises.student_solution`, which is a per-student
+     * value sitting on a shared table.
+     */
+    solution: text('solution', { mode: 'json' }).$type<Record<string, string>>(),
     last_attempt_at: integer('last_attempt_at', { mode: 'timestamp' }),
     created_at: createdAt(),
     updated_at: updatedAt(),

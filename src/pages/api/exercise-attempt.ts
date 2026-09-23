@@ -6,6 +6,8 @@ const bodySchema = z.object({
   exerciseId: z.string().min(1),
   passed: z.number().int().min(0),
   total: z.number().int().min(0),
+  /** The student's work, keyed by filename. */
+  solution: z.record(z.string(), z.string()).optional(),
 })
 
 /**
@@ -27,6 +29,6 @@ export const POST: APIRoute = async ({ request }) => {
     return Response.json({ error: 'No local user is seeded. Run `yarn db:seed`.' }, { status: 404 })
   }
 
-  const { exerciseId, passed, total } = json.data
-  return Response.json(await recordExerciseAttempt(user.id, exerciseId, passed, total))
+  const { exerciseId, passed, total, solution } = json.data
+  return Response.json(await recordExerciseAttempt(user.id, exerciseId, passed, total, solution))
 }

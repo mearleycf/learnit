@@ -18,9 +18,20 @@ interface Props {
   solutionExplanation: string | null
   /** Markup for the live preview, or null when the exercise has none. */
   previewHtml: string | null
+  /** Work already saved on the server, keyed by filename. */
+  savedSolution: Record<string, string> | null
+  /** Prior attempts on this exercise, so the count is visible before any run. */
+  attempt: { attempts: number; score: number | null; completed: boolean } | null
 }
 
-const { exerciseId, files, entry, tests, solution, solutionExplanation, previewHtml } = Astro.props
+const { exerciseId, files, entry, tests, solution, solutionExplanation, previewHtml, savedSolution, attempt } =
+  Astro.props
+
+/** Same wording the client uses after a run, so the label does not jump. */
+const attemptLabel = attempt
+  ? `${attempt.attempts} attempt${attempt.attempts === 1 ? '' : 's'} \u00b7 best ${attempt.score ?? 0}%` +
+    (attempt.completed ? ' \u00b7 passed' : '')
+  : ''
 
 /** Hidden files are linked at run time but never shown, so they get no tab. */
 const visible = files.filter(file => !file.isHidden)
@@ -41,6 +52,7 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
   data-tests={JSON.stringify(tests)}
   data-files={JSON.stringify(files)}
   data-preview-html={previewHtml}
+  data-saved={savedSolution ? JSON.stringify(savedSolution) : null}
 >
   <div class="flex flex-wrap items-center gap-2">
     {
@@ -61,7 +73,7 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
         </button>
       ))
     }
-    <p class="text-(--color-faint) ml-auto text-xs" data-role="attempts"></p>
+    <p class="text-(--color-faint) ml-auto text-xs" data-role="attempts">{attemptLabel}</p>
   </div>
 
   <textarea
@@ -169,16 +181,30 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
     const byName = new Map(starters.map(file => [file.filename, file]))
     const storageKey = `learnit:exercise:${exerciseId}`
 
-    // Drafts are a per-browser convenience, so localStorage is the right home.
+    const apply = (saved: Record<string, string> | null) => {
+      if (!saved) return
+      for (const [filename, content] of Object.entries(saved)) {
+        if (byName.get(filename)?.isReadOnly === false) draft.set(filename, content)
+      }
+    }
+
+    /**
+     * Restores the student's work.
+     *
+     * The server copy wins, because it survives a different browser or a
+     * cleared cache. localStorage is a fallback for work saved before the
+     * last save reached the server.
+     */
     const load = () => {
       try {
-        const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null') as Record<string, string> | null
-        if (!saved) return
-        for (const [filename, content] of Object.entries(saved)) {
-          if (byName.get(filename)?.isReadOnly === false) draft.set(filename, content)
-        }
+        apply(JSON.parse(localStorage.getItem(storageKey) ?? 'null') as Record<string, string> | null)
       } catch {
-        // Private mode, blocked storage, or stale shape: the starter is a fine fallback.
+        // Private mode, blocked storage, or a stale shape: the starter is a fine fallback.
+      }
+      try {
+        apply(JSON.parse(workspace.dataset.saved ?? 'null') as Record<string, string> | null)
+      } catch {
+        // A malformed saved payload should not stop the exercise loading.
       }
     }
 
@@ -215,6 +241,14 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
     const currentFiles = () =>
       starters.map(file => ({ filename: file.filename, content: draft.get(file.filename) ?? '' }))
 
+    /** Swaps locked hints for their text once enough attempts have been made. */
+    const revealHints = (attempts: number) => {
+      for (const hint of document.querySelectorAll<HTMLElement>('[data-role="hint"]')) {
+        const needed = Number(hint.dataset.needed ?? 0)
+        if (attempts >= needed && hint.dataset.content) hint.textContent = hint.dataset.content
+      }
+    }
+
     const show = (filename: string) => {
       active = filename
       const file = byName.get(filename)
@@ -232,15 +266,34 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
       tab.addEventListener('click', () => show(tab.dataset.filename!))
     }
 
+    const editable = () => Object.fromEntries([...draft].filter(([name]) => !byName.get(name)?.isReadOnly))
+
+    let saveTimer: ReturnType<typeof setTimeout> | undefined
+    const saveToServer = () => {
+      clearTimeout(saveTimer)
+      saveTimer = setTimeout(() => {
+        void fetch('/api/exercise-solution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ exerciseId, solution: editable() }),
+        }).catch(() => {
+          // Saving is best effort; localStorage still holds the work.
+        })
+      }, 800)
+    }
+
     editor.addEventListener('input', () => {
       if (editor.disabled) return
       draft.set(active, editor.value)
       persist()
+      saveToServer()
     })
 
     resetButton.addEventListener('click', () => {
       for (const file of starters) draft.set(file.filename, file.content)
       persist()
+      // Clear the server copy too, or a reload would restore the discarded work.
+      saveToServer()
       show(active)
       results.replaceChildren()
       summary.textContent = ''
@@ -292,13 +345,19 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
         const response = await fetch('/api/exercise-attempt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ exerciseId, passed: result.passed, total: result.total }),
+          body: JSON.stringify({
+            exerciseId,
+            passed: result.passed,
+            total: result.total,
+            solution: editable(),
+          }),
         })
         if (response.ok) {
           const data = (await response.json()) as { attempts: number; score: number; completed: boolean }
           attemptsLabel.textContent =
             `${data.attempts} attempt${data.attempts === 1 ? '' : 's'} · best ${data.score}%` +
             (data.completed ? ' · passed' : '')
+          revealHints(data.attempts)
         }
       } catch {
         // Recording an attempt is bookkeeping; a failure must not hide the results.
