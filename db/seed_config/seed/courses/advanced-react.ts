@@ -1,5 +1,12 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
 import {
+  componentArchitectureLesson,
+  memoExercise,
+  performanceLesson,
+  performanceRecap,
+  reactFundamentalsRecap,
+} from '../content/react-performance'
+import {
   complexStateLesson,
   stateMachineExercise,
   stateManagementRecap,
@@ -36,7 +43,7 @@ export const advancedReact: CourseConfig = {
           title: 'Component Architecture',
           description: 'Understanding React component architecture and patterns',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: componentArchitectureLesson },
           section_display_number: 1,
           access_level: 'free',
         } as SectionConfig,
@@ -63,7 +70,7 @@ export const advancedReact: CourseConfig = {
           title: 'React Fundamentals Recap',
           description: 'Review of core React concepts',
           content_type: 'recap',
-          content: {},
+          content: { content_type: 'recap', recap: reactFundamentalsRecap },
           section_display_number: 3,
           access_level: 'free',
         } as SectionConfig,
@@ -159,7 +166,7 @@ export const advancedReact: CourseConfig = {
           title: 'React Performance Fundamentals',
           description: 'Understanding React performance and optimization techniques',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: performanceLesson },
           section_display_number: 1,
           access_level: 'purchased',
         } as SectionConfig,
@@ -169,16 +176,11 @@ export const advancedReact: CourseConfig = {
           title: 'Memoization Patterns',
           description: 'Advanced memoization techniques in React',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 2,
           access_level: 'purchased',
           // course 2, chapter 3, section 2, exercise 1 of 1
-          exercise: createExerciseData(
-            10,
-            1,
-            'Implement advanced memoization patterns using useMemo and useCallback in a complex data visualization component. Profile and optimize render performance.',
-            'course 2, chapter 3, section 2, exercise 1 of 1',
-          ) as ExerciseConfig,
+          exercise: memoExercise,
         } as SectionConfig,
         {
           // course 2, chapter 3, section 3
@@ -186,7 +188,7 @@ export const advancedReact: CourseConfig = {
           title: 'Performance Optimization Recap',
           description: 'Review of performance optimization techniques',
           content_type: 'recap',
-          content: {},
+          content: { content_type: 'recap', recap: performanceRecap },
           section_display_number: 3,
           access_level: 'purchased',
         } as SectionConfig,

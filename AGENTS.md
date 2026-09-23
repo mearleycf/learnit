@@ -102,8 +102,8 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: JavaScript Fundamentals complete (12 sections), Advanced React chapter 2
-complete (6 sections). Python Fundamentals is structural only.
+Authored content: JavaScript Fundamentals complete (12 sections), Advanced React 11 of 12.
+Python Fundamentals is structural only.
 
 React exercises cannot run: the Worker has no module resolution for a bare `react` import and no
 DOM to render into. Advanced React chapter 2 works around this honestly, since reducers and

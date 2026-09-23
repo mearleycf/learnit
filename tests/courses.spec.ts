@@ -46,8 +46,8 @@ test('a recap section renders its key points', async ({ page }) => {
 })
 
 test('a section with no authored content shows an empty state', async ({ page }) => {
-  // JavaScript Fundamentals is fully authored now; Advanced React is structural.
-  await page.goto('/courses/advanced-react/1/1')
+  // Advanced React is authored now too; Python Fundamentals is still structural.
+  await page.goto('/courses/python-fundamentals/1/1')
   await expect(page.getByText('This section has no content yet.')).toBeVisible()
 })
 
