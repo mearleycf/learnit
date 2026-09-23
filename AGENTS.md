@@ -37,7 +37,7 @@ Run `lint`, `check`, `test:run` before any commit.
 
 ## Stack
 
-Astro 7 (server output, Vercel adapter) · Node 24 · Yarn 4 · Drizzle ORM on libSQL · Tailwind 4 · Zod 4 · Biome · Vitest · Playwright.
+Astro 7 (server output, standalone Node adapter) · Node 24 · Yarn 4 · Drizzle ORM on libSQL · Tailwind 4 · Zod 4 · Biome · Vitest · Playwright.
 
 Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do not reintroduce them.
 `@astrojs/db` is deprecated upstream. TypeScript is held at 6 because `astro check` and typescript-eslint cap below 7.
@@ -72,6 +72,18 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 - Colours come from the semantic tokens in `src/styles/global.css`. Never hard-code a hex or a raw Tailwind grey in a page.
 - Biome only parses `.astro` frontmatter, not the template. Unused-symbol rules are off for `.astro` because anything used only in markup reads as unused.
 - Conventional commits. Breaking changes get `!` and a `BREAKING CHANGE:` footer.
+
+## Markdown has two paths
+
+Astro's markdown processor does **not** sanitise. Raw HTML, `<script>` and `onerror` all pass
+through. Which processor you use depends on who wrote the source:
+
+- `renderAuthored` for content committed to this repo: lessons, recaps, exercise instructions.
+  Raw HTML survives.
+- `renderUserInput` for anything typed into a form: notes, feedback. Scripts, event handlers and
+  unknown elements are stripped by `rehype-sanitize`.
+
+Never pass form input to `renderAuthored`.
 
 ## Target screens
 

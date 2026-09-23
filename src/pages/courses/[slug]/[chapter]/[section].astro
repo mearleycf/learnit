@@ -13,7 +13,7 @@ import {
   parseSectionContent,
   sectionHref,
 } from '@utils/courses'
-import { PROSE_CLASSES, PROSE_COMPACT, renderAll, renderMarkdown } from '@utils/markdown'
+import { PROSE_CLASSES, PROSE_COMPACT, renderAllUserInput, renderAuthored } from '@utils/markdown'
 import { listNotes } from '@utils/notes'
 import { completedSet, getCurrentUser, getExerciseAttempts, getProgress } from '@utils/progress'
 
@@ -37,7 +37,7 @@ const progress = user ? await getProgress(user.id, course.id) : null
 const isComplete = result?.data ? result.data.complete : completedSet(progress).has(section.id)
 
 const notes = user ? await listNotes(user.id, section.id) : []
-const noteBodies = await renderAll(notes.map(note => note.markdown))
+const noteBodies = await renderAllUserInput(notes.map(note => note.markdown))
 
 const noteError = Astro.getActionResult(actions.addNote)?.error
 const reported = Astro.getActionResult(actions.reportFeedback)?.data?.reported ?? false
@@ -52,10 +52,10 @@ const content = parseSectionContent(section.content)
 const exercise = section.content_type === 'exercise' ? await getExerciseForSection(section.id) : null
 
 /** Instructions are authored as markdown, so they render like any other prose. */
-const instructionsHtml = exercise ? await renderMarkdown(exercise.instructions) : null
+const instructionsHtml = exercise ? await renderAuthored(exercise.instructions) : null
 
 const lessonHtml =
-  content?.content_type === 'lesson' && content.lesson ? await renderMarkdown(content.lesson.markdown) : null
+  content?.content_type === 'lesson' && content.lesson ? await renderAuthored(content.lesson.markdown) : null
 const recap = content?.content_type === 'recap' ? content.recap : null
 
 type CodeFile = {

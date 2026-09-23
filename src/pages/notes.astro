@@ -2,7 +2,7 @@
 import { actions } from 'astro:actions'
 
 import Layout from '@layouts/Layout.astro'
-import { PROSE_COMPACT, renderAll } from '@utils/markdown'
+import { PROSE_COMPACT, renderAllUserInput } from '@utils/markdown'
 import { listAllNotes } from '@utils/notes'
 import { getCurrentUser } from '@utils/progress'
 
@@ -20,7 +20,7 @@ const courses = [...new Map(notes.map(note => [note.course.slug, note.course])).
 const countFor = (slug: string) => notes.filter(note => note.course.slug === slug).length
 
 /** Rendered bodies, in the same order as `visible`. */
-const bodies = await renderAll(visible.map(note => note.markdown))
+const bodies = await renderAllUserInput(visible.map(note => note.markdown))
 
 const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 ---

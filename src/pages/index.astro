@@ -1,7 +1,7 @@
 ---
 import Layout from '@layouts/Layout.astro'
 import { courseSummaries, openFeedbackCount } from '@utils/dashboard'
-import { PROSE_COMPACT, renderAll } from '@utils/markdown'
+import { PROSE_COMPACT, renderAllUserInput } from '@utils/markdown'
 import { listAllNotes } from '@utils/notes'
 import { getCurrentUser } from '@utils/progress'
 
@@ -18,7 +18,7 @@ const next =
   started.find(course => course.percent < 100 && course.resume) ?? summaries.find(course => course.resume) ?? null
 
 const recentNotes = notes.slice(0, 3)
-const recentBodies = await renderAll(recentNotes.map(note => note.markdown))
+const recentBodies = await renderAllUserInput(recentNotes.map(note => note.markdown))
 
 const formatPrice = (price: number | null) => (price == null || price === 0 ? 'Free' : `$${price.toFixed(2)}`)
 const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })

@@ -1,5 +1,5 @@
+import node from '@astrojs/node'
 import sitemap from '@astrojs/sitemap'
-import vercel from '@astrojs/vercel'
 import sentry from '@sentry/astro'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'astro/config'
@@ -7,9 +7,11 @@ import icon from 'astro-icon'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://fivestarcode.cc',
+  site: 'http://localhost:4321',
   output: 'server',
-  adapter: vercel(),
+  // Runs locally only. No hosting platform is involved, so the standalone
+  // Node adapter is the whole deployment story.
+  adapter: node({ mode: 'standalone' }),
   integrations: [
     sitemap({
       changefreq: 'weekly',

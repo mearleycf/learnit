@@ -79,6 +79,9 @@ authored, and the remaining 36 sections are structural only.
 `yarn build` does not need Sentry credentials. Source map upload is a separate step, so a missing
 auth token cannot fail the build.
 
+This runs locally only. There is no hosting platform, and the Node adapter is the whole deployment
+story: `yarn build` then `node dist/server/entry.mjs`.
+
 ## Optional environment
 
 ```
