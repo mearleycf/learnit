@@ -15,8 +15,12 @@ export type TestOutcome = {
   message: string | null
 }
 
+import type { LogEntry } from './capture'
+
 export type RunResult = {
   outcomes: TestOutcome[]
+  /** Console output produced while loading the code and running the checks. */
+  logs: LogEntry[]
   passed: number
   total: number
   /** Set when the student's code failed to load at all, which skips the checks. */

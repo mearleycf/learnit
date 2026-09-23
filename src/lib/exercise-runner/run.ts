@@ -1,4 +1,5 @@
 import { type Assert, AssertionError, assert } from './assert'
+import type { LogEntry } from './capture'
 import type { RunResult, TestCase, TestOutcome } from './types'
 
 /** Identifiers a check may not shadow, because they are the check's own scope. */
@@ -35,12 +36,14 @@ const describeError = (error: unknown): string => {
 export const runTests = (
   exports: Record<string, unknown>,
   tests: TestCase[],
-  assertImpl: Assert = assert,
+  options: { assertImpl?: Assert; onCheckStart?: (index: number) => void; logs?: LogEntry[] } = {},
 ): RunResult => {
+  const { assertImpl = assert, onCheckStart, logs = [] } = options
   const names = injectableNames(exports)
   const values = names.map(name => exports[name])
 
-  const outcomes: TestOutcome[] = tests.map(test => {
+  const outcomes: TestOutcome[] = tests.map((test, index) => {
+    onCheckStart?.(index)
     try {
       // eslint-disable-next-line no-new-func -- the check body is authored content, not user input
       const fn = new Function('assert', ...names, `"use strict";\n${test.testFunction}`)
@@ -53,6 +56,7 @@ export const runTests = (
 
   return {
     outcomes,
+    logs,
     passed: outcomes.filter(outcome => outcome.passed).length,
     total: outcomes.length,
     loadError: null,
@@ -60,13 +64,14 @@ export const runTests = (
 }
 
 /** Result shape for code that could not be loaded at all. */
-export const loadFailure = (tests: TestCase[], error: unknown): RunResult => ({
+export const loadFailure = (tests: TestCase[], error: unknown, logs: LogEntry[] = []): RunResult => ({
   outcomes: tests.map(test => ({
     name: test.name,
     description: test.description,
     passed: false,
     message: 'Not run: the code did not load.',
   })),
+  logs,
   passed: 0,
   total: tests.length,
   loadError: describeError(error),

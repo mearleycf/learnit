@@ -265,3 +265,54 @@ test('an import with no matching file fails without crashing', async ({ page }) 
   await expect(page.locator('[data-role="summary"]')).toContainText('missing')
   await expect(page.getByRole('button', { name: 'Run checks' })).toBeEnabled()
 })
+
+test('console output is captured and attributed to its check', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page
+    .locator('[data-role="editor"]')
+    .fill(
+      [
+        "console.log('loading now')",
+        "const courseName = 'JavaScript Fundamentals'",
+        'let lessonsCompleted = 0',
+        'const isEnrolled = true',
+        'export function describeProgress(enrolled = isEnrolled) {',
+        "  console.warn('called')",
+        "  const label = enrolled ? 'enrolled' : 'not enrolled'",
+        "  return courseName + ': ' + lessonsCompleted + ' lessons done (' + label + ')'",
+        '}',
+        'export { courseName, lessonsCompleted, isEnrolled }',
+      ].join('\n'),
+    )
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  const output = page.locator('[data-role="console"]')
+  await expect(output).toContainText('[load] loading now')
+  await expect(output).toContainText('[check 4] called')
+})
+
+test('the console pane stays hidden when nothing is printed', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.getByRole('button', { name: 'Run checks' }).click()
+  await expect(page.locator('[data-role="summary"]')).toContainText('checks passing')
+  await expect(page.locator('[data-role="console-pane"]')).toBeHidden()
+})
+
+test('dev tooling chatter never reaches the console pane', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill("console.log('mine')\nexport const courseName = 'x'")
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  const output = page.locator('[data-role="console"]')
+  await expect(output).toContainText('mine')
+  await expect(output).not.toContainText('[vite]')
+})

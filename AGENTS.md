@@ -53,7 +53,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/seed_config/seed/content/` | Long-form lesson copy |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
-| `src/lib/exercise-runner/` | Runs student code in a Worker. `run.ts` and `link.ts` are pure and unit tested |
+| `src/lib/exercise-runner/` | Runs student code in a Worker. `run.ts`, `link.ts` and `capture.ts` are pure and unit tested |
 | `src/components/` | Astro components |
 | `src/pages/` | Routes |
 
@@ -89,6 +89,9 @@ of that code is the person running it.
 An exercise may span several files. `link.ts` orders them dependency-first and rewrites
 relative specifiers to blob URLs, so student files can import each other. `code_files.defaultView`
 names the entry: the file the checks import from and the tab the workspace opens on.
+Console output is captured during a run and attributed to the check that produced it. Vite's
+dev client logs inside the Worker, so `isToolingNoise` filters anything prefixed `[vite]`.
+
 `browser_html` is seeded but not yet rendered; a preview needs an iframe, which is a separate
 execution surface from the Worker.
 

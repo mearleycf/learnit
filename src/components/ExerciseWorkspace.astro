@@ -82,6 +82,13 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
     <p class="text-sm" data-role="summary"></p>
   </div>
 
+  <div class="mt-4 hidden" data-role="console-pane">
+    <p class="text-(--color-faint) text-xs font-medium">Console</p>
+    <pre
+      class="bg-night-raised text-parchment mt-1 max-h-48 overflow-auto rounded-lg p-3 font-mono text-xs leading-relaxed"
+      data-role="console"></pre>
+  </div>
+
   <ul class="mt-4 space-y-2" data-role="results"></ul>
 
   {
@@ -115,6 +122,8 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
     const results = workspace.querySelector<HTMLUListElement>('[data-role="results"]')!
     const summary = workspace.querySelector<HTMLElement>('[data-role="summary"]')!
     const attemptsLabel = workspace.querySelector<HTMLElement>('[data-role="attempts"]')!
+    const consolePane = workspace.querySelector<HTMLElement>('[data-role="console-pane"]')!
+    const consoleOut = workspace.querySelector<HTMLPreElement>('[data-role="console"]')!
     const tabs = [...workspace.querySelectorAll<HTMLButtonElement>('[data-role="tab"]')]
 
     const exerciseId = workspace.dataset.exerciseId!
@@ -187,6 +196,8 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
       summary.textContent = 'Running…'
       summary.className = 'text-(--color-muted) text-sm'
       results.replaceChildren()
+      consolePane.classList.add('hidden')
+      consoleOut.replaceChildren()
 
       const files = starters.map(file => ({ filename: file.filename, content: draft.get(file.filename) ?? '' }))
       const result = await runExercise(files, entry, tests)
@@ -209,6 +220,24 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
           return li
         }),
       )
+
+      if (result.logs.length > 0) {
+        const levelColour: Record<string, string> = {
+          warn: 'text-peach',
+          error: 'text-rose',
+          debug: 'text-(--color-faint)',
+        }
+        consoleOut.replaceChildren(
+          ...result.logs.map(entry => {
+            const line = document.createElement('div')
+            line.className = levelColour[entry.level] ?? ''
+            const where = entry.checkIndex === null ? 'load' : `check ${entry.checkIndex + 1}`
+            line.textContent = `[${where}] ${entry.text}`
+            return line
+          }),
+        )
+        consolePane.classList.remove('hidden')
+      }
 
       const allPassed = result.total > 0 && result.passed === result.total
       summary.textContent = result.loadError ? result.loadError : `${result.passed} of ${result.total} checks passing`
