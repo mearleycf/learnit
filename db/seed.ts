@@ -188,6 +188,7 @@ export const seedDb = async (): Promise<void> => {
   let sectionCount = 0
   let exerciseCount = 0
   let authoredCount = 0
+  let writtenExercises = 0
 
   /** `${courseSlug}:${chapterNumber}:${sectionNumber}` -> section id. */
   const sectionIndex = new Map<string, string>()
@@ -262,6 +263,11 @@ export const seedDb = async (): Promise<void> => {
         if (!exercise) continue
 
         exerciseCount += 1
+        // A placeholder carries instructions but no starter file and no checks.
+        const checks = (exercise.tests as { tests?: unknown[] } | undefined)?.tests ?? []
+        const starters = (exercise.code_files as { files?: unknown[] } | undefined)?.files ?? []
+        if (checks.length > 0 && starters.length > 0) writtenExercises += 1
+
         const exerciseKey = `${sectionKey}:exercise:${exercise.exercise_display_number}`
         exerciseBySection.set(sectionId, seedUlid(exerciseKey))
 
@@ -291,6 +297,7 @@ export const seedDb = async (): Promise<void> => {
       `${sectionCount} sections, ${exerciseCount} exercises.`,
   )
   console.info(`${authoredCount} of ${sectionCount} sections have authored content; the rest are NULL.`)
+  console.info(`${writtenExercises} of ${exerciseCount} exercises have a starter and checks.`)
 }
 
 // Run directly via `yarn db:seed`, but stay importable from tests.

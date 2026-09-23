@@ -84,6 +84,16 @@ const defaultView = (exercise?.code_files as { defaultView?: string } | null)?.d
 const entryFile = workspaceFiles.find(file => file.filename === defaultView) ?? workspaceFiles[0]
 
 /**
+ * Whether this exercise has actually been written.
+ *
+ * A placeholder row carries instructions but no starter file and no checks.
+ * Rendering those instructions on their own sends the student looking for an
+ * editor that is not there, so the gap is stated instead.
+ */
+const exerciseIsWritten =
+  Boolean(entryFile) && ((exercise?.tests as { tests?: unknown[] } | null)?.tests?.length ?? 0) > 0
+
+/**
  * Markup for the live preview.
  *
  * `browser_html.defaultView` names the file to render; otherwise the first
@@ -141,7 +151,15 @@ const savedSolution = attempt?.solution ?? null
     }
 
     {
-      exercise && (
+      exercise && !exerciseIsWritten && (
+        <p class="mt-8 rounded-lg border border-dashed border-(--color-edge) p-8 text-center text-(--color-muted)">
+          This exercise has not been written yet.
+        </p>
+      )
+    }
+
+    {
+      exercise && exerciseIsWritten && (
         <section class="mt-8 space-y-6">
           <div class="border-peach/50 bg-peach/10 rounded-lg border p-5">
             <h2 class="font-semibold">Instructions</h2>

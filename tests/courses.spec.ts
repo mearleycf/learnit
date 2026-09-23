@@ -650,3 +650,29 @@ test('the code editor is named after the file it shows', async ({ page }) => {
   await page.getByRole('button', { name: /data\.js/ }).click()
   await expect(editor).toHaveAttribute('aria-label', /data\.js, read only/)
 })
+
+test('an unwritten exercise says so instead of showing instructions alone', async ({ page }) => {
+  await page.goto('/courses/python-fundamentals/1/2')
+  await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Run checks' })).toHaveCount(0)
+  // The misleading instructions block is gone with it.
+  await expect(page.getByRole('heading', { name: 'Instructions' })).toHaveCount(0)
+})
+
+test('a written exercise is unaffected', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/3')
+  await expect(page.getByRole('heading', { name: 'Instructions' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
+  await expect(page.getByText('This exercise has not been written yet.')).toHaveCount(0)
+})
+
+test('Advanced React chapters 1 and 3 are authored', async ({ page }) => {
+  await page.goto('/courses/advanced-react/1/1')
+  await expect(page.getByRole('heading', { name: 'What a component is for' })).toBeVisible()
+
+  await page.goto('/courses/advanced-react/3/1')
+  await expect(page.getByRole('heading', { name: 'Why a component re-renders' })).toBeVisible()
+
+  await page.goto('/courses/advanced-react/3/2')
+  await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
+})
