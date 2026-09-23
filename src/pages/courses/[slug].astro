@@ -13,15 +13,15 @@ const outline = await getCourseOutline(course.id)
 const sectionCount = outline.reduce((total, chapter) => total + chapter.sections.length, 0)
 
 const badge: Record<string, string> = {
-  lesson: 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200',
-  exercise: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200',
-  recap: 'bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200',
+  lesson: 'bg-sky/20 text-blue dark:text-sky',
+  exercise: 'bg-peach/25 text-[#8a4a22] dark:text-peach',
+  recap: 'bg-magenta/20 text-magenta dark:text-magenta-bright',
 }
 ---
 
 <Layout title={course.title}>
   <main class="mx-auto max-w-3xl px-4 py-12">
-    <a href="/" class="text-sm text-(--color-muted) hover:underline">&larr; All courses</a>
+    <a href="/" class="text-sm text-(--color-link) hover:underline">&larr; All courses</a>
 
     <h1 class="font-display mt-4 text-4xl tracking-tight">{course.title}</h1>
     <p class="mt-2 text-(--color-muted)">{course.description}</p>

@@ -2,39 +2,71 @@
 @plugin "@tailwindcss/forms";
 
 /*
- * Tailwind 4 is configured in CSS rather than tailwind.config.mjs.
- * Design tokens belong in this @theme block.
+ * pastel-powerline palette.
+ *
+ * Source: the Starship prompt preset and the hand-derived Ghostty theme, so
+ * the app reads as part of the same system as the terminal.
+ * Reference: 05_Reference/01_CLI tools/pastel-powerline theme.md
  */
 @theme {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Lilita One", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Mononoki", ui-monospace, monospace;
+
+  /* Core prompt hues */
+  --color-magenta: #9a348e;
+  --color-rose: #da627d;
+  --color-peach: #fca17d;
+  --color-sky: #86bbd8;
+  --color-teal: #06969a;
+  --color-blue: #33658a;
+
+  /* Ghostty base */
+  --color-night: #232030;
+  --color-night-raised: #2a2739;
+  --color-night-edge: #524f66;
+  --color-parchment: #ede6f2;
+  --color-parchment-bright: #f3eef8;
+  --color-parchment-dim: #d8d0e0;
+
+  /* Bright variants */
+  --color-rose-bright: #e8899b;
+  --color-magenta-bright: #c05eb3;
+  --color-teal-bright: #3fb9bc;
+  --color-green-bright: #9fcbb8;
+  --color-green: #7fb6a1;
+  --color-peach-bright: #fdb89f;
 }
 
 /*
  * Semantic surface tokens.
  *
- * The page must declare its own background and foreground. Without these the
- * body is transparent with black text, which renders black on black once the
- * browser reports a dark colour scheme.
+ * Dark is the palette verbatim. Light keeps the same hues but swaps in the
+ * variants that clear WCAG AA on a pale ground: peach and sky fail badly as
+ * light-mode text (1.75:1 and 1.82:1), so magenta and blue carry accent duty
+ * there instead.
  */
 :root {
-  --color-page: var(--color-white);
-  --color-ink: var(--color-gray-900);
-  --color-muted: var(--color-gray-600);
-  --color-faint: var(--color-gray-400);
-  --color-edge: var(--color-gray-200);
-  --color-raised: var(--color-gray-50);
+  --color-page: var(--color-parchment-bright);
+  --color-ink: var(--color-night);
+  --color-muted: var(--color-night-edge);
+  --color-faint: #6c6880;
+  --color-edge: #ddd4e6;
+  --color-raised: #e9e2f0;
+  --color-accent: var(--color-magenta);
+  --color-link: var(--color-blue);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-page: var(--color-gray-950);
-    --color-ink: var(--color-gray-100);
-    --color-muted: var(--color-gray-400);
-    --color-faint: var(--color-gray-500);
-    --color-edge: var(--color-gray-800);
-    --color-raised: var(--color-gray-900);
+    --color-page: var(--color-night);
+    --color-ink: var(--color-parchment);
+    --color-muted: #b9b0c9;
+    --color-faint: #8d85a1;
+    --color-edge: var(--color-night-raised);
+    --color-raised: #2d2a3d;
+    --color-accent: var(--color-peach);
+    --color-link: var(--color-sky);
   }
 }
 
@@ -45,4 +77,9 @@ html {
 body {
   background-color: var(--color-page);
   color: var(--color-ink);
+}
+
+::selection {
+  background-color: var(--color-blue);
+  color: var(--color-parchment-bright);
 }
