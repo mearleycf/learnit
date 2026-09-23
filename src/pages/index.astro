@@ -1,45 +1,112 @@
 ---
 import Layout from '@layouts/Layout.astro'
-import { listCourses } from '@utils/courses'
+import { courseSummaries, openFeedbackCount } from '@utils/dashboard'
+import { listAllNotes } from '@utils/notes'
+import { getCurrentUser } from '@utils/progress'
 
-const courses = await listCourses()
+const user = await getCurrentUser()
+const [summaries, openFeedback, notes] = await Promise.all([
+  courseSummaries(user?.id ?? null),
+  openFeedbackCount(),
+  user ? listAllNotes(user.id) : [],
+])
+
+const started = summaries.filter(course => course.completedSections > 0)
+/** The course to nudge towards: furthest along without being finished. */
+const next =
+  started.find(course => course.percent < 100 && course.resume) ?? summaries.find(course => course.resume) ?? null
+
+const recentNotes = notes.slice(0, 3)
 
 const formatPrice = (price: number | null) => (price == null || price === 0 ? 'Free' : `$${price.toFixed(2)}`)
+const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 ---
 
-<Layout title="Courses">
+<Layout title="learnit">
   <main class="mx-auto max-w-3xl px-4 py-12">
     <div class="flex items-baseline justify-between gap-4">
-      <h1 class="font-display text-4xl tracking-tight">Courses</h1>
+      <h1 class="font-display text-4xl tracking-tight">learnit</h1>
       <div class="flex gap-4 text-sm">
         <a href="/notes" class="text-(--color-link) hover:underline">Notes</a>
-        <a href="/feedback" class="text-(--color-link) hover:underline">Feedback</a>
+        <a href="/feedback" class="text-(--color-link) hover:underline">
+          Feedback{openFeedback > 0 && <span class="text-peach"> ({openFeedback})</span>}
+        </a>
       </div>
     </div>
-    <p class="mt-2 text-(--color-muted)">{courses.length} available</p>
 
-    <ul class="mt-8 space-y-4">
+    {
+      next?.resume && (
+        <a
+          href={`/courses/${next.slug}/${next.resume.chapter}/${next.resume.section}`}
+          class="border-teal/40 hover:bg-teal/5 mt-8 block rounded-lg border p-5 transition"
+          data-role="pick-up"
+        >
+          <p class="text-(--color-faint) text-xs uppercase tracking-wide">Pick up where you left off</p>
+          <p class="mt-1 text-lg font-semibold">{next.resume.title}</p>
+          <p class="text-(--color-muted) mt-1 text-sm">
+            {next.title} &middot; {next.completedSections} of {next.totalSections} sections done
+          </p>
+        </a>
+      )
+    }
+
+    <h2 class="mt-10 text-lg font-semibold">Courses</h2>
+    <ul class="mt-4 space-y-4">
       {
-        courses.map(course => (
+        summaries.map(course => (
           <li class="rounded-lg border border-(--color-edge) p-5 transition hover:border-(--color-faint)">
             <a href={`/courses/${course.slug}`} class="block">
               <div class="flex items-baseline justify-between gap-4">
-                <h2 class="text-xl font-semibold">{course.title}</h2>
-                <span class="shrink-0 text-sm text-(--color-muted)">{formatPrice(course.price)}</span>
+                <h3 class="text-lg font-semibold">{course.title}</h3>
+                <span class="text-(--color-muted) shrink-0 text-sm">{formatPrice(course.price)}</span>
               </div>
-              <p class="mt-1 text-(--color-muted)">{course.description}</p>
-              <div class="mt-3 flex flex-wrap gap-2">
-                <span class="rounded bg-(--color-raised) px-2 py-0.5 text-xs uppercase tracking-wide text-(--color-muted)">
-                  {course.level}
-                </span>
-                {course.tags?.map(tag => (
-                  <span class="rounded bg-(--color-raised) px-2 py-0.5 text-xs text-(--color-muted)">{tag}</span>
-                ))}
+              <p class="text-(--color-muted) mt-1 text-sm">{course.description}</p>
+
+              <div class="mt-3 flex items-center gap-3">
+                <div class="bg-(--color-raised) h-1.5 flex-1 overflow-hidden rounded-full">
+                  <div class="bg-teal h-full rounded-full" style={`width: ${course.percent}%`} />
+                </div>
+                <span class="text-(--color-faint) shrink-0 text-xs">{course.percent}%</span>
               </div>
+
+              <p class="text-(--color-faint) mt-2 text-xs">
+                {course.authoredSections} of {course.totalSections} sections written
+                {course.authoredSections === 0 && <span class="italic"> &middot; nothing to read yet</span>}
+              </p>
             </a>
           </li>
         ))
       }
     </ul>
+
+    {
+      recentNotes.length > 0 && (
+        <>
+          <div class="mt-10 flex items-baseline justify-between">
+            <h2 class="text-lg font-semibold">Recent notes</h2>
+            <a href="/notes" class="text-(--color-link) text-sm hover:underline">
+              All {notes.length}
+            </a>
+          </div>
+          <ul class="mt-4 space-y-3">
+            {recentNotes.map(note => (
+              <li class="rounded-lg border border-(--color-edge) p-4">
+                <p class="text-sm leading-relaxed">{note.markdown}</p>
+                <p class="text-(--color-faint) mt-2 text-xs">
+                  <a
+                    href={`/courses/${note.course.slug}/${note.chapterDisplay}/${note.section.display}`}
+                    class="text-(--color-link) hover:underline"
+                  >
+                    {note.section.title}
+                  </a>
+                  {' · '}
+                  {formatDate(note.created_at)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </>
+      )
+    }
   </main>
 </Layout>

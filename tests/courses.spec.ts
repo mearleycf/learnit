@@ -15,11 +15,11 @@ const openExercise = async (page: Page, path: string) => {
   await page.waitForTimeout(1200)
 }
 
-test('the courses list links through to a course', async ({ page }) => {
+test('the dashboard links through to a course', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Courses')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('learnit')
 
-  await page.getByRole('link', { name: /JavaScript Fundamentals/ }).click()
+  await page.getByRole('heading', { name: 'JavaScript Fundamentals' }).click()
   await expect(page).toHaveURL(/\/courses\/javascript-fundamentals$/)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('JavaScript Fundamentals')
 })
@@ -470,6 +470,8 @@ test('a note can be edited in place', async ({ page }) => {
 
   await page.goto('/notes')
   const note = page.locator('[data-role="note"]').first()
+  const original = (await note.locator('[data-role="note-text"]').textContent()) ?? ''
+
   await note.getByRole('button', { name: 'Edit' }).click()
   await note.locator('textarea').fill(edited)
   await note.getByRole('button', { name: 'Save' }).click()
@@ -479,6 +481,13 @@ test('a note can be edited in place', async ({ page }) => {
   // Survives a reload, so it reached the database.
   await page.reload()
   await expect(page.locator('[data-role="note-text"]').first()).toHaveText(edited)
+
+  // Put the seeded text back; later tests assert on it.
+  const restored = page.locator('[data-role="note"]').first()
+  await restored.getByRole('button', { name: 'Edit' }).click()
+  await restored.locator('textarea').fill(original)
+  await restored.getByRole('button', { name: 'Save' }).click()
+  await expect(page.locator('[data-role="note-text"]').first()).toHaveText(original)
 })
 
 test('cancelling an edit leaves the note alone', async ({ page }) => {
@@ -496,4 +505,27 @@ test('cancelling an edit leaves the note alone', async ({ page }) => {
 test('notes can be filtered to one course', async ({ page }) => {
   await page.goto('/notes?course=python-fundamentals')
   await expect(page.getByText('No notes on that course.')).toBeVisible()
+})
+
+test('the dashboard offers somewhere to pick up', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('learnit')
+
+  const pickUp = page.locator('[data-role="pick-up"]')
+  await expect(pickUp).toBeVisible()
+  await pickUp.click()
+  await expect(page).toHaveURL(/\/courses\/javascript-fundamentals\/\d+\/\d+$/)
+})
+
+test('the dashboard shows progress and how much is written', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText('9 of 12 sections written')).toBeVisible()
+  await expect(page.getByText('nothing to read yet').first()).toBeVisible()
+})
+
+test('the dashboard links to notes and open feedback', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Recent notes' })).toBeVisible()
+  await page.getByRole('link', { name: /^Feedback/ }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Feedback')
 })
