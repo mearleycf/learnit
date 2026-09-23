@@ -45,12 +45,6 @@ test('a recap section renders its key points', async ({ page }) => {
   await expect(page.locator('li')).not.toHaveCount(0)
 })
 
-test('a section with no authored content shows an empty state', async ({ page }) => {
-  // Advanced React is authored now too; Python Fundamentals is still structural.
-  await page.goto('/courses/python-fundamentals/1/1')
-  await expect(page.getByText('This section has no content yet.')).toBeVisible()
-})
-
 test('previous and next move between sections', async ({ page }) => {
   await page.goto('/courses/javascript-fundamentals/1/2')
   await page.getByRole('link', { name: /Introduction to JavaScript/ }).click()
@@ -520,7 +514,8 @@ test('the dashboard offers somewhere to pick up', async ({ page }) => {
 test('the dashboard shows progress and how much is written', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByText('12 of 12 sections written')).toBeVisible()
-  await expect(page.getByText('nothing to read yet').first()).toBeVisible()
+  // Every course has content now, so nothing reports as entirely unwritten.
+  await expect(page.getByText('nothing to read yet')).toHaveCount(0)
 })
 
 test('the dashboard links to notes and open feedback', async ({ page }) => {
@@ -675,4 +670,22 @@ test('Advanced React chapters 1 and 3 are authored', async ({ page }) => {
 
   await page.goto('/courses/advanced-react/3/2')
   await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
+})
+
+test('Python lessons and recaps are authored', async ({ page }) => {
+  await page.goto('/courses/python-fundamentals/1/1')
+  await expect(page.getByRole('heading', { name: 'What is actually different' })).toBeVisible()
+
+  await page.goto('/courses/python-fundamentals/2/1')
+  await expect(page.getByRole('heading', { name: 'Comprehensions replace map and filter' })).toBeVisible()
+
+  await page.goto('/courses/python-fundamentals/3/6')
+  await expect(page.getByRole('heading', { name: 'Key points' })).toBeVisible()
+})
+
+test('Python exercises remain unwritten and say so', async ({ page }) => {
+  for (const path of ['/courses/python-fundamentals/1/2', '/courses/python-fundamentals/2/2']) {
+    await page.goto(path)
+    await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
+  }
 })
