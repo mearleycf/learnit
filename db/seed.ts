@@ -14,6 +14,7 @@ import {
 } from './schema'
 import { courseData } from './seed_config/seed/courses/index'
 import { seedDate, seedUlid } from './seed_config/seed/deterministic'
+import { localProgress, localUser } from './seed_config/seed/local-user'
 import type { ExerciseDifficulty } from './seed_config/types/seed-types'
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']
@@ -57,6 +58,72 @@ const dates = (key: string, daysBefore: number, daysAfter: number) => {
   return { created_at, updated_at: updated > created_at ? updated : created_at }
 }
 
+type SeedIndexes = {
+  sectionIndex: Map<string, string>
+  exerciseBySection: Map<string, string>
+  courseIdBySlug: Map<string, string>
+}
+
+/**
+ * Seeds the single local user and their progress.
+ *
+ * learnit runs locally for one person, so there is no auth. This user stands
+ * in for the signed-in student. Progress is authored as chapter and section
+ * numbers and resolved to IDs here.
+ */
+const seedLocalUser = async ({ sectionIndex, exerciseBySection, courseIdBySlug }: SeedIndexes): Promise<void> => {
+  const userId = seedUlid('user:local')
+
+  await db.insert(users).values({
+    id: userId,
+    ...localUser,
+    enrolled_courses: Object.keys(localProgress)
+      .map(slug => courseIdBySlug.get(slug))
+      .filter((id): id is string => id !== undefined),
+    last_sign_in: seedDate('user:local:signin', -3, 0),
+    ...dates('user:local', -400, -380),
+  })
+
+  for (const [slug, progress] of Object.entries(localProgress)) {
+    const courseId = courseIdBySlug.get(slug)
+    if (!courseId) throw new Error(`Progress references unknown course: ${slug}`)
+
+    const resolve = (chapter: number, section: number) => {
+      const id = sectionIndex.get(`${slug}:${chapter}:${section}`)
+      if (!id) throw new Error(`Progress references missing section ${slug} ${chapter}.${section}`)
+      return id
+    }
+
+    await db.insert(student_progress).values({
+      id: seedUlid(`progress:${slug}`),
+      student_id: userId,
+      course_id: courseId,
+      current_section_id: resolve(progress.current.chapter, progress.current.section),
+      completed_sections: progress.completed.map(position => resolve(position.chapter, position.section)),
+      enrollment_date: seedDate(`progress:${slug}:enrolled`, -120, -90),
+      last_accessed_at: seedDate(`progress:${slug}:accessed`, -7, 0),
+      ...dates(`progress:${slug}`, -120, -90),
+    })
+
+    for (const attempt of progress.exercises) {
+      const sectionId = resolve(attempt.chapter, attempt.section)
+      const exerciseId = exerciseBySection.get(sectionId)
+      if (!exerciseId) throw new Error(`No exercise on ${slug} ${attempt.chapter}.${attempt.section}`)
+
+      await db.insert(student_exercise_progress).values({
+        id: seedUlid(`exercise-progress:${slug}:${attempt.chapter}:${attempt.section}`),
+        student_id: userId,
+        exercise_id: exerciseId,
+        score: attempt.score,
+        completed: attempt.completed,
+        attempts: attempt.attempts,
+        last_attempt_at: seedDate(`exercise-progress:${slug}:${attempt.chapter}:${attempt.section}`, -14, -1),
+        ...dates(`exercise-progress:${slug}:${attempt.chapter}:${attempt.section}`, -30, -14),
+      })
+    }
+  }
+}
+
 /**
  * Wipes every table and reinserts the authored course data.
  *
@@ -81,9 +148,16 @@ export const seedDb = async (): Promise<void> => {
   let exerciseCount = 0
   let authoredCount = 0
 
+  /** `${courseSlug}:${chapterNumber}:${sectionNumber}` -> section id. */
+  const sectionIndex = new Map<string, string>()
+  /** section id -> exercise id, for the progress rows below. */
+  const exerciseBySection = new Map<string, string>()
+  const courseIdBySlug = new Map<string, string>()
+
   for (const course of courseData.courses) {
     const courseKey = `course:${course.slug}`
     const courseId = seedUlid(courseKey)
+    courseIdBySlug.set(course.slug, courseId)
 
     await db.insert(courses).values({
       id: courseId,
@@ -127,6 +201,7 @@ export const seedDb = async (): Promise<void> => {
         const sectionId = seedUlid(sectionKey)
         const content = resolveContent(section.content, `${section.title} (${sectionKey})`)
         if (content !== null) authoredCount += 1
+        sectionIndex.set(`${course.slug}:${chapterSort}:${sectionSort}`, sectionId)
 
         await db.insert(sections).values({
           id: sectionId,
@@ -147,6 +222,7 @@ export const seedDb = async (): Promise<void> => {
 
         exerciseCount += 1
         const exerciseKey = `${sectionKey}:exercise:${exercise.exercise_display_number}`
+        exerciseBySection.set(sectionId, seedUlid(exerciseKey))
 
         await db.insert(exercises).values({
           id: seedUlid(exerciseKey),
@@ -167,6 +243,8 @@ export const seedDb = async (): Promise<void> => {
       }
     }
   }
+
+  await seedLocalUser({ sectionIndex, exerciseBySection, courseIdBySlug })
 
   console.info(
     `Seeded ${courseData.courses.length} courses, ${chapterCount} chapters, ` +

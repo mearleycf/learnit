@@ -1,4 +1,6 @@
 ---
+import { actions } from 'astro:actions'
+
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 
 import Layout from '@layouts/Layout.astro'
@@ -11,6 +13,7 @@ import {
   parseSectionContent,
   sectionHref,
 } from '@utils/courses'
+import { completedSet, getCurrentUser, getProgress } from '@utils/progress'
 
 const { slug, chapter: chapterParam, section: sectionParam } = Astro.params
 const chapterNumber = Number(chapterParam)
@@ -24,6 +27,12 @@ const section =
 if (!course || !section) {
   return Astro.rewrite('/404')
 }
+
+const result = Astro.getActionResult(actions.toggleSectionComplete)
+
+const user = await getCurrentUser()
+const progress = user ? await getProgress(user.id, course.id) : null
+const isComplete = result?.data ? result.data.complete : completedSet(progress).has(section.id)
 
 const outline = await getCourseOutline(course.id)
 const ordered = flattenSections(outline)
@@ -134,6 +143,26 @@ const checks = (exercise?.tests as { tests?: Check[] } | null)?.tests ?? []
         <p class="mt-8 rounded-lg border border-dashed border-(--color-edge) p-8 text-center text-(--color-muted)">
           This section has no content yet.
         </p>
+      )
+    }
+
+    {
+      progress && (
+        <form method="POST" action={actions.toggleSectionComplete} class="mt-10">
+          <input type="hidden" name="courseId" value={course.id} />
+          <input type="hidden" name="sectionId" value={section.id} />
+          <input type="hidden" name="complete" value={isComplete ? 'false' : 'true'} />
+          <button
+            type="submit"
+            class={`rounded-lg border px-4 py-2 text-sm transition ${
+              isComplete
+                ? 'border-teal text-teal hover:bg-teal/10'
+                : 'border-(--color-edge) hover:bg-(--color-raised)'
+            }`}
+          >
+            {isComplete ? '\u2713 Completed — mark as unread' : 'Mark complete'}
+          </button>
+        </form>
       )
     }
 

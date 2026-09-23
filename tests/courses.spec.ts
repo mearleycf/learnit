@@ -45,3 +45,28 @@ test('an unknown course returns the not-found page', async ({ page }) => {
   expect(response?.status()).toBe(404)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Not found')
 })
+
+test('the outline shows seeded progress', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals')
+  await expect(page.getByText(/of 12 sections complete/)).toBeVisible()
+  await expect(page.getByRole('link', { name: /^Resume:/ })).toBeVisible()
+})
+
+test('marking a section complete persists and updates the outline', async ({ page }) => {
+  // Section 1.3 is not complete in the seed.
+  await page.goto('/courses/javascript-fundamentals/1/3')
+  const before = page.getByRole('button', { name: 'Mark complete' })
+  await expect(before).toBeVisible()
+  await before.click()
+
+  const after = page.getByRole('button', { name: /Completed/ })
+  await expect(after).toBeVisible()
+
+  await page.goto('/courses/javascript-fundamentals')
+  await expect(page.getByText('3 of 12 sections complete')).toBeVisible()
+
+  // Put it back so the suite can run repeatedly.
+  await page.goto('/courses/javascript-fundamentals/1/3')
+  await page.getByRole('button', { name: /Completed/ }).click()
+  await expect(page.getByRole('button', { name: 'Mark complete' })).toBeVisible()
+})
