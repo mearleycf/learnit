@@ -90,17 +90,6 @@ export const variablesExercise: ExerciseConfig = {
    \`JavaScript Fundamentals: 0 lessons done (enrolled)\`
 
    When \`isEnrolled\` is \`false\`, the parenthesised word should be \`not enrolled\` instead.`,
-  browser_html: {
-    files: [
-      {
-        filename: 'index.html',
-        content:
-          '<main id="app">\n  <h1>Variables and Data Types</h1>\n  <p id="output">Run your code to see the result.</p>\n</main>',
-        isHidden: false,
-      },
-    ],
-    defaultView: 'index.html',
-  },
   code_files: {
     files: [
       {

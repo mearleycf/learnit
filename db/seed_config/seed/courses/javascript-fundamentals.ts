@@ -1,4 +1,5 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import { arraysLesson, arraysRecap, lessonListExercise } from '../content/js-arrays'
 import { introToJavascriptLesson, jsBasicsRecap, variablesExercise } from '../content/js-basics'
 import { functionsLesson, functionsRecap, progressExercise } from '../content/js-functions'
 import { courseDateOptions } from '../date-options'
@@ -112,9 +113,9 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 3, section 1
           seedSequence: 7,
           title: 'Introduction to Arrays',
-          description: 'Learn the basics of arrays in JavaScript',
+          description: 'Ordered lists, and the three methods you will use constantly',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: arraysLesson },
           section_display_number: 1,
           access_level: 'purchased',
         } as SectionConfig,
@@ -132,17 +133,12 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 3, section 3
           seedSequence: 9,
           title: 'Basic Array Manipulation',
-          description: 'Practice basic array manipulation',
+          description: 'Render a course outline into the page',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 3,
           access_level: 'purchased',
-          exercise: createExerciseData(
-            1,
-            1,
-            'Create an array of numbers and implement functions to find the largest number, calculate the average, and filter out negative numbers.',
-            'course 1, chapter 3, section 3 exercise 1 of 3',
-          ) as ExerciseConfig,
+          exercise: lessonListExercise,
         } as SectionConfig,
         {
           // course 1, chapter 3, section 4
@@ -180,9 +176,9 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 3, section 6
           seedSequence: 12,
           title: 'Array Recap',
-          description: 'Review array concepts in JavaScript',
+          description: 'What to take away from arrays',
           content_type: 'recap',
-          content: {},
+          content: { content_type: 'recap', recap: arraysRecap },
           section_display_number: 6,
           access_level: 'purchased',
         } as SectionConfig,

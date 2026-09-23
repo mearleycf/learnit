@@ -30,7 +30,8 @@ export type ExerciseDifficulty = 'easy' | 'medium' | 'hard'
 export type ExerciseConfig = BaseEntityConfig & {
   exercise_display_number: number
   instructions: string
-  browser_html: unknown
+  /** Markup for the live preview. Omitted by exercises that are pure logic. */
+  browser_html?: unknown
   code_files: unknown
   tests: unknown
   hints: unknown

@@ -120,16 +120,6 @@ In **progress.js**:
 3. Export \`isFinished(completed, total)\`, true only when \`total\` is above zero and everything is done.
 4. Guard against \`total\` being zero: \`summarise(0, 0)\` must return \`Nothing to do yet\` rather than
    dividing by zero.`,
-  browser_html: {
-    files: [
-      {
-        filename: 'index.html',
-        content: '<main id="app">\n  <h1>Course progress</h1>\n  <p id="output"></p>\n</main>',
-        isHidden: false,
-      },
-    ],
-    defaultView: 'index.html',
-  },
   code_files: {
     files: [
       {

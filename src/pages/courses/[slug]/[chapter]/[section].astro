@@ -79,6 +79,17 @@ const workspaceFiles = rawFiles.map(file => ({
  */
 const defaultView = (exercise?.code_files as { defaultView?: string } | null)?.defaultView
 const entryFile = workspaceFiles.find(file => file.filename === defaultView) ?? workspaceFiles[0]
+
+/**
+ * Markup for the live preview.
+ *
+ * `browser_html.defaultView` names the file to render; otherwise the first
+ * visible one. An exercise with no markup gets no preview pane.
+ */
+type HtmlFile = { filename: string; content: string; isHidden?: boolean }
+const html = exercise?.browser_html as { files?: HtmlFile[]; defaultView?: string } | null
+const htmlFiles = (html?.files ?? []).filter(file => !file.isHidden)
+const previewHtml = (htmlFiles.find(file => file.filename === html?.defaultView) ?? htmlFiles[0])?.content ?? null
 type Hint = { order: number; content: unknown }
 const hints = (exercise?.hints as { hints?: Hint[] } | null)?.hints ?? []
 type Check = { name: string; description: string; testFunction: string; timeout?: number }
@@ -141,6 +152,7 @@ const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.i
               tests={checks}
               solution={worked?.content ? String(worked.content) : null}
               solutionExplanation={worked?.explanation ? String(worked.explanation) : null}
+              previewHtml={previewHtml}
             />
           )}
           {attempt && (

@@ -31,7 +31,8 @@ test('a recap section renders its key points', async ({ page }) => {
 })
 
 test('a section with no authored content shows an empty state', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/3/6')
+  // 3/2 is a lesson with no authored content and no exercise.
+  await page.goto('/courses/javascript-fundamentals/3/2')
   await expect(page.getByText('This section has no content yet.')).toBeVisible()
 })
 
@@ -315,4 +316,87 @@ test('dev tooling chatter never reaches the console pane', async ({ page }) => {
   const output = page.locator('[data-role="console"]')
   await expect(output).toContainText('mine')
   await expect(output).not.toContainText('[vite]')
+})
+
+const ARRAY_SOLUTION = [
+  "import { lessons } from './data.js'",
+  'export function totalMinutes(items) {',
+  '  return items.reduce((sum, l) => sum + l.minutes, 0)',
+  '}',
+  'export function remaining(items) {',
+  '  return items.filter(l => !l.done)',
+  '}',
+  'export function toListItems(items) {',
+  "  return items.map(l => '<li>' + l.title + ' — ' + l.minutes + ' min</li>').join('')",
+  '}',
+  'export function render(items) {',
+  "  document.querySelector('#lessons').innerHTML = toListItems(items)",
+  '  const left = remaining(items).length',
+  "  const word = left === 1 ? 'lesson' : 'lessons'",
+  "  document.querySelector('#summary').textContent =",
+  "    left + ' ' + word + ' left, ' + totalMinutes(items) + ' minutes total'",
+  "  console.log('rendered', items.length, 'lessons')",
+  '}',
+  'render(lessons)',
+].join('\n')
+
+test('chapter 3 renders its authored lesson and recap', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/1')
+  await expect(page.getByRole('heading', { name: 'An array holds an ordered list' })).toBeVisible()
+
+  await page.goto('/courses/javascript-fundamentals/3/6')
+  await expect(page.getByRole('heading', { name: 'Key points' })).toBeVisible()
+})
+
+test('a DOM exercise is graded despite the worker having no document', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/3')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill(ARRAY_SOLUTION)
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  await expect(page.locator('[data-role="summary"]')).toHaveText('5 of 5 checks passing')
+})
+
+test('the preview renders student output into a real document', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/3')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill(ARRAY_SOLUTION)
+  await page.getByRole('button', { name: 'Run preview' }).click()
+
+  const frame = page.frameLocator('[data-role="preview-frame"]')
+  await expect(frame.locator('#lessons li')).toHaveCount(4)
+  await expect(frame.locator('#lessons li').first()).toHaveText('Variables — 20 min')
+  await expect(frame.locator('#summary')).toHaveText('3 lessons left, 115 minutes total')
+})
+
+test('console output from the preview reaches the workspace', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/3')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill(ARRAY_SOLUTION)
+  await page.getByRole('button', { name: 'Run preview' }).click()
+
+  await expect(page.locator('[data-role="console"]')).toContainText('[preview] rendered 4 lessons')
+})
+
+test('an error in the preview is reported, not swallowed', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/3')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill("throw new Error('preview blew up')\nexport const a = 1")
+  await page.getByRole('button', { name: 'Run preview' }).click()
+
+  await expect(page.locator('[data-role="console"]')).toContainText('preview blew up')
+})
+
+test('an exercise with no markup has no preview button', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/2/2')
+  await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Run preview' })).toHaveCount(0)
 })

@@ -16,9 +16,11 @@ interface Props {
   tests: TestCase[]
   solution: string | null
   solutionExplanation: string | null
+  /** Markup for the live preview, or null when the exercise has none. */
+  previewHtml: string | null
 }
 
-const { exerciseId, files, entry, tests, solution, solutionExplanation } = Astro.props
+const { exerciseId, files, entry, tests, solution, solutionExplanation, previewHtml } = Astro.props
 
 /** Hidden files are linked at run time but never shown, so they get no tab. */
 const visible = files.filter(file => !file.isHidden)
@@ -38,6 +40,7 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
   data-entry={entry}
   data-tests={JSON.stringify(tests)}
   data-files={JSON.stringify(files)}
+  data-preview-html={previewHtml}
 >
   <div class="flex flex-wrap items-center gap-2">
     {
@@ -76,11 +79,36 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
     >
       Run checks
     </button>
+    {
+      previewHtml && (
+        <button
+          type="button"
+          data-role="preview"
+          class="rounded-lg border border-(--color-edge) px-4 py-2 text-sm transition hover:bg-(--color-raised)"
+        >
+          Run preview
+        </button>
+      )
+    }
     <button type="button" data-role="reset" class="text-(--color-faint) text-sm hover:underline">
       Reset to starter
     </button>
     <p class="text-sm" data-role="summary"></p>
   </div>
+
+  {
+    previewHtml && (
+      <div class="mt-4 hidden" data-role="preview-pane">
+        <p class="text-(--color-faint) text-xs font-medium">Preview</p>
+        <iframe
+          data-role="preview-frame"
+          title="Exercise preview"
+          src="/exercise-preview"
+          class="mt-1 h-64 w-full rounded-lg border border-(--color-edge) bg-white"
+        />
+      </div>
+    )
+  }
 
   <div class="mt-4 hidden" data-role="console-pane">
     <p class="text-(--color-faint) text-xs font-medium">Console</p>
@@ -104,6 +132,7 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
 
 <script>
   import { runExercise } from '@lib/exercise-runner/client'
+  import { isPreviewMessage, type RenderMessage } from '@lib/exercise-runner/preview'
   import type { TestCase } from '@lib/exercise-runner/types'
 
   type WorkspaceFile = {
@@ -124,6 +153,10 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
     const attemptsLabel = workspace.querySelector<HTMLElement>('[data-role="attempts"]')!
     const consolePane = workspace.querySelector<HTMLElement>('[data-role="console-pane"]')!
     const consoleOut = workspace.querySelector<HTMLPreElement>('[data-role="console"]')!
+    const previewButton = workspace.querySelector<HTMLButtonElement>('[data-role="preview"]')
+    const previewPane = workspace.querySelector<HTMLElement>('[data-role="preview-pane"]')
+    const previewFrame = workspace.querySelector<HTMLIFrameElement>('[data-role="preview-frame"]')
+    const previewHtml = workspace.dataset.previewHtml ?? null
     const tabs = [...workspace.querySelectorAll<HTMLButtonElement>('[data-role="tab"]')]
 
     const exerciseId = workspace.dataset.exerciseId!
@@ -159,6 +192,28 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
 
     // Open on the file the student edits, not on a read-only helper listed first.
     let active = tabs.some(tab => tab.dataset.filename === entry) ? entry : (tabs[0]?.dataset.filename ?? entry)
+
+    const LEVEL_COLOUR: Record<string, string> = {
+      warn: 'text-peach',
+      error: 'text-rose',
+      debug: 'text-(--color-faint)',
+    }
+
+    /** One line in the console pane, tagged with where it came from. */
+    const consoleLine = (level: string, where: string, text: string) => {
+      const line = document.createElement('div')
+      line.className = LEVEL_COLOUR[level] ?? ''
+      line.textContent = `[${where}] ${text}`
+      return line
+    }
+
+    const appendConsole = (level: string, where: string, text: string) => {
+      consoleOut.append(consoleLine(level, where, text))
+      consolePane.classList.remove('hidden')
+    }
+
+    const currentFiles = () =>
+      starters.map(file => ({ filename: file.filename, content: draft.get(file.filename) ?? '' }))
 
     const show = (filename: string) => {
       active = filename
@@ -199,8 +254,7 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
       consolePane.classList.add('hidden')
       consoleOut.replaceChildren()
 
-      const files = starters.map(file => ({ filename: file.filename, content: draft.get(file.filename) ?? '' }))
-      const result = await runExercise(files, entry, tests)
+      const result = await runExercise(currentFiles(), entry, tests)
 
       results.replaceChildren(
         ...result.outcomes.map(outcome => {
@@ -222,19 +276,10 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
       )
 
       if (result.logs.length > 0) {
-        const levelColour: Record<string, string> = {
-          warn: 'text-peach',
-          error: 'text-rose',
-          debug: 'text-(--color-faint)',
-        }
         consoleOut.replaceChildren(
-          ...result.logs.map(entry => {
-            const line = document.createElement('div')
-            line.className = levelColour[entry.level] ?? ''
-            const where = entry.checkIndex === null ? 'load' : `check ${entry.checkIndex + 1}`
-            line.textContent = `[${where}] ${entry.text}`
-            return line
-          }),
+          ...result.logs.map(entry =>
+            consoleLine(entry.level, entry.checkIndex === null ? 'load' : `check ${entry.checkIndex + 1}`, entry.text),
+          ),
         )
         consolePane.classList.remove('hidden')
       }
@@ -261,6 +306,41 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
 
       runButton.disabled = false
     })
+
+    if (previewButton && previewPane && previewFrame && previewHtml !== null) {
+      const render = () => {
+        const message: RenderMessage = {
+          source: 'learnit-preview',
+          type: 'render',
+          html: previewHtml,
+          files: currentFiles(),
+          entry,
+        }
+        previewFrame.contentWindow?.postMessage(message, window.location.origin)
+      }
+
+      window.addEventListener('message', event => {
+        if (event.origin !== window.location.origin || !isPreviewMessage(event.data)) return
+        const message = event.data
+        if (message.type === 'log') appendConsole(message.level, 'preview', message.text)
+        if (message.type === 'error') appendConsole('error', 'preview', message.text)
+      })
+
+      previewButton.addEventListener('click', () => {
+        previewPane.classList.remove('hidden')
+        consoleOut.replaceChildren()
+        consolePane.classList.add('hidden')
+
+        // Drive off the frame's load state rather than a ready handshake: the
+        // frame can finish loading before this listener exists, and a missed
+        // ready message would leave the preview blank forever.
+        if (previewFrame.contentDocument?.readyState === 'complete') {
+          render()
+        } else {
+          previewFrame.addEventListener('load', render, { once: true })
+        }
+      })
+    }
 
     load()
     show(active)

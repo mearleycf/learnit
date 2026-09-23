@@ -1,0 +1,85 @@
+---
+/**
+ * Frame that runs a student's code against real markup.
+ *
+ * Loaded inside an iframe by the exercise workspace. It is a normal
+ * same-origin route rather than a sandboxed `srcdoc` document, so it can
+ * import the module linker directly instead of carrying a duplicate copy.
+ *
+ * Nothing renders until the parent sends a render message.
+ */
+export const prerender = false
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Exercise preview</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="preview-root"></div>
+
+    <script>
+      import { linkModules } from '@lib/exercise-runner/link'
+      import { formatArgs, LEVELS } from '@lib/exercise-runner/capture'
+      import { isRenderMessage, type PreviewMessage } from '@lib/exercise-runner/preview'
+
+      const root = document.querySelector<HTMLElement>('#preview-root')!
+      const urls: string[] = []
+
+      const send = (message: PreviewMessage) => window.parent.postMessage(message, window.location.origin)
+
+      // Forward everything the student prints to the workspace's console pane.
+      for (const level of LEVELS) {
+        const original = console[level].bind(console)
+        console[level] = (...args: unknown[]) => {
+          send({ source: 'learnit-preview', type: 'log', level, text: formatArgs(args) })
+          original(...args)
+        }
+      }
+
+      const describe = (error: unknown) =>
+        error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+
+      window.addEventListener('error', event => {
+        send({ source: 'learnit-preview', type: 'error', text: describe(event.error ?? event.message) })
+      })
+      window.addEventListener('unhandledrejection', event => {
+        send({ source: 'learnit-preview', type: 'error', text: describe(event.reason) })
+      })
+
+      window.addEventListener('message', async event => {
+        if (event.origin !== window.location.origin || !isRenderMessage(event.data)) return
+
+        for (const url of urls.splice(0)) URL.revokeObjectURL(url)
+        root.innerHTML = event.data.html
+
+        try {
+          const entryUrl = linkModules(event.data.files, event.data.entry, code => {
+            const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }))
+            urls.push(url)
+            return url
+          })
+          await import(/* @vite-ignore */ entryUrl)
+        } catch (error) {
+          send({ source: 'learnit-preview', type: 'error', text: describe(error) })
+        }
+
+        send({ source: 'learnit-preview', type: 'done' })
+      })
+
+      send({ source: 'learnit-preview', type: 'ready' })
+    </script>
+  </body>
+</html>
