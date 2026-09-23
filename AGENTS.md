@@ -64,6 +64,9 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 - **Unauthored content is `NULL`, never `{}`.** The seeder prints how many sections are authored on each run.
 - **Content is validated** against `sectionContentSchema` before insert. A bad payload aborts the seed and names the section.
 - **Seed data grows incrementally**, one feature at a time. Do not try to fill all nine tables at once.
+- **Every authored exercise is checked** by `db/seed_config/solutions.test.ts`: the worked solution
+  must pass every check, and the starter must fail at least one. That file runs under the `node`
+  environment, not jsdom, so grading matches the Worker.
 
 ## Conventions
 
@@ -99,7 +102,7 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: JavaScript Fundamentals chapters 1 to 3, nine sections. The other 30 are structural.
+Authored content: JavaScript Fundamentals is complete, all 12 sections. Advanced React and Python Fundamentals are structural only.
 
 Exercises run client-side in a Web Worker, JavaScript only. The Worker is a crash and
 infinite-loop guard, not a security boundary; it does not need to be, since the only author

@@ -1,9 +1,9 @@
-import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import type { ChapterConfig, CourseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import { arrayMethodsLesson, groupingExercise, queryExercise } from '../content/js-array-methods'
 import { arraysLesson, arraysRecap, lessonListExercise } from '../content/js-arrays'
 import { introToJavascriptLesson, jsBasicsRecap, variablesExercise } from '../content/js-basics'
 import { functionsLesson, functionsRecap, progressExercise } from '../content/js-functions'
 import { courseDateOptions } from '../date-options'
-import { createExerciseData } from '../utils'
 
 export const javascriptFundamentals: CourseConfig = {
   // course 1
@@ -123,9 +123,9 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 3, section 2
           seedSequence: 8,
           title: 'Array Methods',
-          description: 'Explore commonly used array methods in JavaScript',
+          description: 'find, some, every, flatMap, sorting, and which to reach for',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: arrayMethodsLesson },
           section_display_number: 2,
           access_level: 'purchased',
         } as SectionConfig,
@@ -144,32 +144,22 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 3, section 4
           seedSequence: 10,
           title: 'Array Methods Practice',
-          description: 'Practice using array methods in JavaScript',
+          description: 'Answer questions about a catalogue with find, every and flatMap',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 4,
-          exercise: createExerciseData(
-            1,
-            1,
-            'Use array methods (map, filter, reduce) to transform an array of user objects. Calculate total user score, filter active users, and create a new array with formatted user names.',
-            'course 1, chapter 3, section 4 exercise 2 of 3',
-          ) as ExerciseConfig,
+          exercise: queryExercise,
           access_level: 'purchased',
         } as SectionConfig,
         {
           // course 1, chapter 3, section 5
           seedSequence: 11,
           title: 'Array Methods Practice 2',
-          description: 'Practice using array methods in JavaScript',
+          description: 'Collapse the catalogue down with reduce',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 5,
-          exercise: createExerciseData(
-            1,
-            1,
-            'Implement advanced array operations: sort an array of objects by multiple criteria, remove duplicates from an array, and flatten a nested array structure.',
-            'course 1, chapter 3, section 5 exercise 3 of 3',
-          ) as ExerciseConfig,
+          exercise: groupingExercise,
           access_level: 'purchased',
         } as SectionConfig,
         {

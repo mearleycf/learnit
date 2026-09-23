@@ -46,8 +46,8 @@ test('a recap section renders its key points', async ({ page }) => {
 })
 
 test('a section with no authored content shows an empty state', async ({ page }) => {
-  // 3/2 is a lesson with no authored content and no exercise.
-  await page.goto('/courses/javascript-fundamentals/3/2')
+  // JavaScript Fundamentals is fully authored now; Advanced React is structural.
+  await page.goto('/courses/advanced-react/1/1')
   await expect(page.getByText('This section has no content yet.')).toBeVisible()
 })
 
@@ -519,7 +519,7 @@ test('the dashboard offers somewhere to pick up', async ({ page }) => {
 
 test('the dashboard shows progress and how much is written', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('9 of 12 sections written')).toBeVisible()
+  await expect(page.getByText('12 of 12 sections written')).toBeVisible()
   await expect(page.getByText('nothing to read yet').first()).toBeVisible()
 })
 
