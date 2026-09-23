@@ -53,6 +53,8 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/seed_config/seed/content/` | Long-form lesson copy |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
+| `src/lib/exercise-runner/` | Runs student code in a Worker. `run.ts` is pure and unit tested |
+| `src/components/` | Astro components |
 | `src/pages/` | Routes |
 
 ## Seeding rules
@@ -79,3 +81,11 @@ All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
 Authored content: JavaScript Fundamentals chapter 1 only. The other 36 sections are structural.
+
+Exercises run client-side in a Web Worker, JavaScript only. The Worker is a crash and
+infinite-loop guard, not a security boundary; it does not need to be, since the only author
+of that code is the person running it.
+
+Astro actions work from forms (`?_action=`), but the `/_actions/[...path]` RPC route is not
+registered in this setup. Anything called from client script needs a plain API route under
+`src/pages/api/` instead.

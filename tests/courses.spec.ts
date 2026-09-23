@@ -16,10 +16,11 @@ test('a lesson section renders its authored markdown', async ({ page }) => {
   await expect(page.locator('pre code').first()).toBeVisible()
 })
 
-test('an exercise section renders instructions, checks and hints', async ({ page }) => {
+test('an exercise section renders instructions, a workspace and hints', async ({ page }) => {
   await page.goto('/courses/javascript-fundamentals/1/2')
   await expect(page.getByRole('heading', { name: 'Instructions' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Checks (5)' })).toBeVisible()
+  await expect(page.locator('[data-role="editor"]')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
   await expect(page.getByText('Hints (4)')).toBeVisible()
 })
 
@@ -132,4 +133,66 @@ test('a report can be filed and then triaged', async ({ page }) => {
   await expect(page.locator('li', { hasText: body })).toHaveCount(0)
   await page.goto('/feedback?status=resolved')
   await expect(page.locator('li', { hasText: body })).toBeVisible()
+})
+
+test('a correct solution passes every check and records an attempt', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page
+    .locator('[data-role="editor"]')
+    .fill(
+      [
+        "const courseName = 'JavaScript Fundamentals'",
+        'let lessonsCompleted = 0',
+        'const isEnrolled = true',
+        'export function describeProgress(enrolled = isEnrolled) {',
+        "  const label = enrolled ? 'enrolled' : 'not enrolled'",
+        '  return `${courseName}: ${lessonsCompleted} lessons done (${label})`',
+        '}',
+        'export { courseName, lessonsCompleted, isEnrolled }',
+      ].join('\n'),
+    )
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  await expect(page.locator('[data-role="summary"]')).toHaveText('5 of 5 checks passing')
+  await expect(page.locator('[data-role="results"] li')).toHaveCount(5)
+  await expect(page.locator('[data-role="attempts"]')).toContainText('best 100%')
+})
+
+test('a wrong solution reports which checks failed and why', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill(["const courseName = 'Wrong'", 'export { courseName }'].join('\n'))
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  await expect(page.locator('[data-role="summary"]')).toContainText('of 5 checks passing')
+  await expect(page.locator('[data-role="results"] li').first()).toContainText('Expected "JavaScript Fundamentals"')
+})
+
+test('an endless loop times out instead of hanging the page', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill('while (true) {}\nexport const courseName = "x"')
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  await expect(page.locator('[data-role="summary"]')).toContainText('Timed out', { timeout: 15_000 })
+  // The page is still interactive after the worker was killed.
+  await expect(page.getByRole('button', { name: 'Run checks' })).toBeEnabled()
+})
+
+test('reset restores the starter code', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  const editor = page.locator('[data-role="editor"]')
+  await editor.fill('throwaway')
+  await page.getByRole('button', { name: 'Reset to starter' }).click()
+  await expect(editor).toContainText('A value that never changes')
 })

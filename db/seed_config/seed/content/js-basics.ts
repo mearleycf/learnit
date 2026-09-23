@@ -115,8 +115,9 @@ let lessonsCompleted = 0
 // 3. Is the student enrolled?
 const isEnrolled = true
 
-export function describeProgress() {
+export function describeProgress(enrolled = isEnrolled) {
   // 4. Return the summary string described in the instructions.
+  // enrolled defaults to isEnrolled; the last check calls it with false.
   return ''
 }
 

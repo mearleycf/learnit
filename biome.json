@@ -65,6 +65,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["db/seed_config/seed/content/**", "tests/**", "src/lib/exercise-runner/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noTemplateCurlyInString": "off"
+          }
+        }
+      }
     }
   ],
   "css": {

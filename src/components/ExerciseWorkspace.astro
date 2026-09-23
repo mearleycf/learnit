@@ -1,0 +1,160 @@
+---
+import type { TestCase } from '@lib/exercise-runner/types'
+
+interface Props {
+  exerciseId: string
+  starter: string
+  filename: string
+  language: string
+  tests: TestCase[]
+  solution: string | null
+  solutionExplanation: string | null
+}
+
+const { exerciseId, starter, filename, language, tests, solution, solutionExplanation } = Astro.props
+---
+
+<section
+  class="exercise-workspace"
+  data-exercise-id={exerciseId}
+  data-tests={JSON.stringify(tests)}
+>
+  <div class="flex items-baseline justify-between">
+    <p class="text-(--color-faint) text-xs font-medium">{filename} &middot; {language}</p>
+    <p class="text-(--color-faint) text-xs" data-role="attempts"></p>
+  </div>
+
+  <textarea
+    data-role="editor"
+    spellcheck="false"
+    rows="16"
+    class="bg-night-raised text-parchment mt-1 w-full rounded-lg p-4 font-mono text-sm leading-relaxed focus:outline-none"
+    >{starter}</textarea
+  >
+
+  <div class="mt-3 flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      data-role="run"
+      class="border-teal text-teal hover:bg-teal/10 rounded-lg border px-4 py-2 text-sm transition disabled:opacity-50"
+    >
+      Run checks
+    </button>
+    <button
+      type="button"
+      data-role="reset"
+      class="text-(--color-faint) text-sm hover:underline"
+    >
+      Reset to starter
+    </button>
+    <p class="text-sm" data-role="summary"></p>
+  </div>
+
+  <ul class="mt-4 space-y-2" data-role="results"></ul>
+
+  {
+    solution && (
+      <details class="mt-4 rounded-lg border border-(--color-edge) p-4">
+        <summary class="text-(--color-muted) cursor-pointer text-sm">Show a worked solution</summary>
+        <pre class="bg-night-raised text-parchment mt-3 overflow-x-auto rounded-lg p-4 text-sm"><code>{solution}</code></pre>
+        {solutionExplanation && <p class="text-(--color-muted) mt-3 text-sm leading-relaxed">{solutionExplanation}</p>}
+      </details>
+    )
+  }
+</section>
+
+<script>
+  import { runExercise } from '@lib/exercise-runner/client'
+  import type { TestCase } from '@lib/exercise-runner/types'
+
+  const workspace = document.querySelector<HTMLElement>('.exercise-workspace')
+  if (workspace) {
+    const editor = workspace.querySelector<HTMLTextAreaElement>('[data-role="editor"]')!
+    const runButton = workspace.querySelector<HTMLButtonElement>('[data-role="run"]')!
+    const resetButton = workspace.querySelector<HTMLButtonElement>('[data-role="reset"]')!
+    const results = workspace.querySelector<HTMLUListElement>('[data-role="results"]')!
+    const summary = workspace.querySelector<HTMLElement>('[data-role="summary"]')!
+    const attemptsLabel = workspace.querySelector<HTMLElement>('[data-role="attempts"]')!
+
+    const exerciseId = workspace.dataset.exerciseId!
+    const tests: TestCase[] = JSON.parse(workspace.dataset.tests ?? '[]')
+    const starter = editor.value
+    const storageKey = `learnit:exercise:${exerciseId}`
+
+    // Draft code is a per-browser convenience, so localStorage is the right home.
+    try {
+      const saved = localStorage.getItem(storageKey)
+      if (saved !== null) editor.value = saved
+    } catch {
+      // Private mode or blocked storage: the starter is a fine fallback.
+    }
+
+    const persist = () => {
+      try {
+        localStorage.setItem(storageKey, editor.value)
+      } catch {
+        // Nothing to do; the run still works without a saved draft.
+      }
+    }
+    editor.addEventListener('input', persist)
+
+    resetButton.addEventListener('click', () => {
+      editor.value = starter
+      persist()
+      results.replaceChildren()
+      summary.textContent = ''
+    })
+
+    runButton.addEventListener('click', async () => {
+      runButton.disabled = true
+      summary.textContent = 'Running…'
+      summary.className = 'text-(--color-muted) text-sm'
+      results.replaceChildren()
+
+      const result = await runExercise(editor.value, tests)
+
+      results.replaceChildren(
+        ...result.outcomes.map(outcome => {
+          const li = document.createElement('li')
+          li.className = 'rounded-lg border p-3 text-sm ' + (outcome.passed ? 'border-teal/40' : 'border-rose/50')
+
+          const head = document.createElement('p')
+          head.className = outcome.passed ? 'text-teal' : 'text-rose'
+          head.textContent = `${outcome.passed ? '✓' : '✗'} ${outcome.name}`
+          li.append(head)
+
+          const detail = document.createElement('p')
+          detail.className = 'text-(--color-muted) mt-1 text-xs'
+          detail.textContent = outcome.message ?? outcome.description
+          li.append(detail)
+
+          return li
+        }),
+      )
+
+      const allPassed = result.total > 0 && result.passed === result.total
+      summary.textContent = result.loadError
+        ? result.loadError
+        : `${result.passed} of ${result.total} checks passing`
+      summary.className = `text-sm ${allPassed ? 'text-teal' : result.loadError ? 'text-rose' : 'text-(--color-muted)'}`
+
+      try {
+        const response = await fetch('/api/exercise-attempt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ exerciseId, passed: result.passed, total: result.total }),
+        })
+        if (response.ok) {
+          const data = (await response.json()) as { attempts: number; score: number; completed: boolean }
+          attemptsLabel.textContent =
+            `${data.attempts} attempt${data.attempts === 1 ? '' : 's'} \u00b7 best ${data.score}%` +
+            (data.completed ? ' \u00b7 passed' : '')
+        }
+      } catch {
+        // Recording an attempt is bookkeeping; a failure must not hide the results.
+      }
+
+      runButton.disabled = false
+    })
+  }
+</script>

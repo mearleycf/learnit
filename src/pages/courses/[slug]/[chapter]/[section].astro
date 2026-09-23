@@ -3,6 +3,7 @@ import { actions } from 'astro:actions'
 
 import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 
+import ExerciseWorkspace from '@components/ExerciseWorkspace.astro'
 import Layout from '@layouts/Layout.astro'
 import { CATEGORY_LABELS, FEEDBACK_CATEGORIES } from '@schemas/feedback.schema'
 import {
@@ -15,7 +16,7 @@ import {
   sectionHref,
 } from '@utils/courses'
 import { listNotes } from '@utils/notes'
-import { completedSet, getCurrentUser, getProgress } from '@utils/progress'
+import { completedSet, getCurrentUser, getExerciseAttempts, getProgress } from '@utils/progress'
 
 const { slug, chapter: chapterParam, section: sectionParam } = Astro.params
 const chapterNumber = Number(chapterParam)
@@ -58,8 +59,13 @@ type CodeFile = { filename: string; language: string; content: unknown }
 const codeFiles = (exercise?.code_files as { files?: CodeFile[] } | null)?.files ?? []
 type Hint = { order: number; content: unknown }
 const hints = (exercise?.hints as { hints?: Hint[] } | null)?.hints ?? []
-type Check = { name: string; description: string }
+type Check = { name: string; description: string; testFunction: string; timeout?: number }
 const checks = (exercise?.tests as { tests?: Check[] } | null)?.tests ?? []
+
+const starter = codeFiles[0]
+type Solution = { content?: unknown; explanation?: unknown }
+const worked = exercise?.default_solution as Solution | null
+const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.id) : null
 ---
 
 <Layout title={`${section.title} — ${course.title}`}>
@@ -106,28 +112,22 @@ const checks = (exercise?.tests as { tests?: Check[] } | null)?.tests ?? []
             </p>
           </div>
 
-          {codeFiles.map(file => (
-            <div>
-              <p class="text-xs font-medium text-(--color-muted)">
-                {file.filename} &middot; {file.language}
-              </p>
-              <pre class="mt-1 overflow-x-auto rounded-lg bg-night-raised p-4 text-sm text-parchment">
-                <code>{String(file.content)}</code>
-              </pre>
-            </div>
-          ))}
-
-          {checks.length > 0 && (
-            <div>
-              <h2 class="font-semibold">Checks ({checks.length})</h2>
-              <ul class="mt-2 space-y-1">
-                {checks.map(check => (
-                  <li class="text-sm text-(--color-muted)">
-                    <span class="font-medium text-(--color-ink)">{check.name}</span> — {check.description}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {starter && exercise && (
+            <ExerciseWorkspace
+              exerciseId={exercise.id}
+              starter={String(starter.content)}
+              filename={starter.filename}
+              language={starter.language}
+              tests={checks}
+              solution={worked?.content ? String(worked.content) : null}
+              solutionExplanation={worked?.explanation ? String(worked.explanation) : null}
+            />
+          )}
+          {attempt && (
+            <p class="text-(--color-faint) text-sm">
+              {attempt.attempts} attempt{attempt.attempts === 1 ? '' : 's'} &middot; best score {attempt.score}%
+              {attempt.completed && <span class="text-teal"> &middot; passed</span>}
+            </p>
           )}
 
           {hints.length > 0 && (

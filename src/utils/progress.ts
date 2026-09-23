@@ -1,6 +1,7 @@
 import { db } from '@db/client'
-import { student_progress, users } from '@db/schema'
+import { student_exercise_progress, student_progress, users } from '@db/schema'
 import { and, eq } from 'drizzle-orm'
+import { ulid } from 'ulidx'
 
 export type ProgressRow = typeof student_progress.$inferSelect
 
@@ -64,3 +65,61 @@ export const setSectionComplete = async (
 /** Percentage of a course's sections that are complete, rounded to an integer. */
 export const percentComplete = (completed: number, total: number): number =>
   total === 0 ? 0 : Math.round((completed / total) * 100)
+
+/**
+ * Records one run of an exercise.
+ *
+ * Creates the row on first attempt. `attempts` only ever increases; `score`
+ * and `completed` keep the student's best result, so a later failed run does
+ * not undo a pass.
+ */
+export const recordExerciseAttempt = async (
+  userId: string,
+  exerciseId: string,
+  passed: number,
+  total: number,
+): Promise<{ attempts: number; score: number; completed: boolean }> => {
+  const score = total === 0 ? 0 : Math.round((passed / total) * 100)
+  const completed = total > 0 && passed === total
+
+  const [existing] = await db
+    .select()
+    .from(student_exercise_progress)
+    .where(and(eq(student_exercise_progress.student_id, userId), eq(student_exercise_progress.exercise_id, exerciseId)))
+    .limit(1)
+
+  if (!existing) {
+    await db.insert(student_exercise_progress).values({
+      id: ulid(),
+      student_id: userId,
+      exercise_id: exerciseId,
+      attempts: 1,
+      score,
+      completed,
+      last_attempt_at: new Date(),
+    })
+    return { attempts: 1, score, completed }
+  }
+
+  const next = {
+    attempts: existing.attempts + 1,
+    score: Math.max(existing.score ?? 0, score),
+    completed: existing.completed || completed,
+  }
+
+  await db
+    .update(student_exercise_progress)
+    .set({ ...next, last_attempt_at: new Date() })
+    .where(eq(student_exercise_progress.id, existing.id))
+
+  return next
+}
+
+export const getExerciseAttempts = async (userId: string, exerciseId: string) => {
+  const [row] = await db
+    .select()
+    .from(student_exercise_progress)
+    .where(and(eq(student_exercise_progress.student_id, userId), eq(student_exercise_progress.exercise_id, exerciseId)))
+    .limit(1)
+  return row ?? null
+}
