@@ -1,5 +1,6 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
 import { introToJavascriptLesson, jsBasicsRecap, variablesExercise } from '../content/js-basics'
+import { functionsLesson, functionsRecap, progressExercise } from '../content/js-functions'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
 
@@ -69,9 +70,9 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 2, section 1
           seedSequence: 4,
           title: 'Functions in JavaScript',
-          description: 'Learn about functions in JavaScript',
+          description: 'Name a job, return a value, and split code across files',
           content_type: 'lesson',
-          content: {},
+          content: { content_type: 'lesson', lesson: functionsLesson },
           section_display_number: 4,
           access_level: 'purchased',
         } as SectionConfig,
@@ -79,25 +80,20 @@ export const javascriptFundamentals: CourseConfig = {
           // course 1, chapter 2, section 2
           seedSequence: 5,
           title: 'Object-Oriented JavaScript',
-          description: 'Explore object-oriented programming in JavaScript',
+          description: 'Build a progress summary across two modules',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 5,
           access_level: 'purchased',
-          exercise: createExerciseData(
-            2,
-            1,
-            'Create a function called greetUser that accepts a name parameter and returns a greeting string. Then create an object called user with properties for name and age, and create a method that returns a description of the user.',
-            'course 1, chapter 2, section 2 exercise 1 of 1',
-          ) as ExerciseConfig,
+          exercise: progressExercise,
         } as SectionConfig,
         {
           // course 1, chapter 2, section 3
           seedSequence: 6,
           title: 'Functions and Objects Recap',
-          description: 'Review functions and object-oriented concepts in JavaScript',
+          description: 'What to take away from functions and objects',
           content_type: 'recap',
-          content: {},
+          content: { content_type: 'recap', recap: functionsRecap },
           section_display_number: 6,
           access_level: 'purchased',
         } as SectionConfig,

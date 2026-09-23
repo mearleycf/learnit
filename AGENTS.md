@@ -53,7 +53,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/seed_config/seed/content/` | Long-form lesson copy |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
-| `src/lib/exercise-runner/` | Runs student code in a Worker. `run.ts` is pure and unit tested |
+| `src/lib/exercise-runner/` | Runs student code in a Worker. `run.ts` and `link.ts` are pure and unit tested |
 | `src/components/` | Astro components |
 | `src/pages/` | Routes |
 
@@ -80,11 +80,17 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: JavaScript Fundamentals chapter 1 only. The other 36 sections are structural.
+Authored content: JavaScript Fundamentals chapters 1 and 2. The other 33 sections are structural.
 
 Exercises run client-side in a Web Worker, JavaScript only. The Worker is a crash and
 infinite-loop guard, not a security boundary; it does not need to be, since the only author
 of that code is the person running it.
+
+An exercise may span several files. `link.ts` orders them dependency-first and rewrites
+relative specifiers to blob URLs, so student files can import each other. `code_files.defaultView`
+names the entry: the file the checks import from and the tab the workspace opens on.
+`browser_html` is seeded but not yet rendered; a preview needs an iframe, which is a separate
+execution surface from the Worker.
 
 Astro actions work from forms (`?_action=`), but the `/_actions/[...path]` RPC route is not
 registered in this setup. Anything called from client script needs a plain API route under

@@ -55,14 +55,35 @@ const lessonHtml =
   content?.content_type === 'lesson' && content.lesson ? (await processor.render(content.lesson.markdown)).code : null
 const recap = content?.content_type === 'recap' ? content.recap : null
 
-type CodeFile = { filename: string; language: string; content: unknown }
-const codeFiles = (exercise?.code_files as { files?: CodeFile[] } | null)?.files ?? []
+type CodeFile = {
+  filename: string
+  language: string
+  content: unknown
+  isReadOnly?: boolean
+  isHidden?: boolean
+}
+const rawFiles = (exercise?.code_files as { files?: CodeFile[]; defaultView?: string } | null)?.files ?? []
+const workspaceFiles = rawFiles.map(file => ({
+  filename: file.filename,
+  language: file.language,
+  content: String(file.content),
+  isReadOnly: file.isReadOnly ?? false,
+  isHidden: file.isHidden ?? false,
+}))
+
+/**
+ * Entry module for the run.
+ *
+ * `defaultView` names the file the student should land on, which is also the
+ * one the checks import from. Falls back to the first file.
+ */
+const defaultView = (exercise?.code_files as { defaultView?: string } | null)?.defaultView
+const entryFile = workspaceFiles.find(file => file.filename === defaultView) ?? workspaceFiles[0]
 type Hint = { order: number; content: unknown }
 const hints = (exercise?.hints as { hints?: Hint[] } | null)?.hints ?? []
 type Check = { name: string; description: string; testFunction: string; timeout?: number }
 const checks = (exercise?.tests as { tests?: Check[] } | null)?.tests ?? []
 
-const starter = codeFiles[0]
 type Solution = { content?: unknown; explanation?: unknown }
 const worked = exercise?.default_solution as Solution | null
 const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.id) : null
@@ -112,12 +133,11 @@ const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.i
             </p>
           </div>
 
-          {starter && exercise && (
+          {entryFile && exercise && (
             <ExerciseWorkspace
               exerciseId={exercise.id}
-              starter={String(starter.content)}
-              filename={starter.filename}
-              language={starter.language}
+              files={workspaceFiles}
+              entry={entryFile.filename}
               tests={checks}
               solution={worked?.content ? String(worked.content) : null}
               solutionExplanation={worked?.explanation ? String(worked.explanation) : null}

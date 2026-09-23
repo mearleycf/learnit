@@ -1,3 +1,4 @@
+import type { SourceFile } from './link'
 import { loadFailure } from './run'
 import type { RunResult, TestCase } from './types'
 
@@ -11,7 +12,7 @@ export const RUN_TIMEOUT_MS = 5_000
  * synchronous infinite loop. Always resolves; a failure to load or a timeout
  * comes back as a RunResult with `loadError` set.
  */
-export const runExercise = (code: string, tests: TestCase[]): Promise<RunResult> =>
+export const runExercise = (files: SourceFile[], entry: string, tests: TestCase[]): Promise<RunResult> =>
   new Promise(resolve => {
     const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
 
@@ -33,5 +34,5 @@ export const runExercise = (code: string, tests: TestCase[]): Promise<RunResult>
     worker.onmessage = (event: MessageEvent<RunResult>) => finish(event.data)
     worker.onerror = event => finish(loadFailure(tests, new Error(event.message || 'The code could not be run.')))
 
-    worker.postMessage({ code, tests })
+    worker.postMessage({ files, entry, tests })
   })

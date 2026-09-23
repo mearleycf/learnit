@@ -194,5 +194,74 @@ test('reset restores the starter code', async ({ page }) => {
   const editor = page.locator('[data-role="editor"]')
   await editor.fill('throwaway')
   await page.getByRole('button', { name: 'Reset to starter' }).click()
-  await expect(editor).toContainText('A value that never changes')
+  await expect(editor).toHaveValue(/A value that never changes/)
+})
+
+test('chapter 2 renders its authored lesson and recap', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/2/1')
+  await expect(page.getByRole('heading', { name: 'Functions give a name to a job' })).toBeVisible()
+
+  await page.goto('/courses/javascript-fundamentals/2/3')
+  await expect(page.getByRole('heading', { name: 'Key points' })).toBeVisible()
+})
+
+test('a multi-file exercise opens on the editable entry file', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/2/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await expect(page.getByRole('button', { name: /format\.js/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /progress\.js/ })).toBeVisible()
+
+  // progress.js is the entry, so it opens even though format.js is listed first.
+  const editor = page.locator('[data-role="editor"]')
+  await expect(editor).toBeEnabled()
+  await expect(editor).toHaveValue(/Import percent and pluralise/)
+})
+
+test('a read-only file can be viewed but not edited', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/2/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.getByRole('button', { name: /format\.js/ }).click()
+  const editor = page.locator('[data-role="editor"]')
+  await expect(editor).toBeDisabled()
+  await expect(editor).toHaveValue(/export const percent/)
+})
+
+test('a solution importing from a sibling file passes every check', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/2/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page
+    .locator('[data-role="editor"]')
+    .fill(
+      [
+        "import { percent, pluralise } from './format.js'",
+        'export function summarise(completed, total) {',
+        "  if (total === 0) return 'Nothing to do yet'",
+        "  return `${completed} of ${total} ${pluralise(total, 'lesson')} complete (${percent(completed, total)}%)`",
+        '}',
+        'export function isFinished(completed, total) {',
+        '  return total > 0 && completed >= total',
+        '}',
+      ].join('\n'),
+    )
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  await expect(page.locator('[data-role="summary"]')).toHaveText('5 of 5 checks passing')
+})
+
+test('an import with no matching file fails without crashing', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/2/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.locator('[data-role="editor"]').fill("import { nope } from './missing.js'\nexport const a = 1")
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  await expect(page.locator('[data-role="summary"]')).toContainText('missing')
+  await expect(page.getByRole('button', { name: 'Run checks' })).toBeEnabled()
 })

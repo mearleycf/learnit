@@ -1,36 +1,72 @@
 ---
 import type { TestCase } from '@lib/exercise-runner/types'
 
-interface Props {
-  exerciseId: string
-  starter: string
+export type WorkspaceFile = {
   filename: string
   language: string
+  content: string
+  isReadOnly: boolean
+  isHidden: boolean
+}
+
+interface Props {
+  exerciseId: string
+  files: WorkspaceFile[]
+  entry: string
   tests: TestCase[]
   solution: string | null
   solutionExplanation: string | null
 }
 
-const { exerciseId, starter, filename, language, tests, solution, solutionExplanation } = Astro.props
+const { exerciseId, files, entry, tests, solution, solutionExplanation } = Astro.props
+
+/** Hidden files are linked at run time but never shown, so they get no tab. */
+const visible = files.filter(file => !file.isHidden)
+
+/**
+ * The tab to open on.
+ *
+ * The entry file is the one the student edits, so it opens first even when a
+ * read-only helper is listed before it.
+ */
+const initial = visible.find(file => file.filename === entry) ?? visible[0]
 ---
 
 <section
   class="exercise-workspace"
   data-exercise-id={exerciseId}
+  data-entry={entry}
   data-tests={JSON.stringify(tests)}
+  data-files={JSON.stringify(files)}
 >
-  <div class="flex items-baseline justify-between">
-    <p class="text-(--color-faint) text-xs font-medium">{filename} &middot; {language}</p>
-    <p class="text-(--color-faint) text-xs" data-role="attempts"></p>
+  <div class="flex flex-wrap items-center gap-2">
+    {
+      visible.map(file => (
+        <button
+          type="button"
+          data-role="tab"
+          data-filename={file.filename}
+          class:list={[
+            'rounded px-3 py-1 font-mono text-xs transition',
+            file.filename === initial?.filename
+              ? 'bg-(--color-raised) font-medium'
+              : 'text-(--color-muted) hover:bg-(--color-raised)',
+          ]}
+        >
+          {file.filename}
+          {file.isReadOnly && <span class="text-(--color-faint)"> (read only)</span>}
+        </button>
+      ))
+    }
+    <p class="text-(--color-faint) ml-auto text-xs" data-role="attempts"></p>
   </div>
 
   <textarea
     data-role="editor"
     spellcheck="false"
     rows="16"
-    class="bg-night-raised text-parchment mt-1 w-full rounded-lg p-4 font-mono text-sm leading-relaxed focus:outline-none"
-    >{starter}</textarea
-  >
+    class="bg-night-raised text-parchment mt-2 w-full rounded-lg p-4 font-mono text-sm leading-relaxed focus:outline-none disabled:opacity-70"
+  ></textarea>
 
   <div class="mt-3 flex flex-wrap items-center gap-3">
     <button
@@ -40,11 +76,7 @@ const { exerciseId, starter, filename, language, tests, solution, solutionExplan
     >
       Run checks
     </button>
-    <button
-      type="button"
-      data-role="reset"
-      class="text-(--color-faint) text-sm hover:underline"
-    >
+    <button type="button" data-role="reset" class="text-(--color-faint) text-sm hover:underline">
       Reset to starter
     </button>
     <p class="text-sm" data-role="summary"></p>
@@ -67,6 +99,14 @@ const { exerciseId, starter, filename, language, tests, solution, solutionExplan
   import { runExercise } from '@lib/exercise-runner/client'
   import type { TestCase } from '@lib/exercise-runner/types'
 
+  type WorkspaceFile = {
+    filename: string
+    language: string
+    content: string
+    isReadOnly: boolean
+    isHidden: boolean
+  }
+
   const workspace = document.querySelector<HTMLElement>('.exercise-workspace')
   if (workspace) {
     const editor = workspace.querySelector<HTMLTextAreaElement>('[data-role="editor"]')!
@@ -75,32 +115,69 @@ const { exerciseId, starter, filename, language, tests, solution, solutionExplan
     const results = workspace.querySelector<HTMLUListElement>('[data-role="results"]')!
     const summary = workspace.querySelector<HTMLElement>('[data-role="summary"]')!
     const attemptsLabel = workspace.querySelector<HTMLElement>('[data-role="attempts"]')!
+    const tabs = [...workspace.querySelectorAll<HTMLButtonElement>('[data-role="tab"]')]
 
     const exerciseId = workspace.dataset.exerciseId!
+    const entry = workspace.dataset.entry!
     const tests: TestCase[] = JSON.parse(workspace.dataset.tests ?? '[]')
-    const starter = editor.value
+    const starters: WorkspaceFile[] = JSON.parse(workspace.dataset.files ?? '[]')
+
+    /** Working copy, keyed by filename. Read-only and hidden files stay at their starter. */
+    const draft = new Map(starters.map(file => [file.filename, file.content]))
+    const byName = new Map(starters.map(file => [file.filename, file]))
     const storageKey = `learnit:exercise:${exerciseId}`
 
-    // Draft code is a per-browser convenience, so localStorage is the right home.
-    try {
-      const saved = localStorage.getItem(storageKey)
-      if (saved !== null) editor.value = saved
-    } catch {
-      // Private mode or blocked storage: the starter is a fine fallback.
+    // Drafts are a per-browser convenience, so localStorage is the right home.
+    const load = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null') as Record<string, string> | null
+        if (!saved) return
+        for (const [filename, content] of Object.entries(saved)) {
+          if (byName.get(filename)?.isReadOnly === false) draft.set(filename, content)
+        }
+      } catch {
+        // Private mode, blocked storage, or stale shape: the starter is a fine fallback.
+      }
     }
 
     const persist = () => {
       try {
-        localStorage.setItem(storageKey, editor.value)
+        localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(draft)))
       } catch {
-        // Nothing to do; the run still works without a saved draft.
+        // Nothing to do; a run still works without a saved draft.
       }
     }
-    editor.addEventListener('input', persist)
+
+    // Open on the file the student edits, not on a read-only helper listed first.
+    let active = tabs.some(tab => tab.dataset.filename === entry) ? entry : (tabs[0]?.dataset.filename ?? entry)
+
+    const show = (filename: string) => {
+      active = filename
+      const file = byName.get(filename)
+      editor.value = draft.get(filename) ?? ''
+      editor.disabled = file?.isReadOnly ?? false
+      for (const tab of tabs) {
+        const on = tab.dataset.filename === filename
+        tab.classList.toggle('bg-(--color-raised)', on)
+        tab.classList.toggle('font-medium', on)
+        tab.classList.toggle('text-(--color-muted)', !on)
+      }
+    }
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => show(tab.dataset.filename!))
+    }
+
+    editor.addEventListener('input', () => {
+      if (editor.disabled) return
+      draft.set(active, editor.value)
+      persist()
+    })
 
     resetButton.addEventListener('click', () => {
-      editor.value = starter
+      for (const file of starters) draft.set(file.filename, file.content)
       persist()
+      show(active)
       results.replaceChildren()
       summary.textContent = ''
     })
@@ -111,12 +188,13 @@ const { exerciseId, starter, filename, language, tests, solution, solutionExplan
       summary.className = 'text-(--color-muted) text-sm'
       results.replaceChildren()
 
-      const result = await runExercise(editor.value, tests)
+      const files = starters.map(file => ({ filename: file.filename, content: draft.get(file.filename) ?? '' }))
+      const result = await runExercise(files, entry, tests)
 
       results.replaceChildren(
         ...result.outcomes.map(outcome => {
           const li = document.createElement('li')
-          li.className = 'rounded-lg border p-3 text-sm ' + (outcome.passed ? 'border-teal/40' : 'border-rose/50')
+          li.className = `rounded-lg border p-3 text-sm ${outcome.passed ? 'border-teal/40' : 'border-rose/50'}`
 
           const head = document.createElement('p')
           head.className = outcome.passed ? 'text-teal' : 'text-rose'
@@ -133,9 +211,7 @@ const { exerciseId, starter, filename, language, tests, solution, solutionExplan
       )
 
       const allPassed = result.total > 0 && result.passed === result.total
-      summary.textContent = result.loadError
-        ? result.loadError
-        : `${result.passed} of ${result.total} checks passing`
+      summary.textContent = result.loadError ? result.loadError : `${result.passed} of ${result.total} checks passing`
       summary.className = `text-sm ${allPassed ? 'text-teal' : result.loadError ? 'text-rose' : 'text-(--color-muted)'}`
 
       try {
@@ -147,8 +223,8 @@ const { exerciseId, starter, filename, language, tests, solution, solutionExplan
         if (response.ok) {
           const data = (await response.json()) as { attempts: number; score: number; completed: boolean }
           attemptsLabel.textContent =
-            `${data.attempts} attempt${data.attempts === 1 ? '' : 's'} \u00b7 best ${data.score}%` +
-            (data.completed ? ' \u00b7 passed' : '')
+            `${data.attempts} attempt${data.attempts === 1 ? '' : 's'} · best ${data.score}%` +
+            (data.completed ? ' · passed' : '')
         }
       } catch {
         // Recording an attempt is bookkeeping; a failure must not hide the results.
@@ -156,5 +232,8 @@ const { exerciseId, starter, filename, language, tests, solution, solutionExplan
 
       runButton.disabled = false
     })
+
+    load()
+    show(active)
   }
 </script>
