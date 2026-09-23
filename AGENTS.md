@@ -73,6 +73,13 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 - Biome only parses `.astro` frontmatter, not the template. Unused-symbol rules are off for `.astro` because anything used only in markup reads as unused.
 - Conventional commits. Breaking changes get `!` and a `BREAKING CHANGE:` footer.
 
+## Target screens
+
+Mike browses at roughly **1150px wide**, and occasionally a 14" laptop at 1512px logical. He does
+not use this on a phone, and does not run a browser full-width on his 49" monitor. Design for
+those two sizes. Pages use a 1024px shell with prose capped at 75ch, so the window can grow
+without the text lines growing with it.
+
 ## State
 
 Local-only, single user. No auth, by decision.

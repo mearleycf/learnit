@@ -108,7 +108,7 @@ const savedSolution = attempt?.solution ?? null
 ---
 
 <Layout title={`${section.title} — ${course.title}`}>
-  <main id="main" class="mx-auto max-w-3xl px-4 py-12">
+  <main id="main" class="mx-auto w-full max-w-5xl px-4 py-12">
     <a href={`/courses/${course.slug}`} class="text-sm text-(--color-link) hover:underline">&larr; {course.title}</a>
 
     <p class="mt-4 text-xs uppercase tracking-wide text-(--color-faint)">
@@ -120,7 +120,7 @@ const savedSolution = attempt?.solution ?? null
     {
       lessonHtml && (
         <article
-          class={`mt-8 leading-relaxed ${PROSE_CLASSES}`}
+          class={`mt-8 max-w-[75ch] leading-relaxed ${PROSE_CLASSES}`}
           set:html={lessonHtml}
         />
       )
@@ -128,7 +128,7 @@ const savedSolution = attempt?.solution ?? null
 
     {
       recap && (
-        <section class="mt-8">
+        <section class="mt-8 max-w-[75ch]">
           <p class="leading-relaxed">{recap.summary}</p>
           <h2 class="mt-6 text-lg font-semibold">Key points</h2>
           <ul class="mt-3 space-y-2">
@@ -146,7 +146,7 @@ const savedSolution = attempt?.solution ?? null
           <div class="border-peach/50 bg-peach/10 rounded-lg border p-5">
             <h2 class="font-semibold">Instructions</h2>
             <div
-              class={`mt-3 text-sm leading-relaxed ${PROSE_COMPACT} [&_ol]:mt-2 [&_ol_li]:list-decimal`}
+              class={`mt-3 max-w-[80ch] text-sm leading-relaxed ${PROSE_COMPACT} [&_ol]:mt-2 [&_ol_li]:list-decimal`}
               data-role="instructions"
               set:html={instructionsHtml}
             />

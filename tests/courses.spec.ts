@@ -576,16 +576,35 @@ test('exercise instructions render as markdown', async ({ page }) => {
   await expect(instructions).not.toContainText('**')
 })
 
-test('pages fit a phone without sideways scrolling', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 })
+test('pages use the width well at the sizes Mike actually browses at', async ({ page }) => {
+  // A browser window around 1150px, and a 14" laptop at 1512px logical.
+  // Nothing targets a phone or a full-width ultrawide; neither gets used.
+  for (const width of [1150, 1512]) {
+    await page.setViewportSize({ width, height: 900 })
 
-  for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/3/3']) {
-    await page.goto(path)
-    const overflows = await page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-    )
-    expect(overflows, `${path} scrolls sideways`).toBe(false)
+    for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/3/3']) {
+      await page.goto(path)
+
+      const { overflows, main } = await page.evaluate(() => ({
+        overflows: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+        main: Math.round(document.querySelector('#main')?.getBoundingClientRect().width ?? 0),
+      }))
+
+      expect(overflows, `${path} at ${width} scrolls sideways`).toBe(false)
+      // The shell should fill the window rather than sitting in a narrow column.
+      expect(main, `${path} at ${width} wastes width`).toBeGreaterThan(Math.min(width - 64, 1000))
+    }
   }
+})
+
+test('lesson prose keeps a readable line length', async ({ page }) => {
+  await page.setViewportSize({ width: 1512, height: 900 })
+  await page.goto('/courses/javascript-fundamentals/3/1')
+
+  const proseWidth = await page.evaluate(() => document.querySelector('article p')?.getBoundingClientRect().width ?? 0)
+  // Capped at 75ch, so a wider window widens the shell but not the text.
+  expect(proseWidth).toBeGreaterThan(600)
+  expect(proseWidth).toBeLessThan(800)
 })
 
 test('every page offers a skip link to its content', async ({ page }) => {
