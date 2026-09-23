@@ -567,3 +567,23 @@ test('lesson markdown still renders after sharing the processor', async ({ page 
   await expect(page.getByRole('heading', { name: 'What JavaScript is' })).toBeVisible()
   await expect(page.locator('pre code').first()).toBeVisible()
 })
+
+test('exercise instructions render as markdown', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/3/3')
+  const instructions = page.locator('[data-role="instructions"]')
+  await expect(instructions.locator('code').first()).toBeVisible()
+  await expect(instructions.locator('ol li')).not.toHaveCount(0)
+  await expect(instructions).not.toContainText('**')
+})
+
+test('pages fit a phone without sideways scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+
+  for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/3/3']) {
+    await page.goto(path)
+    const overflows = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+    )
+    expect(overflows, `${path} scrolls sideways`).toBe(false)
+  }
+})

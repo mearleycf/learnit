@@ -38,6 +38,7 @@ const isComplete = result?.data ? result.data.complete : completedSet(progress).
 
 const notes = user ? await listNotes(user.id, section.id) : []
 const noteBodies = await renderAll(notes.map(note => note.markdown))
+
 const noteError = Astro.getActionResult(actions.addNote)?.error
 const reported = Astro.getActionResult(actions.reportFeedback)?.data?.reported ?? false
 
@@ -49,6 +50,9 @@ const next = index >= 0 && index < ordered.length - 1 ? ordered[index + 1] : und
 
 const content = parseSectionContent(section.content)
 const exercise = section.content_type === 'exercise' ? await getExerciseForSection(section.id) : null
+
+/** Instructions are authored as markdown, so they render like any other prose. */
+const instructionsHtml = exercise ? await renderMarkdown(exercise.instructions) : null
 
 const lessonHtml =
   content?.content_type === 'lesson' && content.lesson ? await renderMarkdown(content.lesson.markdown) : null
@@ -141,7 +145,11 @@ const savedSolution = attempt?.solution ?? null
         <section class="mt-8 space-y-6">
           <div class="border-peach/50 bg-peach/10 rounded-lg border p-5">
             <h2 class="font-semibold">Instructions</h2>
-            <pre class="mt-3 whitespace-pre-wrap font-sans text-sm leading-relaxed">{exercise.instructions}</pre>
+            <div
+              class={`mt-3 text-sm leading-relaxed ${PROSE_COMPACT} [&_ol]:mt-2 [&_ol_li]:list-decimal`}
+              data-role="instructions"
+              set:html={instructionsHtml}
+            />
             <p class="mt-3 text-xs text-(--color-muted)">
               {exercise.difficulty} &middot; about {exercise.estimated_time_minutes} minutes
             </p>
