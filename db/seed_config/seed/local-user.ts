@@ -35,3 +35,33 @@ export const localProgress = {
     exercises: [],
   },
 }
+
+/**
+ * Notes the local student has taken.
+ *
+ * Positions are chapter and section numbers; the seeder resolves them to IDs.
+ * `quote` anchors a note to a passage of the lesson, and is omitted for a
+ * free-standing note.
+ */
+export const localNotes = [
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 1,
+    quote: 'The engine reads your program top to bottom and does what it says.',
+    markdown: 'Worth remembering: nothing runs in parallel here. Ordering bugs are usually my own.',
+  },
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 1,
+    markdown: 'Check whether `console.log` survives into production builds, or whether it gets stripped.',
+  },
+  {
+    course: 'javascript-fundamentals',
+    chapter: 1,
+    section: 3,
+    quote: 'Prefer const by default and reach for let only when you need to reassign.',
+    markdown: 'This is the rule I keep breaking. `const` first, then loosen it only when the reassign is real.',
+  },
+]

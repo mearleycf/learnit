@@ -70,3 +70,30 @@ test('marking a section complete persists and updates the outline', async ({ pag
   await page.getByRole('button', { name: /Completed/ }).click()
   await expect(page.getByRole('button', { name: 'Mark complete' })).toBeVisible()
 })
+
+test('seeded notes render with their anchored passage', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/1')
+  await expect(page.getByRole('heading', { name: /^Notes/ })).toBeVisible()
+  await expect(page.getByText('nothing runs in parallel here')).toBeVisible()
+  await expect(page.locator('blockquote')).toContainText('top to bottom')
+})
+
+test('a note can be added and deleted', async ({ page }) => {
+  const body = `Note from the test run ${Date.now()}`
+
+  await page.goto('/courses/javascript-fundamentals/1/1')
+  await page.getByPlaceholder('What do you want to remember').fill(body)
+  await page.getByRole('button', { name: 'Add note' }).click()
+  await expect(page.getByText(body)).toBeVisible()
+
+  const note = page.locator('li', { hasText: body })
+  await note.getByRole('button', { name: 'Delete' }).click()
+  await expect(page.getByText(body)).toHaveCount(0)
+})
+
+test('an empty note is rejected', async ({ page }) => {
+  await page.goto('/courses/javascript-fundamentals/1/2')
+  const textarea = page.getByPlaceholder('What do you want to remember')
+  await expect(textarea).toHaveAttribute('required', '')
+  await expect(page.getByText('No notes on this section yet.')).toBeVisible()
+})

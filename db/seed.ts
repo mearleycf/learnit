@@ -14,7 +14,7 @@ import {
 } from './schema'
 import { courseData } from './seed_config/seed/courses/index'
 import { seedDate, seedUlid } from './seed_config/seed/deterministic'
-import { localProgress, localUser } from './seed_config/seed/local-user'
+import { localNotes, localProgress, localUser } from './seed_config/seed/local-user'
 import type { ExerciseDifficulty } from './seed_config/types/seed-types'
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']
@@ -83,6 +83,23 @@ const seedLocalUser = async ({ sectionIndex, exerciseBySection, courseIdBySlug }
     last_sign_in: seedDate('user:local:signin', -3, 0),
     ...dates('user:local', -400, -380),
   })
+
+  let noteCount = 0
+  for (const note of localNotes) {
+    const sectionId = sectionIndex.get(`${note.course}:${note.chapter}:${note.section}`)
+    if (!sectionId) throw new Error(`Note references missing section ${note.course} ${note.chapter}.${note.section}`)
+
+    noteCount += 1
+    const noteKey = `note:${note.course}:${note.chapter}:${note.section}:${noteCount}`
+    await db.insert(notes).values({
+      id: seedUlid(noteKey),
+      student_id: userId,
+      section_id: sectionId,
+      note_text: { markdown: note.markdown },
+      highlighted_text: note.quote ? { quote: note.quote } : null,
+      ...dates(noteKey, -60, -2),
+    })
+  }
 
   for (const [slug, progress] of Object.entries(localProgress)) {
     const courseId = courseIdBySlug.get(slug)
