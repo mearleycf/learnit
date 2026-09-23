@@ -198,8 +198,4 @@ export { courseName, lessonsCompleted, isEnrolled }
       'student works, so it is let. describeProgress builds the summary with a template literal and picks the ' +
       'parenthesised label with a ternary.',
   },
-  student_solution: {
-    content: '',
-    explanation: '',
-  },
 }

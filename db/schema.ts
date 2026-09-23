@@ -120,7 +120,6 @@ export const exercises = sqliteTable(
     hints: text('hints', { mode: 'json' }).notNull(),
     difficulty: text('difficulty', { enum: ['easy', 'medium', 'hard'] }).notNull(),
     default_solution: text('default_solution', { mode: 'json' }).notNull(),
-    student_solution: text('student_solution', { mode: 'json' }).notNull(),
     estimated_time_minutes: integer('estimated_time_minutes').notNull(),
     created_at: createdAt(),
     updated_at: updatedAt(),

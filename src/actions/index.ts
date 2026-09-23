@@ -3,7 +3,7 @@ import { z } from 'astro:schema'
 
 import { FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from '@schemas/feedback.schema'
 import { createFeedback, setFeedbackStatus } from '@utils/feedback'
-import { createNote, deleteNote } from '@utils/notes'
+import { createNote, deleteNote, updateNote } from '@utils/notes'
 import { getCurrentUser, setSectionComplete } from '@utils/progress'
 
 /** Resolves the local student, or fails the action if seeding never ran. */
@@ -67,6 +67,19 @@ export const server = {
       await requireUser()
       await setFeedbackStatus(feedbackId, status)
       return { status }
+    },
+  }),
+
+  editNote: defineAction({
+    accept: 'form',
+    input: z.object({
+      noteId: z.string(),
+      markdown: z.string().trim().min(1, 'A note needs some text.').max(10_000),
+    }),
+    handler: async ({ noteId, markdown }) => {
+      const user = await requireUser()
+      await updateNote(user.id, noteId, markdown)
+      return { edited: true }
     },
   }),
 

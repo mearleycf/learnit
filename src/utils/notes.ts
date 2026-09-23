@@ -1,5 +1,5 @@
 import { db } from '@db/client'
-import { notes } from '@db/schema'
+import { chapters, courses, notes, sections } from '@db/schema'
 import { noteBodySchema, noteHighlightSchema } from '@schemas/notes.schema'
 import { and, desc, eq } from 'drizzle-orm'
 import { ulid } from 'ulidx'
@@ -62,7 +62,49 @@ export const createNote = async (
   })
 }
 
+/** Updates a note's text, scoped to its owner so an ID alone is not enough. */
+export const updateNote = async (userId: string, noteId: string, markdown: string): Promise<void> => {
+  await db
+    .update(notes)
+    .set({ note_text: { markdown } })
+    .where(and(eq(notes.id, noteId), eq(notes.student_id, userId)))
+}
+
 /** Deletes a note, scoped to its owner so an ID alone is not enough. */
 export const deleteNote = async (userId: string, noteId: string): Promise<void> => {
   await db.delete(notes).where(and(eq(notes.id, noteId), eq(notes.student_id, userId)))
+}
+
+export type NoteWithContext = Note & {
+  section: { id: string; title: string; display: number }
+  chapterDisplay: number
+  course: { slug: string; title: string }
+}
+
+/**
+ * Every note the student has taken, newest first, with enough context to link
+ * back to the section it belongs to.
+ */
+export const listAllNotes = async (userId: string): Promise<NoteWithContext[]> => {
+  const rows = await db
+    .select({ note: notes, section: sections, chapter: chapters, course: courses })
+    .from(notes)
+    .innerJoin(sections, eq(notes.section_id, sections.id))
+    .innerJoin(chapters, eq(sections.chapter_id, chapters.id))
+    .innerJoin(courses, eq(sections.course_id, courses.id))
+    .where(eq(notes.student_id, userId))
+    .orderBy(desc(notes.created_at))
+
+  return rows.flatMap(({ note, section, chapter, course }) => {
+    const parsed = toNote(note)
+    if (!parsed) return []
+    return [
+      {
+        ...parsed,
+        section: { id: section.id, title: section.title, display: section.section_display_number },
+        chapterDisplay: chapter.chapter_display_number,
+        course: { slug: course.slug, title: course.title },
+      },
+    ]
+  })
 }

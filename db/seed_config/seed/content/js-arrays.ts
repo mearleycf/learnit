@@ -265,8 +265,4 @@ render(lessons)
       'behind. render reads the DOM once and writes both elements, so it can be called again after ' +
       'the data changes.',
   },
-  student_solution: {
-    content: '',
-    explanation: '',
-  },
 }

@@ -236,8 +236,4 @@ export function isFinished(completed, total) {
       'rather than completed, because the phrase counts the lessons in the course. isFinished needs ' +
       'both conditions: without the total check, an empty course would report itself as finished.',
   },
-  student_solution: {
-    content: '',
-    explanation: '',
-  },
 }

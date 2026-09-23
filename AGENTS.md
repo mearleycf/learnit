@@ -55,7 +55,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `src/utils/courses.ts` | Data access for pages |
 | `src/lib/exercise-runner/` | Runs student code. `run.ts`, `link.ts`, `capture.ts` and `dom-stub.ts` are pure and unit tested |
 | `src/components/` | Astro components |
-| `src/pages/` | Routes |
+| `src/pages/` | Routes. `/notes` and `/feedback` are the cross-course views |
 
 ## Seeding rules
 

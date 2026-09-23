@@ -11,7 +11,10 @@ const formatPrice = (price: number | null) => (price == null || price === 0 ? 'F
   <main class="mx-auto max-w-3xl px-4 py-12">
     <div class="flex items-baseline justify-between gap-4">
       <h1 class="font-display text-4xl tracking-tight">Courses</h1>
-      <a href="/feedback" class="text-(--color-link) text-sm hover:underline">Feedback</a>
+      <div class="flex gap-4 text-sm">
+        <a href="/notes" class="text-(--color-link) hover:underline">Notes</a>
+        <a href="/feedback" class="text-(--color-link) hover:underline">Feedback</a>
+      </div>
     </div>
     <p class="mt-2 text-(--color-muted)">{courses.length} available</p>
 

@@ -38,7 +38,6 @@ export type ExerciseConfig = BaseEntityConfig & {
   /** `null` means "let the seeder pick"; resolved before insert. */
   difficulty: ExerciseDifficulty | null
   default_solution: unknown
-  student_solution: unknown
   estimated_time_minutes: number
 }
 

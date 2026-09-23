@@ -277,7 +277,6 @@ export const seedDb = async (): Promise<void> => {
           hints: exercise.hints ?? {},
           difficulty: exercise.difficulty ?? DIFFICULTIES[exerciseCount % DIFFICULTIES.length]!,
           default_solution: exercise.default_solution ?? {},
-          student_solution: exercise.student_solution ?? {},
           estimated_time_minutes: exercise.estimated_time_minutes || 15,
           ...dates(exerciseKey, -89, -30),
         })

@@ -27,7 +27,6 @@ export const createExerciseData = (
   hints: {},
   difficulty: null,
   default_solution: {},
-  student_solution: {},
   estimated_time_minutes: 0,
   dateConfig: courseDateOptions.exercises,
   ...(comment && { comment }),

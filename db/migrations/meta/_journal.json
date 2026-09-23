@@ -15,6 +15,13 @@
       "when": 1790187718050,
       "tag": "0001_unique_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790191333772,
+      "tag": "0002_sparkling_sphinx",
+      "breakpoints": true
     }
   ]
 }

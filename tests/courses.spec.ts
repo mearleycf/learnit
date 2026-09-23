@@ -457,3 +457,43 @@ test('reset clears saved work on the server too', async ({ page }) => {
   await page.reload()
   await expect(page.locator('[data-role="editor"]')).toHaveValue(/A value that never changes/)
 })
+
+test('the notes page lists every note with a link back', async ({ page }) => {
+  await page.goto('/notes')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notes')
+  await expect(page.locator('[data-role="note"]')).toHaveCount(3)
+  await expect(page.getByRole('link', { name: /Introduction to JavaScript/ }).first()).toBeVisible()
+})
+
+test('a note can be edited in place', async ({ page }) => {
+  const edited = `Edited by the test run ${Date.now()}`
+
+  await page.goto('/notes')
+  const note = page.locator('[data-role="note"]').first()
+  await note.getByRole('button', { name: 'Edit' }).click()
+  await note.locator('textarea').fill(edited)
+  await note.getByRole('button', { name: 'Save' }).click()
+
+  await expect(page.locator('[data-role="note-text"]').first()).toHaveText(edited)
+
+  // Survives a reload, so it reached the database.
+  await page.reload()
+  await expect(page.locator('[data-role="note-text"]').first()).toHaveText(edited)
+})
+
+test('cancelling an edit leaves the note alone', async ({ page }) => {
+  await page.goto('/notes')
+  const note = page.locator('[data-role="note"]').first()
+  const before = await note.locator('[data-role="note-text"]').textContent()
+
+  await note.getByRole('button', { name: 'Edit' }).click()
+  await note.locator('textarea').fill('discard me')
+  await note.getByRole('button', { name: 'Cancel' }).click()
+
+  await expect(note.locator('[data-role="note-text"]')).toHaveText(before ?? '')
+})
+
+test('notes can be filtered to one course', async ({ page }) => {
+  await page.goto('/notes?course=python-fundamentals')
+  await expect(page.getByText('No notes on that course.')).toBeVisible()
+})
