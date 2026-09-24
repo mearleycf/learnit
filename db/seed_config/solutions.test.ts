@@ -1,5 +1,6 @@
 import { installDomStub } from '@lib/exercise-runner/dom-stub'
 import { linkModules } from '@lib/exercise-runner/link'
+import { buildHarness, EXERCISE_DIR, filesToWrite, type HarnessResult } from '@lib/exercise-runner/python'
 import { runTests } from '@lib/exercise-runner/run'
 import type { TestCase } from '@lib/exercise-runner/types'
 // @vitest-environment node
@@ -13,7 +14,7 @@ import { describe, expect, it } from 'vitest'
 import { courseData } from './seed/courses/index'
 import type { ExerciseConfig } from './types/seed-types'
 
-type CodeFile = { filename: string; content: string }
+type CodeFile = { filename: string; content: string; language?: string }
 
 /**
  * Every authored exercise, flattened, with the context to name it in a failure.
@@ -27,11 +28,13 @@ const authoredExercises = courseData.courses.flatMap(course =>
       const exercise = section.exercise
       const tests = (exercise?.tests as { tests?: TestCase[] } | undefined)?.tests
       if (!exercise || !tests?.length) return []
+      const first = (exercise.code_files as { files?: CodeFile[] } | undefined)?.files?.[0]
       return [
         {
           name: `${course.slug} ${chapterIndex + 1}.${sectionIndex + 1} — ${section.title}`,
           exercise: exercise as ExerciseConfig,
           tests,
+          language: first?.language ?? 'javascript',
         },
       ]
     }),
@@ -44,12 +47,34 @@ const dataUrl = (code: string) => `data:text/javascript;base64,${Buffer.from(cod
 // Same stand-in document the Worker installs, so grading matches the app.
 installDomStub(globalThis as unknown as Record<string, unknown>)
 
+type Pyodide = {
+  FS: { mkdirTree: (path: string) => void; writeFile: (path: string, data: string) => void }
+  runPython: (code: string) => string
+}
+
+/** Pyodide is slow to start, so one runtime is shared across every Python check. */
+let pyodide: Promise<Pyodide> | null = null
+const getPyodide = async (): Promise<Pyodide> => {
+  pyodide ??= import('pyodide').then(m => m.loadPyodide() as Promise<Pyodide>)
+  return pyodide
+}
+
+/** Runs a Python exercise the same way the Pyodide Worker does. */
+const runPython = async (files: CodeFile[], entry: string, tests: TestCase[]) => {
+  const py = await getPyodide()
+  py.FS.mkdirTree(EXERCISE_DIR)
+  for (const file of filesToWrite(files.map(f => ({ filename: f.filename, content: f.content })))) {
+    py.FS.writeFile(file.path, file.content)
+  }
+  return JSON.parse(py.runPython(buildHarness(entry, tests))) as HarnessResult
+}
+
 describe('authored exercises', () => {
   it('finds the exercises to check', () => {
     expect(authoredExercises.length).toBeGreaterThanOrEqual(4)
   })
 
-  for (const { name, exercise, tests } of authoredExercises) {
+  for (const { name, exercise, tests, language } of authoredExercises) {
     describe(name, () => {
       const files = ((exercise.code_files as { files?: CodeFile[] }).files ?? []).map(file => ({
         filename: file.filename,
@@ -68,6 +93,13 @@ describe('authored exercises', () => {
         // Swap the starter for the solution, keeping read-only helpers as they are.
         const withSolution = files.map(file => (file.filename === entry ? { ...file, content: solution } : file))
 
+        if (language === 'python') {
+          const result = await runPython(withSolution, entry, tests)
+          expect(result.loadError).toBeNull()
+          expect(result.outcomes.filter(o => !o.passed).map(o => `${o.name}: ${o.message}`)).toEqual([])
+          return
+        }
+
         const entryUrl = linkModules(withSolution, entry, dataUrl)
         const module = (await import(/* @vite-ignore */ entryUrl)) as Record<string, unknown>
         const result = runTests({ ...module }, tests)
@@ -78,6 +110,13 @@ describe('authored exercises', () => {
       })
 
       it('the starter does not already pass, so the exercise is worth doing', async () => {
+        if (language === 'python') {
+          const result = await runPython(files, entry, tests)
+          const passed = result.outcomes.filter(o => o.passed).length
+          expect(passed, 'the starter already passes every check').toBeLessThan(tests.length)
+          return
+        }
+
         const entryUrl = linkModules(files, entry, dataUrl)
         const module = (await import(/* @vite-ignore */ entryUrl)) as Record<string, unknown>
         const result = runTests({ ...module }, tests)

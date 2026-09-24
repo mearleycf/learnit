@@ -6,15 +6,33 @@ import type { RunResult, TestCase } from './types'
 export const RUN_TIMEOUT_MS = 5_000
 
 /**
+ * Python gets longer, because the first run also starts Pyodide.
+ *
+ * That is roughly 15 MB of WebAssembly read from disk. Subsequent runs in the
+ * same Worker reuse the runtime and finish as quickly as JavaScript ones.
+ */
+export const PYTHON_TIMEOUT_MS = 60_000
+
+/**
  * Runs student code in a Worker and resolves with the outcomes.
  *
  * The Worker is terminated on timeout, which is the only way to interrupt a
  * synchronous infinite loop. Always resolves; a failure to load or a timeout
  * comes back as a RunResult with `loadError` set.
  */
-export const runExercise = (files: SourceFile[], entry: string, tests: TestCase[]): Promise<RunResult> =>
+export const runExercise = (
+  files: SourceFile[],
+  entry: string,
+  tests: TestCase[],
+  language = 'javascript',
+): Promise<RunResult> =>
   new Promise(resolve => {
-    const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
+    const python = language === 'python'
+    const timeout = python ? PYTHON_TIMEOUT_MS : RUN_TIMEOUT_MS
+
+    const worker = python
+      ? new Worker(new URL('./python-worker.ts', import.meta.url), { type: 'module' })
+      : new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
 
     const finish = (result: RunResult) => {
       clearTimeout(timer)
@@ -24,12 +42,9 @@ export const runExercise = (files: SourceFile[], entry: string, tests: TestCase[
 
     const timer = setTimeout(() => {
       finish(
-        loadFailure(
-          tests,
-          new Error(`Timed out after ${RUN_TIMEOUT_MS / 1000} seconds. Check for a loop that never ends.`),
-        ),
+        loadFailure(tests, new Error(`Timed out after ${timeout / 1000} seconds. Check for a loop that never ends.`)),
       )
-    }, RUN_TIMEOUT_MS)
+    }, timeout)
 
     worker.onmessage = (event: MessageEvent<RunResult>) => finish(event.data)
     worker.onerror = event => finish(loadFailure(tests, new Error(event.message || 'The code could not be run.')))

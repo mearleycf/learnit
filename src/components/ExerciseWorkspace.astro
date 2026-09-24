@@ -52,6 +52,7 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
   data-tests={JSON.stringify(tests)}
   data-files={JSON.stringify(files)}
   data-preview-html={previewHtml}
+  data-language={initial?.language ?? 'javascript'}
   data-saved={savedSolution ? JSON.stringify(savedSolution) : null}
 >
   <div class="flex flex-wrap items-center gap-2">
@@ -170,6 +171,7 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
     const previewPane = workspace.querySelector<HTMLElement>('[data-role="preview-pane"]')
     const previewFrame = workspace.querySelector<HTMLIFrameElement>('[data-role="preview-frame"]')
     const previewHtml = workspace.dataset.previewHtml ?? null
+    const language = workspace.dataset.language ?? 'javascript'
     const tabs = [...workspace.querySelectorAll<HTMLButtonElement>('[data-role="tab"]')]
 
     const exerciseId = workspace.dataset.exerciseId!
@@ -303,13 +305,15 @@ const initial = visible.find(file => file.filename === entry) ?? visible[0]
 
     runButton.addEventListener('click', async () => {
       runButton.disabled = true
-      summary.textContent = 'Running…'
+      // Python's first run starts Pyodide, which is worth saying rather than
+      // leaving the button dead for several seconds.
+      summary.textContent = language === 'python' ? 'Starting Python…' : 'Running…'
       summary.className = 'text-(--color-muted) text-sm'
       results.replaceChildren()
       consolePane.classList.add('hidden')
       consoleOut.replaceChildren()
 
-      const result = await runExercise(currentFiles(), entry, tests)
+      const result = await runExercise(currentFiles(), entry, tests, language)
 
       results.replaceChildren(
         ...result.outcomes.map(outcome => {

@@ -6,7 +6,17 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!dist", "!.astro", "!.vercel", "!db/migrations", "!learnit_project", "!**/*.md", "!public"]
+    "includes": [
+      "**",
+      "!dist",
+      "!.astro",
+      "!.vercel",
+      "!db/migrations",
+      "!learnit_project",
+      "!**/*.md",
+      "!public",
+      "!public/pyodide"
+    ]
   },
   "formatter": {
     "enabled": true,

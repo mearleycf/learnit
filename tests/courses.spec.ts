@@ -647,7 +647,8 @@ test('the code editor is named after the file it shows', async ({ page }) => {
 })
 
 test('an unwritten exercise says so instead of showing instructions alone', async ({ page }) => {
-  await page.goto('/courses/python-fundamentals/1/2')
+  // 1/2 is written now; 1/4 is not.
+  await page.goto('/courses/python-fundamentals/1/4')
   await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Run checks' })).toHaveCount(0)
   // The misleading instructions block is gone with it.
@@ -684,8 +685,58 @@ test('Python lessons and recaps are authored', async ({ page }) => {
 })
 
 test('Python exercises remain unwritten and say so', async ({ page }) => {
-  for (const path of ['/courses/python-fundamentals/1/2', '/courses/python-fundamentals/2/2']) {
+  for (const path of ['/courses/python-fundamentals/1/4', '/courses/python-fundamentals/2/2']) {
     await page.goto(path)
     await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
   }
+})
+
+test('a Python exercise runs and grades in the browser', async ({ page }) => {
+  test.setTimeout(120_000)
+
+  await page.goto('/courses/python-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await expect(page.getByRole('button', { name: /solution\.py/ })).toBeVisible()
+
+  await page
+    .locator('[data-role="editor"]')
+    .fill(
+      [
+        'def describe(name, lessons):',
+        '    word = "lesson" if lessons == 1 else "lessons"',
+        '    return f"{name} has {lessons} {word}"',
+        '',
+        'def whole_days(minutes):',
+        '    print("computing", minutes)',
+        '    return minutes // 60',
+        '',
+        'def initials(full_name):',
+        '    return "".join(word[0].upper() for word in full_name.split())',
+        '',
+        'def safe_int(text, fallback=0):',
+        '    try:',
+        '        return int(text)',
+        '    except ValueError:',
+        '        return fallback',
+      ].join('\n'),
+    )
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  // The first run also starts Pyodide, which takes a few seconds.
+  await expect(page.locator('[data-role="summary"]')).toHaveText('8 of 8 checks passing', { timeout: 90_000 })
+  await expect(page.locator('[data-role="console"]')).toContainText('computing 150')
+})
+
+test('a wrong Python solution reports which checks failed', async ({ page }) => {
+  test.setTimeout(120_000)
+
+  await page.goto('/courses/python-fundamentals/1/2')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  await page.getByRole('button', { name: 'Run checks' }).click()
+  await expect(page.locator('[data-role="summary"]')).toContainText('of 8 checks passing', { timeout: 90_000 })
+  await expect(page.locator('[data-role="results"] li').first()).toContainText('describe builds the sentence')
 })

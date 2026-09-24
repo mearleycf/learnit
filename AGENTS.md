@@ -102,19 +102,27 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: 31 of 39 sections. Every remaining one is an exercise, and all eight are
-blocked: seven Python (no Python runtime) and one React (no React in the Worker). Python lessons
+Authored content: 32 of 39 sections. Every remaining one is an exercise. Six are unwritten Python
+exercises, which can now be written since Python runs. One is React, still blocked. Python lessons
 are written for a JavaScript developer, comparing the two throughout.
 
 React exercises cannot run: the Worker has no module resolution for a bare `react` import and no
 DOM to render into. Advanced React chapter 2 works around this honestly, since reducers and
 stores are pure functions. Chapter 1 is about components and is blocked; see the vault questions.
 
-Exercises run client-side in a Web Worker, JavaScript only. The Worker is a crash and
+Exercises run client-side in a Web Worker. **JavaScript and Python.** The entry file's
+`language` picks the runner: `worker.ts` for JavaScript, `python-worker.ts` for Python. The Worker is a crash and
 infinite-loop guard, not a security boundary; it does not need to be, since the only author
 of that code is the person running it.
 
-An exercise may span several files. `link.ts` orders them dependency-first and rewrites
+Python runs on Pyodide, served from `public/pyodide`, which `scripts/copy-pyodide.mjs` copies
+out of node_modules before dev and build. Those 15 MB are gitignored and excluded from
+tsconfig and Biome; type-checking the generated asm.mjs exhausts Node's heap. Python files go
+into Pyodide's virtual filesystem, so imports between them need no rewriting. Checks are
+Python statements run with the student's module in scope. First run takes a few seconds to
+start the runtime, hence the longer timeout; later runs reuse it.
+
+A JavaScript exercise may span several files. `link.ts` orders them dependency-first and rewrites
 relative specifiers to blob URLs, so student files can import each other. `code_files.defaultView`
 names the entry: the file the checks import from and the tab the workspace opens on.
 Console output is captured during a run and attributed to the check that produced it. Vite's

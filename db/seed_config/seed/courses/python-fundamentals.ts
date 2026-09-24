@@ -6,6 +6,7 @@ import {
   pythonBasicsRecap,
   variablesLesson,
 } from '../content/python-basics'
+import { syntaxExercise } from '../content/python-exercises'
 import { advancedFunctionsLesson, functionBasicsLesson, functionsRecap } from '../content/python-functions'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
@@ -46,16 +47,11 @@ export const pythonFundamentals: CourseConfig = {
           title: 'Python Syntax Basics',
           description: 'Understanding Python syntax and basic programming concepts',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 2,
           access_level: 'free',
           // course 3, chapter 1, section 2, exercise 1 of 3
-          exercise: createExerciseData(
-            11,
-            1,
-            'Write Python code that demonstrates basic syntax: create variables of different types, use conditional statements, and implement a simple loop structure.',
-            'course 3, chapter 1, section 2, exercise 1 of 3',
-          ) as ExerciseConfig,
+          exercise: syntaxExercise,
         } as SectionConfig,
         {
           // course 3, chapter 1, section 3

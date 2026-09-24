@@ -167,3 +167,6 @@ local.db
 local.db-journal
 *.db-shm
 *.db-wal
+
+# Pyodide runtime, copied from node_modules by scripts/copy-pyodide.mjs
+public/pyodide/
