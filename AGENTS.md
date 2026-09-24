@@ -110,7 +110,7 @@ React exercises cannot run: the Worker has no module resolution for a bare `reac
 DOM to render into. Advanced React chapter 2 works around this honestly, since reducers and
 stores are pure functions. Chapter 1 is about components and is blocked; see the vault questions.
 
-Exercises run client-side in a Web Worker. **JavaScript and Python.** The entry file's
+Exercises run client-side in a Web Worker. **JavaScript, Python and React.** The entry file's
 `language` picks the runner: `worker.ts` for JavaScript, `python-worker.ts` for Python. The Worker is a crash and
 infinite-loop guard, not a security boundary; it does not need to be, since the only author
 of that code is the person running it.
