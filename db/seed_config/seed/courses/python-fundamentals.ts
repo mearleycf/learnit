@@ -1,4 +1,4 @@
-import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import type { ChapterConfig, CourseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
 import {
   dataStructuresRecap,
   introToPythonLesson,
@@ -17,7 +17,6 @@ import {
 } from '../content/python-exercises'
 import { advancedFunctionsLesson, functionBasicsLesson, functionsRecap } from '../content/python-functions'
 import { courseDateOptions } from '../date-options'
-import { createExerciseData } from '../utils'
 
 export const pythonFundamentals: CourseConfig = {
   // course 3
