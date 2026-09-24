@@ -1,4 +1,5 @@
 import type { ChapterConfig, CourseConfig, ExerciseConfig, SectionConfig } from '@db/seed_config/types/seed-types'
+import { componentsExercise } from '../content/react-components'
 import {
   componentArchitectureLesson,
   memoExercise,
@@ -53,16 +54,11 @@ export const advancedReact: CourseConfig = {
           title: 'Component Architecture Practice',
           description: 'Practice implementing React component patterns',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 2,
           access_level: 'free',
           // course 2, chapter 1, section 2, exercise 1 of 1
-          exercise: createExerciseData(
-            6,
-            1,
-            'Create a compound component system for a custom Form component that includes Form, Form.Input, Form.Select, and Form.Submit components with shared context.',
-            'course 2, chapter 1, section 2, exercise 1 of 1',
-          ) as ExerciseConfig,
+          exercise: componentsExercise,
         } as SectionConfig,
         {
           // course 2, chapter 1, section 3

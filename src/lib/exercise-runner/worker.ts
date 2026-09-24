@@ -1,11 +1,49 @@
 /// <reference lib="webworker" />
 import { createCapture } from './capture'
 import { installDomStub } from './dom-stub'
+import { BARE_MODULES, prepare } from './jsx'
 import { linkModules, type SourceFile } from './link'
 import { loadFailure, runTests } from './run'
 import type { RunResult, TestCase } from './types'
 
-export type RunRequest = { files: SourceFile[]; entry: string; tests: TestCase[] }
+export type RunRequest = { files: SourceFile[]; entry: string; tests: TestCase[]; react?: boolean }
+
+type ReactModule = { createElement: (type: unknown, props: unknown) => unknown }
+type ServerModule = { renderToStaticMarkup: (element: unknown) => string }
+
+/**
+ * Helpers a React exercise's checks are given.
+ *
+ * `render(Component, props)` returns the component's markup as a string.
+ * Rendering to a string needs no DOM, which is what lets component exercises
+ * run in a Worker at all. It covers structure, props and conditional
+ * branches; it does not cover clicks, state over time or effects.
+ */
+/**
+ * Absolute URLs for the React bundles.
+ *
+ * Built at runtime rather than written as literals: Vite refuses to resolve a
+ * `/public` path seen in source, since those files bypass its transforms. A
+ * full URL assembled from the Worker's own origin is opaque to it, and the
+ * browser fetches it directly.
+ */
+const reactModules = (): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(BARE_MODULES).map(([name, path]) => [name, new URL(path, self.location.origin).href]),
+  )
+
+const reactHelpers = async (modules: Record<string, string>): Promise<Record<string, unknown>> => {
+  const [React, server] = (await Promise.all([
+    import(/* @vite-ignore */ modules.react as string),
+    import(/* @vite-ignore */ modules['react-dom/server'] as string),
+  ])) as [ReactModule, ServerModule]
+
+  return {
+    React,
+    render: (Component: unknown, props: unknown = {}) =>
+      server.renderToStaticMarkup(React.createElement(Component, props)),
+  }
+}
 
 /**
  * Executes student code inside a Worker.
@@ -29,14 +67,22 @@ export type RunRequest = { files: SourceFile[]; entry: string; tests: TestCase[]
  * page down with it.
  */
 self.onmessage = async (event: MessageEvent<RunRequest>) => {
-  const { files, entry, tests } = event.data
+  const { files, entry, tests, react = false } = event.data
   const urls: string[] = []
   const capture = createCapture(self.console as unknown as Record<string, unknown>)
   const removeDomStub = installDomStub(self as unknown as Record<string, unknown>)
 
   capture.install()
   try {
-    const entryUrl = linkModules(files, entry, code => {
+    // JSX is compiled and bare React specifiers are pointed at the served
+    // bundles before linking, which only understands relative paths.
+    const modules = react ? reactModules() : {}
+    const prepared = react
+      ? files.map(file => ({ ...file, content: prepare(file.filename, file.content, modules) }))
+      : files
+    const helpers = react ? await reactHelpers(modules) : {}
+
+    const entryUrl = linkModules(prepared, entry, code => {
       const url = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }))
       urls.push(url)
       return url

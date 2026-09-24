@@ -13,6 +13,9 @@ export const RUN_TIMEOUT_MS = 5_000
  */
 export const PYTHON_TIMEOUT_MS = 60_000
 
+/** React's first run fetches about 1 MB of bundles alongside the student's code. */
+export const REACT_TIMEOUT_MS = 20_000
+
 /**
  * Runs student code in a Worker and resolves with the outcomes.
  *
@@ -28,7 +31,9 @@ export const runExercise = (
 ): Promise<RunResult> =>
   new Promise(resolve => {
     const python = language === 'python'
-    const timeout = python ? PYTHON_TIMEOUT_MS : RUN_TIMEOUT_MS
+    const react = language === 'jsx' || language === 'tsx'
+    // React's first run also fetches the bundles, so it gets a little longer.
+    const timeout = python ? PYTHON_TIMEOUT_MS : react ? REACT_TIMEOUT_MS : RUN_TIMEOUT_MS
 
     const worker = python
       ? new Worker(new URL('./python-worker.ts', import.meta.url), { type: 'module' })
@@ -49,5 +54,5 @@ export const runExercise = (
     worker.onmessage = (event: MessageEvent<RunResult>) => finish(event.data)
     worker.onerror = event => finish(loadFailure(tests, new Error(event.message || 'The code could not be run.')))
 
-    worker.postMessage({ files, entry, tests })
+    worker.postMessage({ files, entry, tests, react })
   })

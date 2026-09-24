@@ -1,4 +1,5 @@
 import { installDomStub } from '@lib/exercise-runner/dom-stub'
+import { prepare } from '@lib/exercise-runner/jsx'
 import { linkModules } from '@lib/exercise-runner/link'
 import { buildHarness, EXERCISE_DIR, filesToWrite, type HarnessResult } from '@lib/exercise-runner/python'
 import { runTests } from '@lib/exercise-runner/run'
@@ -35,6 +36,10 @@ const authoredExercises = courseData.courses.flatMap(course =>
           exercise: exercise as ExerciseConfig,
           tests,
           language: first?.language ?? 'javascript',
+          react:
+            (exercise.code_files as { files?: CodeFile[] } | undefined)?.files?.some(f =>
+              /\.(jsx|tsx)$/.test(f.filename),
+            ) ?? false,
         },
       ]
     }),
@@ -59,6 +64,35 @@ const getPyodide = async (): Promise<Pyodide> => {
   return pyodide
 }
 
+/**
+ * React bundles, as file URLs.
+ *
+ * The Worker serves these from `/react/`, which means nothing here; Node needs
+ * a path it can import.
+ */
+const REACT_MODULES = {
+  react: new URL('../../public/react/react.mjs', import.meta.url).href,
+  'react-dom/server': new URL('../../public/react/react-dom-server.mjs', import.meta.url).href,
+  'react-dom': new URL('../../public/react/react-dom-server.mjs', import.meta.url).href,
+}
+
+type ReactModule = { createElement: (type: unknown, props: unknown) => unknown }
+type ServerModule = { renderToStaticMarkup: (element: unknown) => string }
+
+/** The same `render` helper the Worker gives a React exercise's checks. */
+const reactHelpers = async (): Promise<Record<string, unknown>> => {
+  const [React, server] = (await Promise.all([
+    import(/* @vite-ignore */ REACT_MODULES.react),
+    import(/* @vite-ignore */ REACT_MODULES['react-dom/server']),
+  ])) as [ReactModule, ServerModule]
+
+  return {
+    React,
+    render: (Component: unknown, props: unknown = {}) =>
+      server.renderToStaticMarkup(React.createElement(Component, props)),
+  }
+}
+
 /** Runs a Python exercise the same way the Pyodide Worker does. */
 const runPython = async (files: CodeFile[], entry: string, tests: TestCase[]) => {
   const py = await getPyodide()
@@ -74,7 +108,7 @@ describe('authored exercises', () => {
     expect(authoredExercises.length).toBeGreaterThanOrEqual(4)
   })
 
-  for (const { name, exercise, tests, language } of authoredExercises) {
+  for (const { name, exercise, tests, language, react } of authoredExercises) {
     describe(name, () => {
       const files = ((exercise.code_files as { files?: CodeFile[] }).files ?? []).map(file => ({
         filename: file.filename,
@@ -100,9 +134,14 @@ describe('authored exercises', () => {
           return
         }
 
-        const entryUrl = linkModules(withSolution, entry, dataUrl)
+        const prepared = react
+          ? withSolution.map(f => ({ ...f, content: prepare(f.filename, f.content, REACT_MODULES) }))
+          : withSolution
+        const helpers = react ? await reactHelpers() : {}
+
+        const entryUrl = linkModules(prepared, entry, dataUrl)
         const module = (await import(/* @vite-ignore */ entryUrl)) as Record<string, unknown>
-        const result = runTests({ ...module }, tests)
+        const result = runTests({ ...helpers, ...module }, tests)
 
         const failures = result.outcomes.filter(outcome => !outcome.passed)
         expect(failures.map(f => `${f.name}: ${f.message}`)).toEqual([])
@@ -117,9 +156,14 @@ describe('authored exercises', () => {
           return
         }
 
-        const entryUrl = linkModules(files, entry, dataUrl)
+        const prepared = react
+          ? files.map(f => ({ ...f, content: prepare(f.filename, f.content, REACT_MODULES) }))
+          : files
+        const helpers = react ? await reactHelpers() : {}
+
+        const entryUrl = linkModules(prepared, entry, dataUrl)
         const module = (await import(/* @vite-ignore */ entryUrl)) as Record<string, unknown>
-        const result = runTests({ ...module }, tests)
+        const result = runTests({ ...helpers, ...module }, tests)
 
         expect(result.passed, 'the starter already passes every check').toBeLessThan(result.total)
       })
