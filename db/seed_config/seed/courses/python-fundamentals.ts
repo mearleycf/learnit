@@ -6,7 +6,15 @@ import {
   pythonBasicsRecap,
   variablesLesson,
 } from '../content/python-basics'
-import { syntaxExercise } from '../content/python-exercises'
+import {
+  decoratorsExercise,
+  functionsExercise,
+  listsExercise,
+  modulesExercise,
+  numbersExercise,
+  stringsExercise,
+  syntaxExercise,
+} from '../content/python-exercises'
 import { advancedFunctionsLesson, functionBasicsLesson, functionsRecap } from '../content/python-functions'
 import { courseDateOptions } from '../date-options'
 import { createExerciseData } from '../utils'
@@ -69,16 +77,11 @@ export const pythonFundamentals: CourseConfig = {
           title: 'Working with Numbers',
           description: 'Practice working with numerical data in Python',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 4,
           access_level: 'free',
           // course 3, chapter 1, section 4, exercise 2 of 3
-          exercise: createExerciseData(
-            12,
-            2,
-            'Create functions to perform basic mathematical operations, work with number types, and handle numerical errors.',
-            'course 3, chapter 1, section 4, exercise 2 of 3',
-          ) as ExerciseConfig,
+          exercise: numbersExercise,
         } as SectionConfig,
         {
           // course 3, chapter 1, section 5
@@ -86,16 +89,11 @@ export const pythonFundamentals: CourseConfig = {
           title: 'String Operations',
           description: 'Practice working with strings in Python',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 5,
           access_level: 'free',
           // course 3, chapter 1, section 5, exercise 3 of 3
-          exercise: createExerciseData(
-            13,
-            3,
-            'Implement string manipulation functions: reverse a string, check for palindromes, and count word frequencies in a text.',
-            'course 3, chapter 1, section 5, exercise 3 of 3',
-          ) as ExerciseConfig,
+          exercise: stringsExercise,
         } as SectionConfig,
         {
           // course 3, chapter 1, section 6
@@ -133,16 +131,11 @@ export const pythonFundamentals: CourseConfig = {
           title: 'List Operations',
           description: 'Working with Python lists',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 2,
           access_level: 'free',
           // course 3, chapter 2, section 2, exercise 1 of 1
-          exercise: createExerciseData(
-            14,
-            1,
-            'Implement common list operations: sorting with custom keys, list comprehensions, and efficient list manipulations.',
-            'course 3, chapter 2, section 2, exercise 1 of 1',
-          ) as ExerciseConfig,
+          exercise: listsExercise,
         } as SectionConfig,
         {
           // course 3, chapter 2, section 3
@@ -190,16 +183,11 @@ export const pythonFundamentals: CourseConfig = {
           title: 'Basic Function Practice',
           description: 'Practice writing Python functions',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 3,
           access_level: 'free',
           // course 3, chapter 3, section 3, exercise 1 of 3
-          exercise: createExerciseData(
-            15,
-            1,
-            'Create functions implementing basic algorithms: factorial calculation, Fibonacci sequence, and prime number checking.',
-            'course 3, chapter 3, section 3, exercise 1 of 3',
-          ) as ExerciseConfig,
+          exercise: functionsExercise,
         } as SectionConfig,
         {
           // course 3, chapter 3, section 4
@@ -207,16 +195,11 @@ export const pythonFundamentals: CourseConfig = {
           title: 'Advanced Function Practice',
           description: 'Practice with advanced function concepts',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 4,
           access_level: 'free',
           // course 3, chapter 3, section 4, exercise 2 of 3
-          exercise: createExerciseData(
-            16,
-            2,
-            'Implement decorator functions for logging, timing, and memoization. Create generator functions for efficient data processing.',
-            'course 3, chapter 3, section 4, exercise 2 of 3',
-          ) as ExerciseConfig,
+          exercise: decoratorsExercise,
         } as SectionConfig,
         {
           // course 3, chapter 3, section 5
@@ -224,16 +207,11 @@ export const pythonFundamentals: CourseConfig = {
           title: 'Module Development',
           description: 'Practice creating Python modules',
           content_type: 'exercise',
-          content: {},
+          content: { content_type: 'exercise' },
           section_display_number: 5,
           access_level: 'free',
           // course 3, chapter 3, section 5, exercise 3 of 3
-          exercise: createExerciseData(
-            17,
-            3,
-            'Create a Python module that implements a simple text processing library with functions for analyzing, formatting, and transforming text.',
-            'course 3, chapter 3, section 5, exercise 3 of 3',
-          ) as ExerciseConfig,
+          exercise: modulesExercise,
         } as SectionConfig,
         {
           // course 3, chapter 3, section 6

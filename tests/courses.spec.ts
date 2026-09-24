@@ -647,8 +647,9 @@ test('the code editor is named after the file it shows', async ({ page }) => {
 })
 
 test('an unwritten exercise says so instead of showing instructions alone', async ({ page }) => {
-  // 1/2 is written now; 1/4 is not.
-  await page.goto('/courses/python-fundamentals/1/4')
+  // Every Python exercise is written now. The React one is the last that is not,
+  // and it stays that way until the runner can execute React.
+  await page.goto('/courses/advanced-react/1/2')
   await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Run checks' })).toHaveCount(0)
   // The misleading instructions block is gone with it.
@@ -682,13 +683,6 @@ test('Python lessons and recaps are authored', async ({ page }) => {
 
   await page.goto('/courses/python-fundamentals/3/6')
   await expect(page.getByRole('heading', { name: 'Key points' })).toBeVisible()
-})
-
-test('Python exercises remain unwritten and say so', async ({ page }) => {
-  for (const path of ['/courses/python-fundamentals/1/4', '/courses/python-fundamentals/2/2']) {
-    await page.goto(path)
-    await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
-  }
 })
 
 test('a Python exercise runs and grades in the browser', async ({ page }) => {
@@ -739,4 +733,41 @@ test('a wrong Python solution reports which checks failed', async ({ page }) => 
   await page.getByRole('button', { name: 'Run checks' }).click()
   await expect(page.locator('[data-role="summary"]')).toContainText('of 8 checks passing', { timeout: 90_000 })
   await expect(page.locator('[data-role="results"] li').first()).toContainText('describe builds the sentence')
+})
+
+test('a multi-file Python exercise resolves imports between modules', async ({ page }) => {
+  test.setTimeout(120_000)
+
+  await page.goto('/courses/python-fundamentals/3/5')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  // Two read-only helpers plus the student's module.
+  await expect(page.getByRole('button', { name: /formatting\.py/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /timing\.py/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /report\.py/ })).toBeVisible()
+
+  await page
+    .locator('[data-role="editor"]')
+    .fill(
+      [
+        'from formatting import pluralise, titlecase',
+        'from timing import humanise',
+        '',
+        'MODULE_NAME = __name__',
+        '',
+        'def line(lesson):',
+        "    return f\"{titlecase(lesson['title'])} \\u2014 {humanise(lesson['minutes'])}\"",
+        '',
+        'def report(lessons):',
+        '    lines = [line(lesson) for lesson in lessons]',
+        '    total = sum(lesson["minutes"] for lesson in lessons)',
+        '    count = len(lessons)',
+        '    lines.append(f"{count} {pluralise(count, \'lesson\')}, {humanise(total)} total")',
+        '    return "\\n".join(lines)',
+      ].join('\n'),
+    )
+  await page.getByRole('button', { name: 'Run checks' }).click()
+
+  await expect(page.locator('[data-role="summary"]')).toHaveText('7 of 7 checks passing', { timeout: 90_000 })
 })

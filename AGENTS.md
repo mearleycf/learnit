@@ -102,8 +102,8 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: 32 of 39 sections. Every remaining one is an exercise. Six are unwritten Python
-exercises, which can now be written since Python runs. One is React, still blocked. Python lessons
+Authored content: 38 of 39 sections. All three courses are complete except one section:
+Advanced React 1.2, which needs React in the runner and is blocked. Python lessons
 are written for a JavaScript developer, comparing the two throughout.
 
 React exercises cannot run: the Worker has no module resolution for a bare `react` import and no
