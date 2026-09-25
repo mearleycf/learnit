@@ -40,7 +40,7 @@ test('an exercise section renders instructions, a workspace and hints', async ({
 })
 
 test('a recap section renders its key points', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/5')
+  await page.goto('/courses/javascript-fundamentals/1/17')
   await expect(page.getByRole('heading', { name: 'Key points' })).toBeVisible()
   await expect(page.locator('li')).not.toHaveCount(0)
 })
@@ -59,13 +59,13 @@ test('an unknown course returns the not-found page', async ({ page }) => {
 
 test('the outline shows seeded progress', async ({ page }) => {
   await page.goto('/courses/javascript-fundamentals')
-  await expect(page.getByText(/of 6 sections complete/)).toBeVisible()
+  await expect(page.getByText(/of 101 sections complete/)).toBeVisible()
   await expect(page.getByRole('link', { name: /^Resume:/ })).toBeVisible()
 })
 
 test('marking a section complete persists and updates the outline', async ({ page }) => {
-  // Section 1.3 is not complete in the seed; only 1.1 is.
-  await page.goto('/courses/javascript-fundamentals/1/3')
+  // Section 1.15 is not complete in the seed; only 1.1 is.
+  await page.goto('/courses/javascript-fundamentals/1/15')
   const before = page.getByRole('button', { name: 'Mark complete' })
   await expect(before).toBeVisible()
   await before.click()
@@ -74,10 +74,10 @@ test('marking a section complete persists and updates the outline', async ({ pag
   await expect(after).toBeVisible()
 
   await page.goto('/courses/javascript-fundamentals')
-  await expect(page.getByText('2 of 6 sections complete')).toBeVisible()
+  await expect(page.getByText('2 of 101 sections complete')).toBeVisible()
 
   // Put it back so the suite can run repeatedly.
-  await page.goto('/courses/javascript-fundamentals/1/3')
+  await page.goto('/courses/javascript-fundamentals/1/15')
   await page.getByRole('button', { name: /Completed/ }).click()
   await expect(page.getByRole('button', { name: 'Mark complete' })).toBeVisible()
 })
@@ -103,7 +103,7 @@ test('a note can be added and deleted', async ({ page }) => {
 })
 
 test('an empty note is rejected', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/1/5')
+  await page.goto('/courses/javascript-fundamentals/1/17')
   const textarea = page.getByPlaceholder('What do you want to remember')
   await expect(textarea).toHaveAttribute('required', '')
   await expect(page.getByText('No notes on this section yet.')).toBeVisible()
@@ -127,7 +127,7 @@ test('filtering by status narrows the list', async ({ page }) => {
 test('a report can be filed and then triaged', async ({ page }) => {
   const body = `Report from the test run ${Date.now()}`
 
-  await page.goto('/courses/javascript-fundamentals/1/5')
+  await page.goto('/courses/javascript-fundamentals/1/17')
   await page.getByText('Report a problem with this section').click()
   await page.getByLabel('Problem category').selectOption('technical_issue')
   await page.getByPlaceholder('What is wrong?').fill(body)
@@ -215,13 +215,13 @@ test('reset restores the starter code', async ({ page }) => {
 })
 
 test('the browser chapter renders its exercise', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/1')
+  await page.goto('/courses/javascript-fundamentals/5/5')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Rendering a List')
   await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
 })
 
 test('a multi-file exercise opens on the editable entry file', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/1/3')
+  await openExercise(page, '/courses/javascript-fundamentals/1/15')
 
   await expect(page.getByRole('button', { name: /format\.js/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /progress\.js/ })).toBeVisible()
@@ -233,7 +233,7 @@ test('a multi-file exercise opens on the editable entry file', async ({ page }) 
 })
 
 test('a read-only file can be viewed but not edited', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/1/3')
+  await openExercise(page, '/courses/javascript-fundamentals/1/15')
 
   await page.getByRole('button', { name: /format\.js/ }).click()
   const editor = page.locator('[data-role="editor"]')
@@ -242,7 +242,7 @@ test('a read-only file can be viewed but not edited', async ({ page }) => {
 })
 
 test('a solution importing from a sibling file passes every check', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/1/3')
+  await openExercise(page, '/courses/javascript-fundamentals/1/15')
 
   await page
     .locator('[data-role="editor"]')
@@ -264,7 +264,7 @@ test('a solution importing from a sibling file passes every check', async ({ pag
 })
 
 test('an import with no matching file fails without crashing', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/1/3')
+  await openExercise(page, '/courses/javascript-fundamentals/1/15')
 
   await page.locator('[data-role="editor"]').fill("import { nope } from './missing.js'\nexport const a = 1")
   await page.getByRole('button', { name: 'Run checks' }).click()
@@ -340,7 +340,7 @@ const RENDER_SOLUTION = [
 ].join('\n')
 
 test('a DOM exercise is graded despite the worker having no document', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/2/1')
+  await openExercise(page, '/courses/javascript-fundamentals/5/5')
 
   await page.locator('[data-role="editor"]').fill(RENDER_SOLUTION)
   await page.getByRole('button', { name: 'Run checks' }).click()
@@ -349,7 +349,7 @@ test('a DOM exercise is graded despite the worker having no document', async ({ 
 })
 
 test('the preview renders student output into a real document', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/2/1')
+  await openExercise(page, '/courses/javascript-fundamentals/5/5')
 
   await page.locator('[data-role="editor"]').fill(RENDER_SOLUTION)
   await page.getByRole('button', { name: 'Run preview' }).click()
@@ -361,7 +361,7 @@ test('the preview renders student output into a real document', async ({ page })
 })
 
 test('console output from the preview reaches the workspace', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/2/1')
+  await openExercise(page, '/courses/javascript-fundamentals/5/5')
 
   await page.locator('[data-role="editor"]').fill(RENDER_SOLUTION)
   await page.getByRole('button', { name: 'Run preview' }).click()
@@ -370,7 +370,7 @@ test('console output from the preview reaches the workspace', async ({ page }) =
 })
 
 test('an error in the preview is reported, not swallowed', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/2/1')
+  await openExercise(page, '/courses/javascript-fundamentals/5/5')
 
   await page.locator('[data-role="editor"]').fill("throw new Error('preview blew up')\nexport const a = 1")
   await page.getByRole('button', { name: 'Run preview' }).click()
@@ -385,7 +385,7 @@ test('an exercise with no markup has no preview button', async ({ page }) => {
 })
 
 test('hints are locked or shown according to the attempt count', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/2/1')
+  await openExercise(page, '/courses/javascript-fundamentals/5/5')
 
   // Other tests share this database, so assert the rule rather than a fixed count.
   const attemptsText = (await page.locator('[data-role="attempts"]').textContent()) ?? ''
@@ -406,7 +406,7 @@ test('hints are locked or shown according to the attempt count', async ({ page }
 })
 
 test('running an exercise unlocks any hint the new count has earned', async ({ page }) => {
-  await openExercise(page, '/courses/javascript-fundamentals/2/1')
+  await openExercise(page, '/courses/javascript-fundamentals/5/5')
 
   await page.getByRole('button', { name: 'Run checks' }).click()
   await expect(page.locator('[data-role="attempts"]')).toContainText('attempt')
@@ -426,7 +426,7 @@ test('running an exercise unlocks any hint the new count has earned', async ({ p
 test('work is restored from the server after local storage is cleared', async ({ page }) => {
   const marker = `// probe ${Date.now()}`
 
-  await openExercise(page, '/courses/javascript-fundamentals/1/3')
+  await openExercise(page, '/courses/javascript-fundamentals/1/15')
 
   await page.locator('[data-role="editor"]').fill(`${marker}\nexport const a = 1`)
   // The save is debounced, so give it a moment to reach the server.
@@ -443,7 +443,7 @@ test('work is restored from the server after local storage is cleared', async ({
 })
 
 test('reset clears saved work on the server too', async ({ page }) => {
-  // Uses 1/2 so it does not race the persistence test, which owns 1/3.
+  // Uses 1/2 so it does not race the persistence test, which owns 1/15.
   await openExercise(page, '/courses/javascript-fundamentals/1/2')
 
   await page.locator('[data-role="editor"]').fill('// throwaway')
@@ -517,7 +517,7 @@ test('the dashboard offers somewhere to pick up', async ({ page }) => {
 
 test('the dashboard shows progress and how much is written', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('6 of 6 sections written')).toBeVisible()
+  await expect(page.getByText('29 of 101 sections written')).toBeVisible()
   // Every course has content now, so nothing reports as entirely unwritten.
   await expect(page.getByText('nothing to read yet')).toHaveCount(0)
 })
@@ -568,7 +568,7 @@ test('lesson markdown still renders after sharing the processor', async ({ page 
 })
 
 test('exercise instructions render as markdown', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/1')
+  await page.goto('/courses/javascript-fundamentals/5/5')
   const instructions = page.locator('[data-role="instructions"]')
   await expect(instructions.locator('code').first()).toBeVisible()
   await expect(instructions.locator('ol li')).not.toHaveCount(0)
@@ -581,7 +581,7 @@ test('pages use the width well at the sizes Mike actually browses at', async ({ 
   for (const width of [1150, 1512]) {
     await page.setViewportSize({ width, height: 900 })
 
-    for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/2/1']) {
+    for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/5/5']) {
       await page.goto(path)
 
       const { overflows, main } = await page.evaluate(() => ({
@@ -624,7 +624,7 @@ test('the skip link becomes visible on focus', async ({ page }) => {
 })
 
 test('every interactive control has an accessible name', async ({ page }) => {
-  for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/2/1']) {
+  for (const path of ['/', '/notes', '/feedback', '/search?q=reduce', '/courses/javascript-fundamentals/5/5']) {
     await page.goto(path)
     const unlabelled = await page.evaluate(() =>
       [...document.querySelectorAll('button, a, input, textarea, select')]
@@ -642,7 +642,7 @@ test('every interactive control has an accessible name', async ({ page }) => {
 })
 
 test('the code editor is named after the file it shows', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/1')
+  await page.goto('/courses/javascript-fundamentals/5/5')
   const editor = page.locator('[data-role="editor"]')
   await expect(editor).toHaveAttribute('aria-label', /render\.js/)
 
@@ -651,9 +651,9 @@ test('the code editor is named after the file it shows', async ({ page }) => {
 })
 
 test('an unwritten exercise says so instead of showing instructions alone', async ({ page }) => {
-  // JavaScript 1.4 is a stub: its frontmatter declares the shape, and the body
+  // JavaScript 1.6 is a stub: its frontmatter declares the shape, and the body
   // that would carry the starter, checks and hints has not been written.
-  await page.goto('/courses/javascript-fundamentals/1/4')
+  await page.goto('/courses/javascript-fundamentals/1/6')
   await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Run checks' })).toHaveCount(0)
   // The misleading instructions block is gone with it.
@@ -661,7 +661,7 @@ test('an unwritten exercise says so instead of showing instructions alone', asyn
 })
 
 test('a written exercise is unaffected', async ({ page }) => {
-  await page.goto('/courses/javascript-fundamentals/2/1')
+  await page.goto('/courses/javascript-fundamentals/5/5')
   await expect(page.getByRole('heading', { name: 'Instructions' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Run checks' })).toBeVisible()
   await expect(page.getByText('This exercise has not been written yet.')).toHaveCount(0)
