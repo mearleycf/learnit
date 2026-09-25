@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
 export const userSchema = z.object({
-  id: z.string().ulid(),
+  id: z.ulid(),
   first_name: z.string(),
   last_name: z.string(),
-  email: z.string().email(),
-  avatar_url: z.string().url().optional(),
+  email: z.email(),
+  avatar_url: z.url().optional(),
   role: z.enum(['student', 'author', 'course_admin', 'app_admin']),
-  enrolled_courses: z.array(z.string().ulid()).optional().default([]),
-  assigned_courses: z.array(z.string().ulid()).optional().default([]),
+  enrolled_courses: z.array(z.ulid()).optional().default([]),
+  assigned_courses: z.array(z.ulid()).optional().default([]),
   auth_provider: z.string().optional(),
   auth_provider_id: z.string().optional(),
   github_username: z.string().optional(),

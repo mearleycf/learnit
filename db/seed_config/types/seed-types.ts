@@ -1,204 +1,78 @@
-import type {
-  Course,
-  Chapter,
-  Section,
-  Exercise,
-  Note,
-  Feedback,
-  User,
-  StudentProgress,
-  StudentExerciseProgress,
-} from '@schemas/schema-types'
 import type { DateOptions } from '@utils/general_utils'
-import type { SeedingError } from './seed-error-types'
-import type { LogInfo } from '@utils/logger'
-import { z } from 'zod'
 
-// Base config type that all seeder configs extend
+/**
+ * Authoring shapes for seed data.
+ *
+ * These deliberately do NOT derive from the database row types. Seed files are
+ * written by hand and omit anything the seeder can derive: parent foreign keys,
+ * sort order, and timestamps. The previous versions of these types were
+ * `Omit<Course, 'created_at' | 'updated_at'>` and friends, which demanded
+ * columns the data never carried and produced most of the type-check failures.
+ */
 type BaseEntityConfig = {
-  id: string
+  /**
+   * Derived by the seeder from a natural key, never authored. Present only so
+   * existing fixtures that still set it keep type-checking.
+   */
+  id?: string
   seedSequence: number
-  dateConfig: DateOptions
+  /** Overrides the default date distribution for this entity. */
+  dateConfig?: DateOptions
+  /** Authoring note; ignored by the seeder. */
   comment?: string
 }
 
-// Config types extend the base schema types with seeder-specific fields
-export type CourseConfig = BaseEntityConfig &
-  Omit<Course, 'created_at' | 'updated_at'> & {
-    chapters: ChapterConfig[]
-  }
+export type CourseLevel = 'beginner' | 'intermediate' | 'advanced'
+export type SectionContentType = 'lesson' | 'recap' | 'exercise'
+export type SectionAccessLevel = 'purchased' | 'free'
+export type ExerciseDifficulty = 'easy' | 'medium' | 'hard'
 
-export type ChapterConfig = BaseEntityConfig &
-  Omit<Chapter, 'created_at' | 'updated_at'> & {
-    sections: SectionConfig[]
-  }
-
-export type SectionConfig = BaseEntityConfig &
-  Omit<Section, 'created_at' | 'updated_at'> & {
-    exercise: ExerciseConfig
-  }
-
-export type ExerciseConfig = BaseEntityConfig & Omit<Exercise, 'created_at' | 'updated_at'>
-
-export type FeedbackConfig = BaseEntityConfig & Omit<Feedback, 'created_at' | 'updated_at'>
-
-export type NoteConfig = BaseEntityConfig & Omit<Note, 'created_at' | 'updated_at'>
-
-export type StudentExerciseProgressConfig = BaseEntityConfig &
-  Omit<StudentExerciseProgress, 'created_at' | 'updated_at'>
-
-export type StudentProgressConfig = BaseEntityConfig & Omit<StudentProgress, 'created_at' | 'updated_at'>
-
-export type UsersConfig = BaseEntityConfig & Omit<User, 'created_at' | 'updated_at'>
-
-export type SeededCourse = {
-  id: string
-  createdAt: Date
-  updatedAt: Date | null
+export type ExerciseConfig = BaseEntityConfig & {
+  exercise_display_number: number
+  instructions: string
+  /** Markup for the live preview. Omitted by exercises that are pure logic. */
+  browser_html?: unknown
+  code_files: unknown
+  tests: unknown
+  hints: unknown
+  /** `null` means "let the seeder pick"; resolved before insert. */
+  difficulty: ExerciseDifficulty | null
+  default_solution: unknown
+  estimated_time_minutes: number
 }
 
-type BaseTimestamps = {
-  stateStarted: Date
-  stateEnded: Date | null
+export type SectionConfig = BaseEntityConfig & {
+  title: string
+  description: string
+  section_display_number: number
+  content_type: SectionContentType
+  content?: unknown
+  access_level: SectionAccessLevel
+  exercise?: ExerciseConfig
 }
 
-type BaseState = {
-  timestamps: BaseTimestamps
+export type ChapterConfig = BaseEntityConfig & {
+  title: string
+  description: string
+  chapter_display_number: number
+  /** Human-authored duration such as "3 hours"; parsed to minutes on insert. */
+  estimated_time?: string
+  estimated_time_minutes?: number
+  sections: SectionConfig[]
 }
 
-type DataState<T> = BaseState & {
-  dataSet?: T[]
+export type CourseConfig = BaseEntityConfig & {
+  title: string
+  description: string
+  slug: string
+  subject_area: string
+  level: CourseLevel
+  tags: string[]
+  price?: number | null
+  purchase_active_length?: number | null
+  chapters: ChapterConfig[]
 }
 
-type FailureState<T> = BaseState & {
-  error?: SeedingError
-  lastValidState?: SeederState<T>
-}
-
-export type SeederState<T> = BaseState &
-  DataState<T> &
-  FailureState<T> & {
-    status:
-      | 'notStarted'
-      | 'buildingData'
-      | 'builtData'
-      | 'insertingData'
-      | 'insertedData'
-      | 'returningData'
-      | 'returnedData'
-      | 'loggingResult'
-      | 'loggedResult'
-      | 'failing'
-      | 'failed'
-      | 'seederCompleted'
-    rowsBuilt?: number
-    rowsInserted?: number
-    rowsReturned?: number
-    phase?: 'building' | 'inserting' | 'returning' | 'logging' | 'completed'
-    lastValidState?: SeederState<T>
-  }
-
-export type ValidationResult = {
-  isValid: boolean
-  error?: string
-}
-
-type BaseEvent = {
-  timestamps: BaseTimestamps
-  logInfo: LogInfo
-}
-
-type SeederEventType =
-  | 'START_BUILD'
-  | 'BUILD_COMPLETE'
-  | 'START_INSERT'
-  | 'INSERT_COMPLETE'
-  | 'START_RETURN'
-  | 'RETURN_COMPLETE'
-  | 'START_LOG'
-  | 'LOG_COMPLETE'
-  | 'START_FAIL'
-  | 'FAIL_COMPLETE'
-  | 'SEEDER_COMPLETE'
-export type SeederPhase = 'building' | 'inserting' | 'returning' | 'logging' | 'completed'
-
-export type SeederEvent = BaseEvent & { type: SeederEventType; phase: SeederPhase; error?: SeedingError }
-
-export type Transition<T> = {
-  from: SeederState<T>
-  to: SeederState<T>
-  event: SeederEvent
-  validation?: ValidationResult
-}
-
-// transition function helper type
-export type TransitionFunction<T, S extends SeederState<T>['status']> = (
-  state: Extract<SeederState<T>, { status: S }>,
-  event: SeederEvent,
-) => SeederState<T>
-
-export type StateTransitionMap<T> = {
-  [S in SeederState<T>['status']]: {
-    [E in SeederEventType]: TransitionFunction<T, S>
-  }
-}
-
-export const isBuildingState = <T>(
-  state: SeederState<T>,
-): state is DataState<T> & {
-  status: 'buildingData' | 'builtData'
-  rowsBuilt: number
-} => {
-  return ['buildingData', 'builtData'].includes(state.status)
-}
-
-export const isInsertingState = <T>(
-  state: SeederState<T>,
-): state is DataState<T> & {
-  status: 'insertingData' | 'insertedData'
-  rowsInserted: number
-} => {
-  return ['insertingData', 'insertedData'].includes(state.status)
-}
-
-export const isReturningState = <T>(
-  state: SeederState<T>,
-): state is DataState<T> & {
-  status: 'returningData' | 'returnedData'
-  rowsReturned: number
-} => {
-  return ['returningData', 'returnedData'].includes(state.status)
-}
-
-export const isLoggingState = <T>(
-  state: SeederState<T>,
-): state is BaseState & {
-  status: 'loggingResult' | 'loggedResult'
-} => {
-  return ['loggingResult', 'loggedResult'].includes(state.status)
-}
-
-export const isFailingState = <T>(
-  state: SeederState<T>,
-): state is FailureState<T> & {
-  status: 'failing' | 'failed'
-  phase: 'building' | 'inserting' | 'returning' | 'logging'
-} => {
-  return ['failing', 'failed'].includes(state.status)
-}
-
-export const isCompletedState = <T>(
-  state: SeederState<T>,
-): state is BaseState & {
-  status: 'seederCompleted'
-  lastValidState: SeederState<T>
-} => {
-  return state.status === 'seederCompleted'
-}
-
-// Add this type to seed-types.ts
-export type StateHistoryEntry = {
-  status: SeederState<any>['status']
-  stateStarted: Date
-  stateEnded: Date | null
+export type CourseSeedData = {
+  courses: CourseConfig[]
 }

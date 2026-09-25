@@ -1,0 +1,1 @@
+ALTER TABLE `student_exercise_progress` ADD `solution` text;

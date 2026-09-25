@@ -161,3 +161,15 @@ dist
 
 # Copilot instructions
 copilot-instructions.md
+
+# local libSQL database created by drizzle-kit / yarn db:seed
+local.db
+local.db-journal
+*.db-shm
+*.db-wal
+
+# Pyodide runtime, copied from node_modules by scripts/copy-pyodide.mjs
+public/pyodide/
+
+# React bundles, built from node_modules by scripts/build-react.mjs
+public/react/

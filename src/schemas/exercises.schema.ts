@@ -73,14 +73,9 @@ const defaultSolutionSchema = z.object({
   explanation: jsonSerializableSchema,
 })
 
-const studentSolutionSchema = z.object({
-  content: jsonSerializableSchema,
-  explanation: jsonSerializableSchema,
-})
-
 export const exerciseSchema = z.object({
-  id: z.string().ulid(),
-  section_id: z.string().ulid(),
+  id: z.ulid(),
+  section_id: z.ulid(),
   exercise_display_number: z.number(),
   sort_order: z.number(),
   instructions: z.string(),
@@ -90,7 +85,6 @@ export const exerciseSchema = z.object({
   hints: hintSchema,
   difficulty: z.enum(['easy', 'medium', 'hard']),
   default_solution: defaultSolutionSchema,
-  student_solution: studentSolutionSchema,
   estimated_time_minutes: z.number(),
   created_at: z.date(),
   updated_at: z.date(),

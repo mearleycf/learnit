@@ -1,0 +1,142 @@
+---
+import { actions } from 'astro:actions'
+
+import Layout from '@layouts/Layout.astro'
+import { PROSE_COMPACT, renderAllUserInput } from '@utils/markdown'
+import { listAllNotes } from '@utils/notes'
+import { getCurrentUser } from '@utils/progress'
+
+const user = await getCurrentUser()
+const notes = user ? await listAllNotes(user.id) : []
+
+const courseFilter = Astro.url.searchParams.get('course')
+const visible = courseFilter ? notes.filter(note => note.course.slug === courseFilter) : notes
+
+/** Courses that actually have notes, so the filter never offers an empty view. */
+const courses = [...new Map(notes.map(note => [note.course.slug, note.course])).values()].sort((a, b) =>
+  a.title.localeCompare(b.title),
+)
+
+const countFor = (slug: string) => notes.filter(note => note.course.slug === slug).length
+
+/** Rendered bodies, in the same order as `visible`. */
+const bodies = await renderAllUserInput(visible.map(note => note.markdown))
+
+const formatDate = (date: Date) => date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+---
+
+<Layout title="Notes">
+  <main id="main" class="mx-auto w-full max-w-5xl px-4 py-12">
+    <a href="/" class="text-(--color-link) text-sm hover:underline">&larr; All courses</a>
+
+    <h1 class="font-display mt-4 text-4xl tracking-tight">Notes</h1>
+    <p class="text-(--color-muted) mt-2">{notes.length} across {courses.length} courses</p>
+
+    {
+      courses.length > 1 && (
+        <nav class="mt-6 flex flex-wrap gap-2 text-sm">
+          <a
+            href="/notes"
+            class={`rounded px-3 py-1 ${courseFilter ? 'text-(--color-muted) hover:bg-(--color-raised)' : 'bg-(--color-raised) font-medium'}`}
+          >
+            All ({notes.length})
+          </a>
+          {courses.map(course => (
+            <a
+              href={`/notes?course=${course.slug}`}
+              class={`rounded px-3 py-1 ${courseFilter === course.slug ? 'bg-(--color-raised) font-medium' : 'text-(--color-muted) hover:bg-(--color-raised)'}`}
+            >
+              {course.title} ({countFor(course.slug)})
+            </a>
+          ))}
+        </nav>
+      )
+    }
+
+    <ul class="mt-8 space-y-4">
+      {
+        visible.map((note, index) => (
+          <li class="rounded-lg border border-(--color-edge) p-5" data-role="note">
+            {note.quote && (
+              <blockquote class="border-sky text-(--color-muted) border-l-2 pl-3 text-sm italic">
+                {note.quote}
+              </blockquote>
+            )}
+
+            <div class={`mt-2 text-sm leading-relaxed ${PROSE_COMPACT}`} data-role="note-text" set:html={bodies[index]} />
+
+            <form method="POST" action={actions.editNote} class="mt-2 hidden" data-role="note-edit">
+              <input type="hidden" name="noteId" value={note.id} />
+              <textarea
+                name="markdown"
+                rows="3"
+                required
+                aria-label="Edit note"
+                class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
+                >{note.markdown}</textarea
+              >
+              <div class="mt-2 flex gap-2">
+                <button
+                  type="submit"
+                  class="rounded-lg border border-(--color-edge) px-3 py-1 text-xs transition hover:bg-(--color-raised)"
+                >
+                  Save
+                </button>
+                <button type="button" data-role="note-cancel" class="text-(--color-faint) text-xs hover:underline">
+                  Cancel
+                </button>
+              </div>
+            </form>
+
+            <div class="text-(--color-faint) mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <a
+                href={`/courses/${note.course.slug}/${note.chapterDisplay}/${note.section.display}`}
+                class="text-(--color-link) hover:underline"
+              >
+                {note.course.title} &middot; {note.section.title}
+              </a>
+              <time datetime={note.created_at.toISOString()}>{formatDate(note.created_at)}</time>
+              <button type="button" data-role="note-edit-start" class="hover:text-(--color-ink) text-xs">
+                Edit
+              </button>
+              <form method="POST" action={actions.removeNote}>
+                <input type="hidden" name="noteId" value={note.id} />
+                <button type="submit" class="hover:text-rose text-xs">Delete</button>
+              </form>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      visible.length === 0 && (
+        <p class="text-(--color-faint) mt-8 text-sm">
+          {notes.length === 0 ? 'No notes yet. Take one from any section.' : 'No notes on that course.'}
+        </p>
+      )
+    }
+  </main>
+</Layout>
+
+<script>
+  // Swap the rendered note for its edit form, and back again on cancel.
+  for (const note of document.querySelectorAll<HTMLElement>('[data-role="note"]')) {
+    const text = note.querySelector<HTMLElement>('[data-role="note-text"]')
+    const form = note.querySelector<HTMLElement>('[data-role="note-edit"]')
+    const start = note.querySelector<HTMLButtonElement>('[data-role="note-edit-start"]')
+    const cancel = note.querySelector<HTMLButtonElement>('[data-role="note-cancel"]')
+    if (!text || !form || !start || !cancel) continue
+
+    start.addEventListener('click', () => {
+      text.classList.add('hidden')
+      form.classList.remove('hidden')
+      form.querySelector('textarea')?.focus()
+    })
+
+    cancel.addEventListener('click', () => {
+      form.classList.add('hidden')
+      text.classList.remove('hidden')
+    })
+  }
+</script>

@@ -1,0 +1,376 @@
+---
+import { actions } from 'astro:actions'
+
+import ExerciseWorkspace from '@components/ExerciseWorkspace.astro'
+import Layout from '@layouts/Layout.astro'
+import { CATEGORY_LABELS, FEEDBACK_CATEGORIES } from '@schemas/feedback.schema'
+import {
+  flattenSections,
+  getCourseBySlug,
+  getCourseOutline,
+  getExerciseForSection,
+  getSection,
+  parseSectionContent,
+  sectionHref,
+} from '@utils/courses'
+import { PROSE_CLASSES, PROSE_COMPACT, renderAllUserInput, renderAuthored } from '@utils/markdown'
+import { listNotes } from '@utils/notes'
+import { completedSet, getCurrentUser, getExerciseAttempts, getProgress } from '@utils/progress'
+
+const { slug, chapter: chapterParam, section: sectionParam } = Astro.params
+const chapterNumber = Number(chapterParam)
+const sectionNumber = Number(sectionParam)
+const course = slug ? await getCourseBySlug(slug) : null
+const section =
+  course && Number.isInteger(chapterNumber) && Number.isInteger(sectionNumber)
+    ? await getSection(course.id, chapterNumber, sectionNumber)
+    : null
+
+if (!course || !section) {
+  return Astro.rewrite('/404')
+}
+
+const result = Astro.getActionResult(actions.toggleSectionComplete)
+
+const user = await getCurrentUser()
+const progress = user ? await getProgress(user.id, course.id) : null
+const isComplete = result?.data ? result.data.complete : completedSet(progress).has(section.id)
+
+const notes = user ? await listNotes(user.id, section.id) : []
+const noteBodies = await renderAllUserInput(notes.map(note => note.markdown))
+
+const noteError = Astro.getActionResult(actions.addNote)?.error
+const reported = Astro.getActionResult(actions.reportFeedback)?.data?.reported ?? false
+
+const outline = await getCourseOutline(course.id)
+const ordered = flattenSections(outline)
+const index = ordered.findIndex(row => row.id === section.id)
+const previous = index > 0 ? ordered[index - 1] : undefined
+const next = index >= 0 && index < ordered.length - 1 ? ordered[index + 1] : undefined
+
+const content = parseSectionContent(section.content)
+const exercise = section.content_type === 'exercise' ? await getExerciseForSection(section.id) : null
+
+/** Instructions are authored as markdown, so they render like any other prose. */
+const instructionsHtml = exercise ? await renderAuthored(exercise.instructions) : null
+
+const lessonHtml =
+  content?.content_type === 'lesson' && content.lesson ? await renderAuthored(content.lesson.markdown) : null
+const recap = content?.content_type === 'recap' ? content.recap : null
+
+type CodeFile = {
+  filename: string
+  language: string
+  content: unknown
+  isReadOnly?: boolean
+  isHidden?: boolean
+}
+const rawFiles = (exercise?.code_files as { files?: CodeFile[]; defaultView?: string } | null)?.files ?? []
+const workspaceFiles = rawFiles.map(file => ({
+  filename: file.filename,
+  language: file.language,
+  content: String(file.content),
+  isReadOnly: file.isReadOnly ?? false,
+  isHidden: file.isHidden ?? false,
+}))
+
+/**
+ * Entry module for the run.
+ *
+ * `defaultView` names the file the student should land on, which is also the
+ * one the checks import from. Falls back to the first file.
+ */
+const defaultView = (exercise?.code_files as { defaultView?: string } | null)?.defaultView
+const entryFile = workspaceFiles.find(file => file.filename === defaultView) ?? workspaceFiles[0]
+
+/**
+ * Whether this exercise has actually been written.
+ *
+ * A placeholder row carries instructions but no starter file and no checks.
+ * Rendering those instructions on their own sends the student looking for an
+ * editor that is not there, so the gap is stated instead.
+ */
+const exerciseIsWritten =
+  Boolean(entryFile) && ((exercise?.tests as { tests?: unknown[] } | null)?.tests?.length ?? 0) > 0
+
+/**
+ * Markup for the live preview.
+ *
+ * `browser_html.defaultView` names the file to render; otherwise the first
+ * visible one. An exercise with no markup gets no preview pane.
+ */
+type HtmlFile = { filename: string; content: string; isHidden?: boolean }
+const html = exercise?.browser_html as { files?: HtmlFile[]; defaultView?: string } | null
+const htmlFiles = (html?.files ?? []).filter(file => !file.isHidden)
+const previewHtml = (htmlFiles.find(file => file.filename === html?.defaultView) ?? htmlFiles[0])?.content ?? null
+type Hint = { order: number; content: unknown; showAfterAttempts?: number }
+const hints = ((exercise?.hints as { hints?: Hint[] } | null)?.hints ?? []).slice().sort((a, b) => a.order - b.order)
+type Check = { name: string; description: string; testFunction: string; timeout?: number }
+const checks = (exercise?.tests as { tests?: Check[] } | null)?.tests ?? []
+
+type Solution = { content?: unknown; explanation?: unknown }
+const worked = exercise?.default_solution as Solution | null
+const attempt = user && exercise ? await getExerciseAttempts(user.id, exercise.id) : null
+const attemptCount = attempt?.attempts ?? 0
+
+/** Work already saved for this exercise, keyed by filename. */
+const savedSolution = attempt?.solution ?? null
+---
+
+<Layout title={`${section.title} — ${course.title}`}>
+  <main id="main" class="mx-auto w-full max-w-5xl px-4 py-12">
+    <a href={`/courses/${course.slug}`} class="text-sm text-(--color-link) hover:underline">&larr; {course.title}</a>
+
+    <p class="mt-4 text-xs uppercase tracking-wide text-(--color-faint)">
+      Chapter {chapterNumber}, section {section.section_display_number} &middot; {section.content_type}
+    </p>
+    <h1 class="font-display mt-1 text-3xl tracking-tight">{section.title}</h1>
+    <p class="mt-2 text-(--color-muted)">{section.description}</p>
+
+    {
+      lessonHtml && (
+        <article
+          class={`mt-8 max-w-[75ch] leading-relaxed ${PROSE_CLASSES}`}
+          set:html={lessonHtml}
+        />
+      )
+    }
+
+    {
+      recap && (
+        <section class="mt-8 max-w-[75ch]">
+          <p class="leading-relaxed">{recap.summary}</p>
+          <h2 class="mt-6 text-lg font-semibold">Key points</h2>
+          <ul class="mt-3 space-y-2">
+            {recap.key_points.map(point => (
+              <li class="ml-5 list-disc leading-relaxed">{point}</li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      exercise && !exerciseIsWritten && (
+        <p class="mt-8 rounded-lg border border-dashed border-(--color-edge) p-8 text-center text-(--color-muted)">
+          This exercise has not been written yet.
+        </p>
+      )
+    }
+
+    {
+      exercise && exerciseIsWritten && (
+        <section class="mt-8 space-y-6">
+          <div class="border-peach/50 bg-peach/10 rounded-lg border p-5">
+            <h2 class="font-semibold">Instructions</h2>
+            <div
+              class={`mt-3 max-w-[80ch] text-sm leading-relaxed ${PROSE_COMPACT} [&_ol]:mt-2 [&_ol_li]:list-decimal`}
+              data-role="instructions"
+              set:html={instructionsHtml}
+            />
+            <p class="mt-3 text-xs text-(--color-muted)">
+              {exercise.difficulty} &middot; about {exercise.estimated_time_minutes} minutes
+            </p>
+          </div>
+
+          {entryFile && exercise && (
+            <ExerciseWorkspace
+              exerciseId={exercise.id}
+              files={workspaceFiles}
+              entry={entryFile.filename}
+              tests={checks}
+              solution={worked?.content ? String(worked.content) : null}
+              solutionExplanation={worked?.explanation ? String(worked.explanation) : null}
+              previewHtml={previewHtml}
+              savedSolution={savedSolution}
+              attempt={attempt ? { attempts: attempt.attempts, score: attempt.score, completed: attempt.completed } : null}
+            />
+          )}
+          {attempt && (
+            <p class="text-(--color-faint) text-sm">
+              {attempt.attempts} attempt{attempt.attempts === 1 ? '' : 's'} &middot; best score {attempt.score}%
+              {attempt.completed && <span class="text-teal"> &middot; passed</span>}
+            </p>
+          )}
+
+          {hints.length > 0 && (
+            <details class="rounded-lg border border-(--color-edge) p-4" data-role="hints">
+              <summary class="cursor-pointer text-sm font-medium">Hints ({hints.length})</summary>
+              <ol class="mt-3 space-y-2">
+                {hints.map(hint => {
+                  const needed = hint.showAfterAttempts ?? 0
+                  const locked = attemptCount < needed
+                  return (
+                    <li
+                      class="ml-5 list-decimal text-sm leading-relaxed"
+                      data-role="hint"
+                      data-needed={needed}
+                      data-content={String(hint.content)}
+                    >
+                      {locked ? (
+                        <span class="text-(--color-faint) italic">
+                          Unlocks after {needed} attempt{needed === 1 ? '' : 's'}
+                        </span>
+                      ) : (
+                        String(hint.content)
+                      )}
+                    </li>
+                  )
+                })}
+              </ol>
+            </details>
+          )}
+        </section>
+      )
+    }
+
+    {
+      !lessonHtml && !recap && !exercise && (
+        <p class="mt-8 rounded-lg border border-dashed border-(--color-edge) p-8 text-center text-(--color-muted)">
+          This section has no content yet.
+        </p>
+      )
+    }
+
+    {
+      progress && (
+        <form method="POST" action={actions.toggleSectionComplete} class="mt-10">
+          <input type="hidden" name="courseId" value={course.id} />
+          <input type="hidden" name="sectionId" value={section.id} />
+          <input type="hidden" name="complete" value={isComplete ? 'false' : 'true'} />
+          <button
+            type="submit"
+            class={`rounded-lg border px-4 py-2 text-sm transition ${
+              isComplete
+                ? 'border-teal text-teal hover:bg-teal/10'
+                : 'border-(--color-edge) hover:bg-(--color-raised)'
+            }`}
+          >
+            {isComplete ? '\u2713 Completed — mark as unread' : 'Mark complete'}
+          </button>
+        </form>
+      )
+    }
+
+    {
+      user && (
+        <section class="mt-12 border-t border-(--color-edge) pt-8">
+          <h2 class="font-semibold">Notes {notes.length > 0 && <span class="text-(--color-faint)">({notes.length})</span>}</h2>
+
+          <form method="POST" action={actions.addNote} class="mt-4">
+            <input type="hidden" name="sectionId" value={section.id} />
+            <textarea
+              name="markdown"
+              rows="3"
+              required
+              aria-label="Note text"
+              placeholder="What do you want to remember from this section?"
+              class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
+            />
+            <input
+              type="text"
+              name="quote"
+              aria-label="Passage this note is about"
+              placeholder="Optional: the passage this is about"
+              class="mt-2 w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
+            />
+            {noteError && <p class="text-rose mt-2 text-sm">{noteError.message}</p>}
+            <button
+              type="submit"
+              class="mt-2 rounded-lg border border-(--color-edge) px-4 py-2 text-sm transition hover:bg-(--color-raised)"
+            >
+              Add note
+            </button>
+          </form>
+
+          <ul class="mt-6 space-y-4">
+            {notes.map((note, index) => (
+              <li class="rounded-lg border border-(--color-edge) p-4">
+                {note.quote && (
+                  <blockquote class="border-sky text-(--color-muted) border-l-2 pl-3 text-sm italic">
+                    {note.quote}
+                  </blockquote>
+                )}
+                <div class={`mt-2 text-sm leading-relaxed ${PROSE_COMPACT}`} set:html={noteBodies[index]} />
+                <div class="mt-3 flex items-center justify-between">
+                  <time class="text-(--color-faint) text-xs" datetime={note.created_at.toISOString()}>
+                    {note.created_at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </time>
+                  <form method="POST" action={actions.removeNote}>
+                    <input type="hidden" name="noteId" value={note.id} />
+                    <button type="submit" class="text-(--color-faint) hover:text-rose text-xs">
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {notes.length === 0 && <p class="text-(--color-faint) mt-4 text-sm">No notes on this section yet.</p>}
+        </section>
+      )
+    }
+
+    {
+      user && (
+        <section class="mt-10">
+          <details class="rounded-lg border border-(--color-edge) p-4" open={Boolean(noteError) === false && reported}>
+            <summary class="text-(--color-muted) cursor-pointer text-sm">Report a problem with this section</summary>
+
+            {reported ? (
+              <p class="text-teal mt-3 text-sm">Thanks. Logged in <a href="/feedback" class="underline">feedback</a>.</p>
+            ) : (
+              <form method="POST" action={actions.reportFeedback} class="mt-3 space-y-2">
+                <input type="hidden" name="sectionId" value={section.id} />
+                <select
+                  name="category"
+                  required
+                  aria-label="Problem category"
+                  class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-2 text-sm"
+                >
+                  {FEEDBACK_CATEGORIES.map(category => (
+                    <option value={category}>{CATEGORY_LABELS[category]}</option>
+                  ))}
+                </select>
+                <textarea
+                  name="markdown"
+                  rows="3"
+                  required
+                  aria-label="What is wrong"
+                  placeholder="What is wrong?"
+                  class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  class="rounded-lg border border-(--color-edge) px-4 py-2 text-sm transition hover:bg-(--color-raised)"
+                >
+                  Send report
+                </button>
+              </form>
+            )}
+          </details>
+        </section>
+      )
+    }
+
+    <nav class="mt-12 flex justify-between gap-4 border-t border-(--color-edge) pt-6 text-sm">
+      {
+        previous ? (
+          <a href={sectionHref(course.slug, previous)} class="hover:underline">
+            &larr; {previous.title}
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next && (
+          <a href={sectionHref(course.slug, next)} class="text-right hover:underline">
+            {next.title} &rarr;
+          </a>
+        )
+      }
+    </nav>
+  </main>
+</Layout>

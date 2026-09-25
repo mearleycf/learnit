@@ -1,0 +1,134 @@
+---
+import Layout from '@layouts/Layout.astro'
+import { CATEGORY_LABELS, FEEDBACK_STATUSES, isOpen, STATUS_LABELS } from '@schemas/feedback.schema'
+import { countOpen, listFeedback } from '@utils/feedback'
+
+const items = await listFeedback()
+const open = countOpen(items)
+
+const filter = Astro.url.searchParams.get('status')
+const visible = filter ? items.filter(item => item.status === filter) : items
+
+const tone: Record<string, string> = {
+  submitted: 'bg-sky/20 text-blue dark:text-sky',
+  assigned: 'bg-magenta/20 text-magenta dark:text-magenta-bright',
+  in_progress: 'bg-peach/25 text-[#8a4a22] dark:text-peach',
+  pending_publication: 'bg-peach/15 text-[#8a4a22] dark:text-peach-bright',
+  resolved: 'bg-teal/20 text-teal dark:text-teal-bright',
+  no_action_required: 'bg-(--color-raised) text-(--color-muted)',
+}
+
+const counts = new Map(FEEDBACK_STATUSES.map(s => [s, items.filter(i => i.status === s).length]))
+
+/**
+ * Action URL that keeps the current filter.
+ *
+ * `actions.x` stringifies to `?_action=x`, which replaces the whole query
+ * string. Posting from a filtered view would otherwise drop the filter and
+ * land the user back on the full list.
+ */
+const actionUrl = (name: string) => {
+  const params = new URLSearchParams(Astro.url.search)
+  params.set('_action', name)
+  return `?${params.toString()}`
+}
+---
+
+<Layout title="Feedback">
+  <main id="main" class="mx-auto w-full max-w-5xl px-4 py-12">
+    <a href="/" class="text-sm text-(--color-link) hover:underline">&larr; All courses</a>
+
+    <h1 class="font-display mt-4 text-4xl tracking-tight">Feedback</h1>
+    <p class="mt-2 text-(--color-muted)">
+      {items.length} reports &middot; {open} still open
+    </p>
+
+    <nav class="mt-6 flex flex-wrap gap-2 text-sm">
+      <a
+        href="/feedback"
+        class={`rounded px-3 py-1 ${filter ? 'text-(--color-muted) hover:bg-(--color-raised)' : 'bg-(--color-raised) font-medium'}`}
+      >
+        All ({items.length})
+      </a>
+      {
+        FEEDBACK_STATUSES.map(status => (
+          <a
+            href={`/feedback?status=${status}`}
+            class={`rounded px-3 py-1 ${filter === status ? 'bg-(--color-raised) font-medium' : 'text-(--color-muted) hover:bg-(--color-raised)'}`}
+          >
+            {STATUS_LABELS[status]} ({counts.get(status) ?? 0})
+          </a>
+        ))
+      }
+    </nav>
+
+    <ul class="mt-8 space-y-4">
+      {
+        visible.map(item => (
+          <li class="rounded-lg border border-(--color-edge) p-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class={`rounded px-2 py-0.5 text-xs ${tone[item.status]}`}>{STATUS_LABELS[item.status]}</span>
+              {item.category && (
+                <span class="bg-(--color-raised) text-(--color-muted) rounded px-2 py-0.5 text-xs">
+                  {CATEGORY_LABELS[item.category]}
+                </span>
+              )}
+              {item.rating !== null && (
+                <span class="text-(--color-faint) text-xs">{'★'.repeat(item.rating)}</span>
+              )}
+              {isOpen(item.status) && <span class="text-peach ml-auto text-xs">open</span>}
+            </div>
+
+            <p class="mt-3 text-sm leading-relaxed">{item.markdown}</p>
+
+            {item.admin_notes && (
+              <p class="border-sky text-(--color-muted) mt-3 border-l-2 pl-3 text-sm">{item.admin_notes}</p>
+            )}
+
+            <div class="text-(--color-faint) mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              {item.course && item.chapterDisplay !== null && (
+                <a
+                  href={`/courses/${item.course.slug}/${item.chapterDisplay}/${item.section.display}`}
+                  class="text-(--color-link) hover:underline"
+                >
+                  {item.course.title} &middot; {item.section.title}
+                </a>
+              )}
+              <time datetime={item.created_at.toISOString()}>
+                {item.created_at.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </time>
+              {item.github_issue_link && (
+                <a href={item.github_issue_link} class="text-(--color-link) hover:underline">
+                  issue
+                </a>
+              )}
+            </div>
+
+            <form method="POST" action={actionUrl('updateFeedbackStatus')} class="mt-3 flex items-center gap-2">
+              <input type="hidden" name="feedbackId" value={item.id} />
+              <select
+                name="status"
+                class="rounded border border-(--color-edge) bg-(--color-raised) px-2 py-1 text-xs"
+                aria-label={`Status for ${item.section.title}`}
+              >
+                {FEEDBACK_STATUSES.map(status => (
+                  <option value={status} selected={status === item.status}>
+                    {STATUS_LABELS[status]}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                class="rounded border border-(--color-edge) px-2 py-1 text-xs transition hover:bg-(--color-raised)"
+              >
+                Update
+              </button>
+            </form>
+          </li>
+        ))
+      }
+    </ul>
+
+    {visible.length === 0 && <p class="text-(--color-faint) mt-8 text-sm">No reports with that status.</p>}
+  </main>
+</Layout>

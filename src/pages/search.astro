@@ -1,0 +1,68 @@
+---
+import Layout from '@layouts/Layout.astro'
+import { getCurrentUser } from '@utils/progress'
+import { search } from '@utils/search'
+
+const term = Astro.url.searchParams.get('q')?.trim() ?? ''
+const user = await getCurrentUser()
+const hits = term ? await search(term, user?.id ?? null) : []
+
+const tone: Record<string, string> = {
+  course: 'bg-sky/20 text-blue dark:text-sky',
+  section: 'bg-teal/20 text-teal dark:text-teal-bright',
+  note: 'bg-magenta/20 text-magenta dark:text-magenta-bright',
+}
+---
+
+<Layout title={term ? `Search: ${term}` : 'Search'}>
+  <main id="main" class="mx-auto w-full max-w-5xl px-4 py-12">
+    <a href="/" class="text-(--color-link) text-sm hover:underline">&larr; Home</a>
+
+    <h1 class="font-display mt-4 text-4xl tracking-tight">Search</h1>
+
+    <form method="GET" action="/search" class="mt-6">
+      <input
+        type="search"
+        name="q"
+        value={term}
+        aria-label="Search lessons, exercises and notes"
+        placeholder="Lessons, exercises, your notes"
+        autofocus
+        class="w-full rounded-lg border border-(--color-edge) bg-(--color-raised) p-3 text-sm focus:border-(--color-link) focus:ring-(--color-link) focus:ring-2 focus:outline-none"
+      />
+    </form>
+
+    {
+      term && (
+        <p class="text-(--color-muted) mt-4 text-sm">
+          {hits.length} {hits.length === 1 ? 'result' : 'results'} for “{term}”
+        </p>
+      )
+    }
+
+    <ul class="mt-6 space-y-3">
+      {
+        hits.map(hit => (
+          <li class="rounded-lg border border-(--color-edge) p-4 transition hover:border-(--color-faint)">
+            <a href={hit.href} class="block" data-role="hit">
+              <div class="flex items-baseline gap-2">
+                <span class={`rounded px-2 py-0.5 text-xs ${tone[hit.kind]}`}>{hit.kind}</span>
+                <span class="font-medium">{hit.title}</span>
+              </div>
+              <p class="text-(--color-muted) mt-1 text-sm">{hit.snippet}</p>
+              <p class="text-(--color-faint) mt-1 text-xs">{hit.context}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      term && hits.length === 0 && (
+        <p class="text-(--color-faint) mt-6 text-sm">
+          {term.length < 2 ? 'Type at least two characters.' : 'Nothing matched.'}
+        </p>
+      )
+    }
+  </main>
+</Layout>

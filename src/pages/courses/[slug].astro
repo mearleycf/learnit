@@ -1,0 +1,99 @@
+---
+import Layout from '@layouts/Layout.astro'
+import { getCourseBySlug, getCourseOutline } from '@utils/courses'
+import { completedSet, getCurrentUser, getProgress, percentComplete } from '@utils/progress'
+
+const { slug } = Astro.params
+const course = slug ? await getCourseBySlug(slug) : null
+
+if (!course) {
+  return Astro.rewrite('/404')
+}
+
+const outline = await getCourseOutline(course.id)
+const sectionCount = outline.reduce((total, chapter) => total + chapter.sections.length, 0)
+
+const user = await getCurrentUser()
+const progress = user ? await getProgress(user.id, course.id) : null
+const done = completedSet(progress)
+const percent = percentComplete(done.size, sectionCount)
+
+const resume = outline
+  .flatMap(chapter => chapter.sections.map(section => ({ chapter, section })))
+  .find(entry => entry.section.id === progress?.current_section_id)
+
+const badge: Record<string, string> = {
+  lesson: 'bg-sky/20 text-blue dark:text-sky',
+  exercise: 'bg-peach/25 text-[#8a4a22] dark:text-peach',
+  recap: 'bg-magenta/20 text-magenta dark:text-magenta-bright',
+}
+---
+
+<Layout title={course.title}>
+  <main id="main" class="mx-auto w-full max-w-5xl px-4 py-12">
+    <a href="/" class="text-sm text-(--color-link) hover:underline">&larr; All courses</a>
+
+    <h1 class="font-display mt-4 text-4xl tracking-tight">{course.title}</h1>
+    <p class="mt-2 text-(--color-muted)">{course.description}</p>
+    <p class="mt-4 text-sm text-(--color-muted)">
+      {outline.length} chapters &middot; {sectionCount} sections &middot; {course.level}
+    </p>
+
+    {
+      progress && (
+        <div class="mt-6">
+          <div class="flex items-baseline justify-between text-sm">
+            <span class="text-(--color-muted)">
+              {done.size} of {sectionCount} sections complete
+            </span>
+            <span class="font-medium">{percent}%</span>
+          </div>
+          <div class="bg-(--color-raised) mt-2 h-2 overflow-hidden rounded-full">
+            <div class="bg-teal h-full rounded-full transition-all" style={`width: ${percent}%`} />
+          </div>
+          {resume && (
+            <a
+              href={`/courses/${course.slug}/${resume.chapter.chapter_display_number}/${resume.section.section_display_number}`}
+              class="text-(--color-link) mt-3 inline-block text-sm hover:underline"
+            >
+              Resume: {resume.section.title} &rarr;
+            </a>
+          )}
+        </div>
+      )
+    }
+
+    <div class="mt-10 space-y-8">
+      {
+        outline.map(chapter => (
+          <section>
+            <h2 class="text-lg font-semibold">
+              <span class="text-(--color-faint)">{chapter.chapter_display_number}.</span> {chapter.title}
+            </h2>
+            <p class="mt-1 text-sm text-(--color-muted)">{chapter.description}</p>
+
+            <ul class="mt-3 divide-y divide-(--color-edge) border-y border-(--color-edge)">
+              {chapter.sections.map(section => (
+                <li>
+                  <a
+                    href={`/courses/${course.slug}/${chapter.chapter_display_number}/${section.section_display_number}`}
+                    class="flex items-center gap-3 py-2.5 hover:bg-(--color-raised)"
+                  >
+                    <span class="w-6 text-right text-sm text-(--color-faint)">
+                      {done.has(section.id) ? <span class="text-teal">&#10003;</span> : section.section_display_number}
+                    </span>
+                    <span class={`flex-1 ${done.has(section.id) ? 'text-(--color-muted)' : ''}`}>{section.title}</span>
+                    <span class={`rounded px-2 py-0.5 text-xs ${badge[section.content_type] ?? 'bg-(--color-raised)'}`}>
+                      {section.content_type}
+                    </span>
+                    {section.content === null && <span class="text-xs italic text-(--color-faint)">no content yet</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </main>
+</Layout>

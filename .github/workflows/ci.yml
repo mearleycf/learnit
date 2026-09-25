@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # Pyodide and the React bundles are gitignored, and both the solutions
+      # test and the end-to-end suite need them. `dev` and `build` do this
+      # themselves; a bare `astro build` does not.
+      - name: Prepare runtime assets
+        run: |
+          yarn pyodide:copy
+          yarn react:build
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Type check
+        run: yarn check
+
+      - name: Unit tests
+        run: yarn test:run
+
+      - name: Apply migrations and seed
+        run: |
+          yarn db:migrate
+          yarn db:seed
+
+      - name: Build
+        run: yarn astro build
+
+      - name: Install Playwright browsers
+        run: yarn playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: yarn test:e2e --project=chromium

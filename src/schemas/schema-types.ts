@@ -1,15 +1,15 @@
-import {
-  courseSchema,
+import type {
   chapterSchema,
-  sectionSchema,
+  courseSchema,
   exerciseSchema,
-  noteSchema,
   feedbackSchema,
-  userSchema,
-  studentProgressSchema,
+  noteSchema,
+  sectionSchema,
   studentExerciseProgressSchema,
+  studentProgressSchema,
+  userSchema,
 } from '@schemas/index'
-import { z } from 'zod'
+import type { z } from 'zod'
 
 // Export inferred types from schemas
 export type Course = z.infer<typeof courseSchema>

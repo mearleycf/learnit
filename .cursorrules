@@ -2,7 +2,7 @@
 
 ## Your Role
 
-You are an expert AI programming assistant that primarily focuses on producing clear, readable code with TypeScript, React, Node.js, AstroJS 5.x, AstroDB, Shadcn UI, and Tailwind CSS. You are familiar with the latest features and best practices of each technology.
+You are an expert AI programming assistant that primarily focuses on producing clear, readable code with TypeScript, Node.js, Astro 7, Drizzle ORM on libSQL, and Tailwind CSS. You are familiar with the latest features and best practices of each technology.
 
 You are thoughtful, give nuanced answers, and are brilliant at reasoning. You:
 
@@ -37,32 +37,30 @@ This tooling setup ensures consistency across the development process and facili
 
 ### Backend / Database
 
-- Database: AstroDB, which is a version of Turso's libsql basically
-- ORM: AstroDB uses drizzle ORM with some modifications
-- TablePlus: I'm also using TablePlus to access the database locally (and, eventually, remotely)
-- Authentication:
-  - The 3rd party authentication solution is undecided at this point
-  - GitHub and Google planned for OAuth implementation (not configured)
+- Database: libSQL, run locally as a file and hosted via Turso
+- ORM: Drizzle ORM. The former `@astrojs/db` package is deprecated; do not reintroduce it
+- Schema lives in `db/schema.ts`; migrations are generated with `yarn db:generate`, never hand-written
+- TablePlus is used to inspect the database locally
+- Authentication: undecided. GitHub and Google planned for OAuth (not configured)
 - Payment Processing: Stripe (not installed/configured)
 
 ### Frontend
 
-- Meta-Framework: Astro 5.0.0-beta
-  - Utilizes new content collections and content layer API functionality introduced in Astro 5.x
-- CSS Framework: Tailwind CSS
-- Component Library: Shadcn UI
+- Meta-Framework: Astro 7, server output, Vercel adapter
+- CSS Framework: Tailwind 4, configured in CSS via `@theme` in `src/styles/global.css`.
+  There is no `tailwind.config.mjs`, and `@astrojs/tailwind` is not used
 - Installed Fonts
   - Inter Variable
   - Lilita One
   - Righteous
   - Mononoki (for code)
-  - Note: I'm using the unfont package to manage the fonts
 - Icon Sets
   - `@iconify-json/simple-icons`
   - `@iconify-json/solar`
   - `astro-icon`
-- Frontend Framework: React with TypeScript for interactive islands, OR astro with astro actions?
-  - I'm undecided on how to do interactivity here; React helps me to stay sharp on React functionality; Astro Actions helps me stay in the Astro dev environment.
+- Interactivity: no UI framework is installed. Prefer Astro components and Astro Actions.
+  If islands become necessary, add a framework integration at that point rather than
+  keeping an unused dependency
 
 ### Unit, Integration, and e2e Testing
 
@@ -74,8 +72,11 @@ This tooling setup ensures consistency across the development process and facili
 
 - Package Management: yarn berry (currently in v4.x)
 - Code Quality:
-  - ESLint for linting
-  - Prettier for code formatting
+  - Biome for linting and formatting; it replaces ESLint and Prettier, which are not installed
+  - `yarn lint` runs `biome check`; `yarn lint:fix` applies safe fixes
+  - Biome parses only the frontmatter of `.astro` files, not the template. Unused-symbol
+    rules are disabled for `.astro` in biome.json because anything used solely in markup
+    would otherwise look unused
 - Version Management: `mise` application in the terminal for managing versions of node, python, and other tools
 - Operating System: macOS
 - Terminal Application: Kitty
@@ -176,127 +177,36 @@ function UserCard(props) {
 - Export schema types using Zod's inference
 - Validate all external data using Zod schemas
 
-#### Effect General Rules
-
-- Use `Effect.gen` for generator syntax
-- Never use try/catch or raw Promises
-- Leverage Effect's pipe operator for composition
-- Note: Effect's `Effect.gen` functions no longer require the `_` adapter
-
-```typescript
-// GOOD
-return Effect.gen(function* () {
-  yield* logWithContext({
-    component: self.component,
-    message: `State transition: ${self.currentState.status} -> ${event.type}`,
-    level: 'Info',
-    context: { currentState: self.currentState, event },
-  })
-})
-
-// BAD
-return Effect.gen(function* (_) {
-  yield* _(logWithContext({...}))
-})
-```
-
 #### Error Logging and Monitoring
 
-- Use Effect's built-in logging capabilities
-- Use the custom logger implementation that includes Sentry
-- Add context to errors using Effect's annotations
-- Implement structured logging for better observability
+- Use `logWithContext` from `@utils/logger` for structured logging
+- It takes a single object, never positional arguments:
 
 ```typescript
-// src/utils/logger.ts
-import { Effect, Logger, LogLevel } from 'effect'
-import * as Sentry from '@sentry/astro'
+import { logWithContext } from '@utils/logger'
 
-// Create a custom logger that includes Sentry for errors
-export const customLogger = Logger.make(({ logLevel, message }) => {
-  const timestamp = new Date().toISOString()
-
-  // get metadata (component and any other context) from the message
-  const metadata = typeof message === 'object' && message !== null ? message : { component: 'unknown' }
-
-  // Format the message
-  const formattedMessage = Array.isArray(message) ? message.join(' ') : String(message)
-
-  // Base log entry
-  const logEntry = {
-    timestamp,
-    level: logLevel.label,
-    ...metadata,
-    message: formattedMessage,
-  }
-
-  // Handle different log levels
-  switch (logLevel) {
-    case LogLevel.Fatal:
-    case LogLevel.Error:
-      Sentry.captureMessage(formattedMessage, {
-        level: 'error',
-        extra: logEntry,
-      })
-      console.error(logEntry)
-      break
-    case LogLevel.Warning:
-      console.warn(logEntry)
-      break
-    case LogLevel.Info:
-      console.info(logEntry)
-      break
-    case LogLevel.Debug:
-      console.debug(logEntry)
-      break
-    default:
-      console.log(logEntry)
-  }
+logWithContext({
+  component: 'seed',
+  level: 'Error',
+  message: 'Failed to insert course',
+  context: { courseId },
 })
-
-export type LogInfo = {
-  component: string
-  message: string
-  level: keyof typeof LogLevel
-  context: Record<string, unknown>
-}
-
-// Create the logger layer
-export const LoggerLive = Logger.replace(Logger.defaultLogger, customLogger)
-
-// Helper functions to create annotated effects
-export const logWithContext = ({ component, message, level, context }: LogInfo) => {
-  const effect =
-    level === 'Error'
-      ? Effect.logError(message)
-      : level === 'Warning'
-        ? Effect.logWarning(message)
-        : level === 'Debug'
-          ? Effect.logDebug(message)
-          : Effect.logInfo(message)
-
-  return effect.pipe(
-    Effect.annotateLogs({
-      component,
-      ...context,
-    }),
-  )
-}
 ```
+
+- `Error` and `Fatal` entries are forwarded to Sentry automatically
+- Sentry stays inert when `SENTRY_DSN` is unset, so local development needs no secrets
 
 ### UI and Styling
 
-- Use Tailwind utility classes following mobile-first approach
+- Use Tailwind utility classes following a mobile-first approach
+- Define design tokens in the `@theme` block in `src/styles/global.css`
 - Maintain consistent spacing using Tailwind's spacing scale
-- Use shadcn/ui components as building blocks
 - Create custom components for repeated patterns
-- Follow Tailwind's color palette for consistency
 - Implement responsive design using Tailwind breakpoints
-- Use CSS variables for theme values
 
 ### Key Conventions
 
-- Use Effect library for all async operations
+- Use async/await with plain try/catch for async operations
 - Use proper TypeScript path aliases
 - Follow AstroJS routing conventions
 - Handle authentication state consistently
@@ -328,26 +238,30 @@ export const logWithContext = ({ component, message, level, context }: LogInfo) 
 - Implement lazy loading for routes and components
 - Minimize bundle size using tree shaking
 - Use proper key props in lists
-- Optimize database queries in AstroDB
+- Optimize database queries with Drizzle
 
 [Previous sections remain the same]
 
 ## Database Conventions
 
-### AstroDB General Rules
+### Drizzle General Rules
 
-- Use AstroDB (libsql) for database operations
-- Use `db.run` for SQL execution, NOT `db.execute`:
+- Import the client from `db/client.ts`; it reads `DATABASE_URL` and `DATABASE_AUTH_TOKEN`
+- Define tables in `db/schema.ts` and generate migrations from them:
+
+```bash
+yarn db:generate   # after editing db/schema.ts
+yarn db:migrate    # apply pending migrations
+```
+
+- Prefer the query builder over raw SQL:
 
 ```typescript
-// GOOD
-await db.run(sql`
-  INSERT INTO courses (id, title)
-  VALUES (${id}, ${title})
-`)
+import { eq } from 'drizzle-orm'
 
-// BAD
-await db.execute(sql`...`) // This doesn't work with AstroDB
+import { courses, db } from '@db/client'
+
+const course = await db.select().from(courses).where(eq(courses.slug, slug))
 ```
 
 ### Database Structure
@@ -361,9 +275,9 @@ await db.execute(sql`...`) // This doesn't work with AstroDB
 
 ### Table Naming
 
-- Use singular form for most tables (`course` not `courses`)
-- Use underscore for compound names (`student_progress` not `studentProgress`)
-- Prefix student-related tables with `student_` (e.g., `student_progress`, `student_exercise_progress`)
+- Use plural form for tables (`courses`, `chapters`, `sections`)
+- Use underscores for compound names (`student_progress`, not `studentProgress`)
+- Prefix student-related tables with `student_`
 
 ### Common Column Patterns
 
@@ -374,10 +288,11 @@ await db.execute(sql`...`) // This doesn't work with AstroDB
 
 ### Seeding Conventions
 
-- Use state machine pattern with Effect for seeding process
-- Follow the established seeder file pattern in `db/seederFiles/`
-- Maintain consistent seeding order to handle dependencies
-- Use robust error handling and logging during seed operations
+- Seed data is authored under `db/seed_config/seed/courses/` and carries content only
+- The seeder in `db/seed.ts` derives foreign keys, sort order and timestamps
+- Authoring types live in `db/seed_config/types/seed-types.ts`. They are deliberately separate
+  from the database row types, because seed files omit anything the seeder can derive
+- Run with `yarn db:seed`. It clears every table child-first, then reinserts
 
 ### Query Patterns
 
@@ -391,63 +306,33 @@ await db.run(sql`
 `)
 
 // Updating with validation
-const updatedCourse = await Effect.gen(function* () {
-  const data = yield* Effect.try({
-    try: () => CoursesSchema.parse(updateData),
-    catch: e => new ValidationError(e.errors),
-  })
+const data = courseSchema.partial().parse(updateData)
 
-  return yield* Effect.tryPromise({
-    try: () =>
-      db.run(sql`
-      UPDATE courses
-      SET title = ${data.title}, updated_at = NOW()
-      WHERE id = ${courseId}
-    `),
-    catch: e => new DatabaseError(e),
-  })
-})
+const [updatedCourse] = await db
+  .update(courses)
+  .set({ title: data.title })
+  .where(eq(courses.id, courseId))
+  .returning()
 ```
 
-## State Machine Patterns
-
-### General Rules
-
-- Use state machines for complex workflows (e.g., seeding)
-- Define explicit state types and transitions
-- Use Effect for state machine operations
-- Implement comprehensive logging
-- Handle errors with appropriate recovery strategies
-
-### State Machine Structure
-
-```typescript
-type SeederState<T> = {
-  status: 'idle' | 'running' | 'completed' | 'failed'
-  data: T
-  error?: Error
-}
-
-type SeederEvent = { type: 'START' } | { type: 'COMPLETE' } | { type: 'FAIL'; error: Error }
-```
+`updated_at` is maintained by the schema's `$onUpdate` hook, so never set it by hand.
 
 ## Logging Conventions
 
 ### Structured Logging
 
-- Use Effect's logging system
+- Use `logWithContext` from `@utils/logger`
 - Include consistent context in log messages
-- Log to both file and Sentry
+- Errors and fatals are forwarded to Sentry automatically
 - Use appropriate log levels
 
 ```typescript
-yield *
-  logWithContext({
-    component: 'Seeder',
-    message: `Starting seed operation for ${table}`,
-    level: 'Info',
-    context: { table, operation },
-  })
+logWithContext({
+  component: 'Seeder',
+  message: `Starting seed operation for ${table}`,
+  level: 'Info',
+  context: { table, operation },
+})
 ```
 
 ## System Architecture Patterns
@@ -530,27 +415,19 @@ type ContentHierarchy = {
 
 ```typescript
 // Example course status handling
-const updateCourseStatus = (courseId: string, status: 'draft' | 'published' | 'archived') =>
-  Effect.gen(function* () {
-    yield* logWithContext({
-      component: 'CourseManager',
-      message: `Updating course status to ${status}`,
-      level: 'Info',
-      context: { courseId, status },
-    })
-
-    return yield* Effect.tryPromise({
-      try: () =>
-        db.run(sql`
-      UPDATE courses 
-      SET status = ${status}, 
-          updated_at = NOW() 
-      WHERE id = ${courseId}
-    `),
-      catch: e => new CourseUpdateError(e),
-    })
+const updateCourseStatus = async (courseId: string, status: 'draft' | 'published' | 'archived') => {
+  logWithContext({
+    component: 'CourseManager',
+    message: `Updating course status to ${status}`,
+    level: 'Info',
+    context: { courseId, status },
   })
+
+  return db.update(courses).set({ status }).where(eq(courses.id, courseId)).returning()
+}
 ```
+
+Note: a `status` column does not exist yet. Adding it is an open schema decision.
 
 ### Exercise System
 
@@ -730,7 +607,6 @@ git commit -m 'feat: add responsive navbar with TailwindCSS'
 
 - Enforce strict TypeScript settings
 - Use TailwindCSS for all styling
-- Use Shadcn/UI for standard UI components
 - Ensure Astro components are modular and reusable
 - When mentoring, explain concepts using shopping cart examples
 - Focus on teaching methods and tools rather than direct solutions

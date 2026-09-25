@@ -1,0 +1,413 @@
+---
+import type { TestCase } from '@lib/exercise-runner/types'
+
+export type WorkspaceFile = {
+  filename: string
+  language: string
+  content: string
+  isReadOnly: boolean
+  isHidden: boolean
+}
+
+interface Props {
+  exerciseId: string
+  files: WorkspaceFile[]
+  entry: string
+  tests: TestCase[]
+  solution: string | null
+  solutionExplanation: string | null
+  /** Markup for the live preview, or null when the exercise has none. */
+  previewHtml: string | null
+  /** Work already saved on the server, keyed by filename. */
+  savedSolution: Record<string, string> | null
+  /** Prior attempts on this exercise, so the count is visible before any run. */
+  attempt: { attempts: number; score: number | null; completed: boolean } | null
+}
+
+const { exerciseId, files, entry, tests, solution, solutionExplanation, previewHtml, savedSolution, attempt } =
+  Astro.props
+
+/** Same wording the client uses after a run, so the label does not jump. */
+const attemptLabel = attempt
+  ? `${attempt.attempts} attempt${attempt.attempts === 1 ? '' : 's'} \u00b7 best ${attempt.score ?? 0}%` +
+    (attempt.completed ? ' \u00b7 passed' : '')
+  : ''
+
+/** Hidden files are linked at run time but never shown, so they get no tab. */
+const visible = files.filter(file => !file.isHidden)
+
+/**
+ * The tab to open on.
+ *
+ * The entry file is the one the student edits, so it opens first even when a
+ * read-only helper is listed before it.
+ */
+const initial = visible.find(file => file.filename === entry) ?? visible[0]
+---
+
+<section
+  class="exercise-workspace"
+  data-exercise-id={exerciseId}
+  data-entry={entry}
+  data-tests={JSON.stringify(tests)}
+  data-files={JSON.stringify(files)}
+  data-preview-html={previewHtml}
+  data-language={initial?.language ?? 'javascript'}
+  data-saved={savedSolution ? JSON.stringify(savedSolution) : null}
+>
+  <div class="flex flex-wrap items-center gap-2">
+    {
+      visible.map(file => (
+        <button
+          type="button"
+          data-role="tab"
+          data-filename={file.filename}
+          class:list={[
+            'rounded px-3 py-1 font-mono text-xs transition',
+            file.filename === initial?.filename
+              ? 'bg-(--color-raised) font-medium'
+              : 'text-(--color-muted) hover:bg-(--color-raised)',
+          ]}
+        >
+          {file.filename}
+          {file.isReadOnly && <span class="text-(--color-faint)"> (read only)</span>}
+        </button>
+      ))
+    }
+    <p class="text-(--color-faint) ml-auto text-xs" data-role="attempts">{attemptLabel}</p>
+  </div>
+
+  <textarea
+    data-role="editor"
+    spellcheck="false"
+    rows="16"
+    aria-label={`Code editor, ${initial?.filename ?? entry}`}
+    class="bg-night-raised text-parchment focus:ring-teal mt-2 w-full rounded-lg p-4 font-mono text-sm leading-relaxed focus:ring-2 focus:outline-none disabled:opacity-70"
+  ></textarea>
+
+  <div class="mt-3 flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      data-role="run"
+      class="border-teal text-teal hover:bg-teal/10 rounded-lg border px-4 py-2 text-sm transition disabled:opacity-50"
+    >
+      Run checks
+    </button>
+    {
+      previewHtml && (
+        <button
+          type="button"
+          data-role="preview"
+          class="rounded-lg border border-(--color-edge) px-4 py-2 text-sm transition hover:bg-(--color-raised)"
+        >
+          Run preview
+        </button>
+      )
+    }
+    <button type="button" data-role="reset" class="text-(--color-faint) text-sm hover:underline">
+      Reset to starter
+    </button>
+    <p class="text-sm" data-role="summary"></p>
+  </div>
+
+  {
+    previewHtml && (
+      <div class="mt-4 hidden" data-role="preview-pane">
+        <p class="text-(--color-faint) text-xs font-medium">Preview</p>
+        <iframe
+          data-role="preview-frame"
+          title="Exercise preview"
+          src="/exercise-preview"
+          class="mt-1 h-64 w-full rounded-lg border border-(--color-edge) bg-white"
+        />
+      </div>
+    )
+  }
+
+  <div class="mt-4 hidden" data-role="console-pane">
+    <p class="text-(--color-faint) text-xs font-medium">Console</p>
+    <pre
+      class="bg-night-raised text-parchment mt-1 max-h-48 overflow-auto rounded-lg p-3 font-mono text-xs leading-relaxed"
+      data-role="console"></pre>
+  </div>
+
+  <ul class="mt-4 space-y-2" data-role="results"></ul>
+
+  {
+    solution && (
+      <details class="mt-4 rounded-lg border border-(--color-edge) p-4">
+        <summary class="text-(--color-muted) cursor-pointer text-sm">Show a worked solution</summary>
+        <pre class="bg-night-raised text-parchment mt-3 overflow-x-auto rounded-lg p-4 text-sm"><code>{solution}</code></pre>
+        {solutionExplanation && <p class="text-(--color-muted) mt-3 text-sm leading-relaxed">{solutionExplanation}</p>}
+      </details>
+    )
+  }
+</section>
+
+<script>
+  import { runExercise } from '@lib/exercise-runner/client'
+  import { isPreviewMessage, type RenderMessage } from '@lib/exercise-runner/preview'
+  import type { TestCase } from '@lib/exercise-runner/types'
+
+  type WorkspaceFile = {
+    filename: string
+    language: string
+    content: string
+    isReadOnly: boolean
+    isHidden: boolean
+  }
+
+  const workspace = document.querySelector<HTMLElement>('.exercise-workspace')
+  if (workspace) {
+    const editor = workspace.querySelector<HTMLTextAreaElement>('[data-role="editor"]')!
+    const runButton = workspace.querySelector<HTMLButtonElement>('[data-role="run"]')!
+    const resetButton = workspace.querySelector<HTMLButtonElement>('[data-role="reset"]')!
+    const results = workspace.querySelector<HTMLUListElement>('[data-role="results"]')!
+    const summary = workspace.querySelector<HTMLElement>('[data-role="summary"]')!
+    const attemptsLabel = workspace.querySelector<HTMLElement>('[data-role="attempts"]')!
+    const consolePane = workspace.querySelector<HTMLElement>('[data-role="console-pane"]')!
+    const consoleOut = workspace.querySelector<HTMLPreElement>('[data-role="console"]')!
+    const previewButton = workspace.querySelector<HTMLButtonElement>('[data-role="preview"]')
+    const previewPane = workspace.querySelector<HTMLElement>('[data-role="preview-pane"]')
+    const previewFrame = workspace.querySelector<HTMLIFrameElement>('[data-role="preview-frame"]')
+    const previewHtml = workspace.dataset.previewHtml ?? null
+    const language = workspace.dataset.language ?? 'javascript'
+    const tabs = [...workspace.querySelectorAll<HTMLButtonElement>('[data-role="tab"]')]
+
+    const exerciseId = workspace.dataset.exerciseId!
+    const entry = workspace.dataset.entry!
+    const tests: TestCase[] = JSON.parse(workspace.dataset.tests ?? '[]')
+    const starters: WorkspaceFile[] = JSON.parse(workspace.dataset.files ?? '[]')
+
+    /** Working copy, keyed by filename. Read-only and hidden files stay at their starter. */
+    const draft = new Map(starters.map(file => [file.filename, file.content]))
+    const byName = new Map(starters.map(file => [file.filename, file]))
+    const storageKey = `learnit:exercise:${exerciseId}`
+
+    const apply = (saved: Record<string, string> | null) => {
+      if (!saved) return
+      for (const [filename, content] of Object.entries(saved)) {
+        if (byName.get(filename)?.isReadOnly === false) draft.set(filename, content)
+      }
+    }
+
+    /**
+     * Restores the student's work.
+     *
+     * The server copy wins, because it survives a different browser or a
+     * cleared cache. localStorage is a fallback for work saved before the
+     * last save reached the server.
+     */
+    const load = () => {
+      try {
+        apply(JSON.parse(localStorage.getItem(storageKey) ?? 'null') as Record<string, string> | null)
+      } catch {
+        // Private mode, blocked storage, or a stale shape: the starter is a fine fallback.
+      }
+      try {
+        apply(JSON.parse(workspace.dataset.saved ?? 'null') as Record<string, string> | null)
+      } catch {
+        // A malformed saved payload should not stop the exercise loading.
+      }
+    }
+
+    const persist = () => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(draft)))
+      } catch {
+        // Nothing to do; a run still works without a saved draft.
+      }
+    }
+
+    // Open on the file the student edits, not on a read-only helper listed first.
+    let active = tabs.some(tab => tab.dataset.filename === entry) ? entry : (tabs[0]?.dataset.filename ?? entry)
+
+    const LEVEL_COLOUR: Record<string, string> = {
+      warn: 'text-peach',
+      error: 'text-rose',
+      debug: 'text-(--color-faint)',
+    }
+
+    /** One line in the console pane, tagged with where it came from. */
+    const consoleLine = (level: string, where: string, text: string) => {
+      const line = document.createElement('div')
+      line.className = LEVEL_COLOUR[level] ?? ''
+      line.textContent = `[${where}] ${text}`
+      return line
+    }
+
+    const appendConsole = (level: string, where: string, text: string) => {
+      consoleOut.append(consoleLine(level, where, text))
+      consolePane.classList.remove('hidden')
+    }
+
+    const currentFiles = () =>
+      starters.map(file => ({ filename: file.filename, content: draft.get(file.filename) ?? '' }))
+
+    /** Swaps locked hints for their text once enough attempts have been made. */
+    const revealHints = (attempts: number) => {
+      for (const hint of document.querySelectorAll<HTMLElement>('[data-role="hint"]')) {
+        const needed = Number(hint.dataset.needed ?? 0)
+        if (attempts >= needed && hint.dataset.content) hint.textContent = hint.dataset.content
+      }
+    }
+
+    const show = (filename: string) => {
+      active = filename
+      const file = byName.get(filename)
+      editor.value = draft.get(filename) ?? ''
+      editor.disabled = file?.isReadOnly ?? false
+      editor.setAttribute('aria-label', `Code editor, ${filename}${file?.isReadOnly ? ', read only' : ''}`)
+      for (const tab of tabs) {
+        const on = tab.dataset.filename === filename
+        tab.classList.toggle('bg-(--color-raised)', on)
+        tab.classList.toggle('font-medium', on)
+        tab.classList.toggle('text-(--color-muted)', !on)
+      }
+    }
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => show(tab.dataset.filename!))
+    }
+
+    const editable = () => Object.fromEntries([...draft].filter(([name]) => !byName.get(name)?.isReadOnly))
+
+    let saveTimer: ReturnType<typeof setTimeout> | undefined
+    const saveToServer = () => {
+      clearTimeout(saveTimer)
+      saveTimer = setTimeout(() => {
+        void fetch('/api/exercise-solution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ exerciseId, solution: editable() }),
+        }).catch(() => {
+          // Saving is best effort; localStorage still holds the work.
+        })
+      }, 800)
+    }
+
+    editor.addEventListener('input', () => {
+      if (editor.disabled) return
+      draft.set(active, editor.value)
+      persist()
+      saveToServer()
+    })
+
+    resetButton.addEventListener('click', () => {
+      for (const file of starters) draft.set(file.filename, file.content)
+      persist()
+      // Clear the server copy too, or a reload would restore the discarded work.
+      saveToServer()
+      show(active)
+      results.replaceChildren()
+      summary.textContent = ''
+    })
+
+    runButton.addEventListener('click', async () => {
+      runButton.disabled = true
+      // Python's first run starts Pyodide, which is worth saying rather than
+      // leaving the button dead for several seconds.
+      summary.textContent = language === 'python' ? 'Starting Python…' : 'Running…'
+      summary.className = 'text-(--color-muted) text-sm'
+      results.replaceChildren()
+      consolePane.classList.add('hidden')
+      consoleOut.replaceChildren()
+
+      const result = await runExercise(currentFiles(), entry, tests, language)
+
+      results.replaceChildren(
+        ...result.outcomes.map(outcome => {
+          const li = document.createElement('li')
+          li.className = `rounded-lg border p-3 text-sm ${outcome.passed ? 'border-teal/40' : 'border-rose/50'}`
+
+          const head = document.createElement('p')
+          head.className = outcome.passed ? 'text-teal' : 'text-rose'
+          head.textContent = `${outcome.passed ? '✓' : '✗'} ${outcome.name}`
+          li.append(head)
+
+          const detail = document.createElement('p')
+          detail.className = 'text-(--color-muted) mt-1 text-xs'
+          detail.textContent = outcome.message ?? outcome.description
+          li.append(detail)
+
+          return li
+        }),
+      )
+
+      if (result.logs.length > 0) {
+        consoleOut.replaceChildren(
+          ...result.logs.map(entry =>
+            consoleLine(entry.level, entry.checkIndex === null ? 'load' : `check ${entry.checkIndex + 1}`, entry.text),
+          ),
+        )
+        consolePane.classList.remove('hidden')
+      }
+
+      const allPassed = result.total > 0 && result.passed === result.total
+      summary.textContent = result.loadError ? result.loadError : `${result.passed} of ${result.total} checks passing`
+      summary.className = `text-sm ${allPassed ? 'text-teal' : result.loadError ? 'text-rose' : 'text-(--color-muted)'}`
+
+      try {
+        const response = await fetch('/api/exercise-attempt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            exerciseId,
+            passed: result.passed,
+            total: result.total,
+            solution: editable(),
+          }),
+        })
+        if (response.ok) {
+          const data = (await response.json()) as { attempts: number; score: number; completed: boolean }
+          attemptsLabel.textContent =
+            `${data.attempts} attempt${data.attempts === 1 ? '' : 's'} · best ${data.score}%` +
+            (data.completed ? ' · passed' : '')
+          revealHints(data.attempts)
+        }
+      } catch {
+        // Recording an attempt is bookkeeping; a failure must not hide the results.
+      }
+
+      runButton.disabled = false
+    })
+
+    if (previewButton && previewPane && previewFrame && previewHtml !== null) {
+      const render = () => {
+        const message: RenderMessage = {
+          source: 'learnit-preview',
+          type: 'render',
+          html: previewHtml,
+          files: currentFiles(),
+          entry,
+        }
+        previewFrame.contentWindow?.postMessage(message, window.location.origin)
+      }
+
+      window.addEventListener('message', event => {
+        if (event.origin !== window.location.origin || !isPreviewMessage(event.data)) return
+        const message = event.data
+        if (message.type === 'log') appendConsole(message.level, 'preview', message.text)
+        if (message.type === 'error') appendConsole('error', 'preview', message.text)
+      })
+
+      previewButton.addEventListener('click', () => {
+        previewPane.classList.remove('hidden')
+        consoleOut.replaceChildren()
+        consolePane.classList.add('hidden')
+
+        // Drive off the frame's load state rather than a ready handshake: the
+        // frame can finish loading before this listener exists, and a missed
+        // ready message would leave the preview blank forever.
+        if (previewFrame.contentDocument?.readyState === 'complete') {
+          render()
+        } else {
+          previewFrame.addEventListener('load', render, { once: true })
+        }
+      })
+    }
+
+    load()
+    show(active)
+  }
+</script>

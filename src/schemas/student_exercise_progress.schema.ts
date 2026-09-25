@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 export const studentExerciseProgressSchema = z.object({
-  id: z.string().ulid(),
-  student_id: z.string().ulid(),
-  exercise_id: z.string().ulid(),
+  id: z.ulid(),
+  student_id: z.ulid(),
+  exercise_id: z.ulid(),
   score: z.number().optional().default(0),
   completed: z.boolean().default(false),
   attempts: z.number().default(0),
