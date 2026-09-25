@@ -49,8 +49,8 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/schema.ts` | Drizzle tables. Source of truth; migrations are generated, never hand-written |
 | `db/client.ts` | libSQL connection, reads `DATABASE_URL` |
 | `db/seed.ts` | Seeder. Derives IDs, FKs, sort order, display numbers, timestamps |
-| `db/seed_config/seed/courses/` | Course structure, content only |
-| `db/seed_config/seed/content/` | Long-form lesson copy |
+| `content/<course>/<nn>-chapter/<nn>-section.md` | Every course, as markdown on disk. The only place content lives |
+| `db/content/` | Reads `content/` into the shape the seeder consumes. `parse.ts` splits frontmatter and `## heading` blocks |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
 | `src/lib/exercise-runner/` | Runs student code. `run.ts`, `link.ts`, `capture.ts` and `dom-stub.ts` are pure and unit tested |
@@ -60,8 +60,8 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 ## Seeding rules
 
 - **Deterministic.** IDs come from `seedUlid(naturalKey)`, dates from a fixed `SEED_EPOCH`. Two runs produce byte-identical rows. Never call `ulid()` or `Math.random()` in seed code.
-- **Seed files carry content only.** Anything positional (IDs, foreign keys, sort order, display numbers) is derived in `db/seed.ts`.
-- **Unauthored content is `NULL`, never `{}`.** The seeder prints how many sections are authored on each run.
+- **Content files carry content only.** Anything positional (IDs, foreign keys, sort order, display numbers) is derived: chapter and section order come from the `nn-` filename prefix, everything else from `db/seed.ts`.
+- **Unauthored content is `NULL`, never `{}`.** The seeder prints how many sections are authored on each run. A **stub** is a section file with frontmatter and no body: a lesson or recap stub stores `NULL`, an exercise stub gets a row with empty payloads so the page says the exercise is unwritten. That is how a course skeleton is scaffolded before the prose exists.
 - **Content is validated** against `sectionContentSchema` before insert. A bad payload aborts the seed and names the section.
 - **Seed data grows incrementally**, one feature at a time. Do not try to fill all nine tables at once.
 - **Every authored exercise is checked** by `db/seed_config/solutions.test.ts`: the worked solution
@@ -75,6 +75,30 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 - Colours come from the semantic tokens in `src/styles/global.css`. Never hard-code a hex or a raw Tailwind grey in a page.
 - Biome only parses `.astro` frontmatter, not the template. Unused-symbol rules are off for `.astro` because anything used only in markup reads as unused.
 - Conventional commits. Breaking changes get `!` and a `BREAKING CHANGE:` footer.
+
+## Authoring a section
+
+One markdown file per section, under `content/<course-slug>/<nn>-chapter-name/<nn>-section-name.md`.
+Frontmatter sets `type` (`lesson`, `recap` or `exercise`), `title` and `description`; `access: free`
+opts a section out of the default `purchased`.
+
+Everything an exercise needs lives in the body as `## heading` blocks, never in frontmatter, because
+YAML cannot hold JavaScript: `() => {}` parses as a flow mapping and a colon ends a key. The
+headings the loader reads:
+
+| Heading | Holds |
+| --- | --- |
+| *(text before the first heading)* | The instructions |
+| `## file <name>` | One starter file, fenced. Declared in frontmatter under `files:` with its `language`, `readonly` and `hidden` flags |
+| `## html <name>` | Markup for the live preview. Omit it and the exercise gets no preview button |
+| `## solution` | The worked solution for the entry file |
+| `## explanation` | Prose shown with the solution |
+| `## check <name>` | Prose description, then the fenced assertion |
+| `## hint after <n>` | Unlocks at `n` attempts. A fenced block becomes a code hint, prose a text hint |
+
+Only the **first** fence under a heading is that block's code; later ones are examples inside prose
+and are dropped. A lesson body is raw markdown and is not split this way, so it may hold as many
+fences and `##` headings as it likes.
 
 ## Markdown has two paths
 
@@ -102,13 +126,12 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: 38 of 39 sections. All three courses are complete except one section:
-Advanced React 1.2, which needs React in the runner and is blocked. Python lessons
+Authored content: 33 sections across three courses, 15 of 16 exercises written. Python and
+Advanced React are complete. **JavaScript is being rewritten from nothing** against its full
+syllabus: the old twelve sections were pitched at someone who had never seen `console.log` and
+were deleted rather than migrated. What is there now is chapter 1 (types, coercion, modules) plus
+one DOM exercise in the browser chapter, and JavaScript 1.4 is a deliberate stub. Python lessons
 are written for a JavaScript developer, comparing the two throughout.
-
-React exercises cannot run: the Worker has no module resolution for a bare `react` import and no
-DOM to render into. Advanced React chapter 2 works around this honestly, since reducers and
-stores are pure functions. Chapter 1 is about components and is blocked; see the vault questions.
 
 Exercises run client-side in a Web Worker. **JavaScript, Python and React.** The entry file's
 `language` picks the runner: `worker.ts` for JavaScript, `python-worker.ts` for Python. The Worker is a crash and
