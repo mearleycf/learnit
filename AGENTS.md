@@ -180,7 +180,13 @@ End-to-end tests run against their own database, `e2e.db`, and their own dev ser
 `tests/fixtures/content` (`SEED_EXTRA_CONTENT`), which never reaches `local.db`. Tests use that
 fixture course (paths in `tests/support/content.ts`) instead of pinning a real section, so
 authoring or renumbering a chapter cannot break them; what must come from a real course, such as
-seeded progress totals, is read from `content/` and the seed config at test time. Saved work is
+seeded progress totals, is read from `content/` and the seed config at test time. A new test reuses
+a `fixture.*` path if one fits. Otherwise append a section, never insert one, since the map in
+`tests/support/content.ts` is positional: add it as the next `nn-` file under
+`tests/fixtures/content/e2e-fixtures/<nn>-chapter/` and register it in `fixture`. Three things then
+move with it: that map, the `6 of 8 sections written` and outline `toHaveCount(2)` counts in
+`tests/courses.spec.ts`, and `solutions.test.ts`, which grades fixture exercises too, so run
+`yarn test:run`. Saved work is
 durable within a run, so Playwright runs serially (`fullyParallel: false`, one worker) and tests
 needing a clean editor call `openExercise`, which resets before starting.
 
