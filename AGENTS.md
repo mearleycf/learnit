@@ -93,7 +93,7 @@ headings the loader reads:
 | `## html <name>` | Markup for the live preview. Omit it and the exercise gets no preview button |
 | `## solution` | The worked solution for the entry file |
 | `## explanation` | Prose shown with the solution |
-| `## check <name>` | Prose description, then the fenced assertion |
+| `## check <name>` | Prose description, then the fenced assertion. It may `await` (JavaScript and Python); a check still pending after 2 s fails as timed out |
 | `## hint after <n>` | Unlocks at `n` attempts. A fenced block becomes a code hint, prose a text hint |
 
 Only the **first** fence under a heading is that block's code; later ones are examples inside prose

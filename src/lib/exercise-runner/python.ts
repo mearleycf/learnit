@@ -1,4 +1,5 @@
 import type { SourceFile } from './link'
+import { CHECK_TIMEOUT_MS } from './run'
 import type { TestCase } from './types'
 
 /**
@@ -26,15 +27,23 @@ export const pyString = (value: string): string => JSON.stringify(value)
  * with its public names unpacked, so a check can say `total(...)` or
  * `solution.total(...)`. An AssertionError is a failed check; anything else is
  * reported with its exception type, which is usually more useful.
+ *
+ * Checks are compiled with top-level `await` allowed, so the harness must run
+ * through `runPythonAsync`. A check with no `await` evaluates to None and runs
+ * as it always did; one with `await` evaluates to a coroutine, which is given
+ * the check's timeout and fails with a timeout message if it is still pending.
  */
 export const buildHarness = (entry: string, tests: TestCase[]): string => {
   const moduleName = moduleNameFor(entry)
   const checks = tests
-    .map(test => `    {"name": ${pyString(test.name)}, "src": ${pyString(test.testFunction)}},`)
+    .map(
+      test =>
+        `    {"name": ${pyString(test.name)}, "src": ${pyString(test.testFunction)}, "timeout": ${(test.timeout ?? CHECK_TIMEOUT_MS) / 1000}},`,
+    )
     .join('\n')
 
   return `
-import sys, json, io, importlib, traceback
+import sys, json, io, importlib, traceback, ast, asyncio, inspect
 
 if ${pyString(EXERCISE_DIR)} not in sys.path:
     sys.path.insert(0, ${pyString(EXERCISE_DIR)})
@@ -61,7 +70,22 @@ try:
 
     for _check in _checks:
         try:
-            exec(_check["src"], dict(_scope))
+            _code = compile(_check["src"], "<check>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+            _pending = eval(_code, dict(_scope))
+            if inspect.iscoroutine(_pending):
+                # asyncio.wait rather than wait_for, so a TimeoutError the
+                # student's own code raises is not mistaken for ours.
+                _task = asyncio.ensure_future(_pending)
+                _done, _ = await asyncio.wait({_task}, timeout=_check["timeout"])
+                if not _done:
+                    _task.cancel()
+                    _outcomes.append({
+                        "name": _check["name"],
+                        "passed": False,
+                        "message": f"Timed out after {_check['timeout']:g} seconds. Check for an await that never finishes.",
+                    })
+                    continue
+                _task.result()
             _outcomes.append({"name": _check["name"], "passed": True, "message": None})
         except AssertionError as _e:
             _outcomes.append({
