@@ -25,7 +25,11 @@ type CodeFile = { filename: string; content: string; language?: string }
  * Only exercises carrying real checks are included; the placeholder seeds have
  * empty payloads and nothing to assert.
  */
-const courseConfigs = await loadCourses(resolve(process.cwd(), 'content'))
+const courseConfigs = [
+  ...(await loadCourses(resolve(process.cwd(), 'content'))),
+  // The e2e suite's own course, so a fixture exercise cannot drift out of step with its checks.
+  ...(await loadCourses(resolve(process.cwd(), 'tests/fixtures/content'))),
+]
 
 const authoredExercises = courseConfigs.flatMap(course =>
   course.chapters.flatMap((chapter, chapterIndex) =>

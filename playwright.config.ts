@@ -1,6 +1,18 @@
 import { defineConfig, devices } from '@playwright/test'
 
 /**
+ * The suite runs against its own database and server, never local.db or the
+ * dev server on 4321.
+ *
+ * That database is seeded fresh on every start with `content/` plus the fixture
+ * course in `tests/fixtures/content`, which only the suite sees. Tests that
+ * would otherwise pin a real section, and break when a chapter is written or
+ * renumbered, use the fixture course instead.
+ */
+const E2E_PORT = 4322
+const E2E_ENV = { DATABASE_URL: 'file:./e2e.db', SEED_EXTRA_CONTENT: 'tests/fixtures/content' }
+
+/**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
@@ -27,7 +39,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:4321',
+    baseURL: `http://localhost:${E2E_PORT}`,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -73,8 +85,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'yarn dev --port 4321 --ignore-lock',
-    url: 'http://localhost:4321',
+    command: `yarn db:migrate && yarn db:seed && yarn dev --port ${E2E_PORT} --ignore-lock`,
+    env: E2E_ENV,
+    url: `http://localhost:${E2E_PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

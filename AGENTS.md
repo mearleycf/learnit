@@ -49,7 +49,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/schema.ts` | Drizzle tables. Source of truth; migrations are generated, never hand-written |
 | `db/client.ts` | libSQL connection, reads `DATABASE_URL` |
 | `db/seed.ts` | Seeder. Derives IDs, FKs, sort order, display numbers, timestamps |
-| `content/<course>/<nn>-chapter/<nn>-section.md` | Every course, as markdown on disk. The only place content lives |
+| `content/<course>/<nn>-chapter/<nn>-section.md` | Every real course, as markdown on disk. The only place course content lives; the e2e fixture course is in `tests/fixtures/content` |
 | `db/content/` | Reads `content/` into the shape the seeder consumes. `parse.ts` splits frontmatter and `## heading` blocks |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
@@ -175,9 +175,20 @@ Student work is saved to `student_exercise_progress.solution`, keyed by filename
 they type. localStorage is a per-browser fallback; the server copy wins on load. Reset clears
 both. Hints are gated on `showAfterAttempts` and unlock as the attempt count rises.
 
-End-to-end tests share one libSQL file and saved work is durable, so Playwright runs serially
-(`fullyParallel: false`, one worker) and tests needing a clean editor call `openExercise`,
-which resets before starting.
+End-to-end tests run against their own database, `e2e.db`, and their own dev server on port 4322.
+`playwright.config.ts` migrates and seeds it on start with `content/` plus the fixture course in
+`tests/fixtures/content` (`SEED_EXTRA_CONTENT`), which never reaches `local.db`. Tests use that
+fixture course (paths in `tests/support/content.ts`) instead of pinning a real section, so
+authoring or renumbering a chapter cannot break them; what must come from a real course, such as
+seeded progress totals, is read from `content/` and the seed config at test time. A new test reuses
+a `fixture.*` path if one fits. Otherwise append a section, never insert one, since the map in
+`tests/support/content.ts` is positional: add it as the next `nn-` file under
+`tests/fixtures/content/e2e-fixtures/<nn>-chapter/` and register it in `fixture`. Three things then
+move with it: that map, the `6 of 8 sections written` and outline `toHaveCount(2)` counts in
+`tests/courses.spec.ts`, and `solutions.test.ts`, which grades fixture exercises too, so run
+`yarn test:run`. Saved work is
+durable within a run, so Playwright runs serially (`fullyParallel: false`, one worker) and tests
+needing a clean editor call `openExercise`, which resets before starting.
 
 Astro actions work from forms (`?_action=`), but the `/_actions/[...path]` RPC route is not
 registered in this setup. Anything called from client script needs a plain API route under

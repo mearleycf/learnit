@@ -30,6 +30,16 @@ const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']
 const CONTENT_ROOT = resolve(process.cwd(), 'content')
 
 /**
+ * More courses to seed alongside `content/`, named by `SEED_EXTRA_CONTENT`.
+ *
+ * Only the end-to-end database sets it, to the fixture course the suite owns
+ * (`tests/fixtures/content`), so those sections never reach local.db.
+ */
+const EXTRA_CONTENT_ROOT = process.env.SEED_EXTRA_CONTENT
+  ? resolve(process.cwd(), process.env.SEED_EXTRA_CONTENT)
+  : null
+
+/**
  * Normalises and validates a section's authored content.
  *
  * Seed files historically used `{}` to mean "not written yet", which is not a
@@ -183,7 +193,10 @@ const seedLocalUser = async ({ sectionIndex, exerciseBySection, courseIdBySlug }
  * seed files.
  */
 export const seedDb = async (): Promise<void> => {
-  const courseConfigs = await loadCourses(CONTENT_ROOT)
+  const courseConfigs = [
+    ...(await loadCourses(CONTENT_ROOT)),
+    ...(EXTRA_CONTENT_ROOT ? await loadCourses(EXTRA_CONTENT_ROOT) : []),
+  ]
 
   console.info('Clearing existing data...')
   await db.delete(student_progress)
