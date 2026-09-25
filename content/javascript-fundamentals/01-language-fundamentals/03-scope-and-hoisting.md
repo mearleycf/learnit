@@ -127,41 +127,48 @@ report()    // "total: 42"
 
 ### The exercise
 
-Predict what each snippet below returns, before you run anything. Each one is the body of a
+Predict what each snippet below returns, before you run anything. None of them is an example from
+above; each applies one of the rules to a case the prose does not show. Each one is the body of a
 function in a module, so strict mode applies. Write the value it returns, or, if it throws, the
-name of the error as a string: `'ReferenceError'` or `'TypeError'`. A snippet that returns
-`undefined` is predicted with the value `undefined`, not a string.
+name of the error as a string, such as `'ReferenceError'`. A snippet that returns `undefined` is
+predicted with the value `undefined`, not a string.
 
 Each check runs the snippet for real and compares.
 
-1. Lexical scope
+1. A shadowing parameter
 
    ```javascript
-   const label = 'outer'
-   function show() {
-     return label
+   const unit = 'kg'
+   const format = n => `${n}${unit}`
+   function report(unit) {
+     return format(3)
    }
-   function run() {
-     const label = 'inner'
-     return show()
-   }
-   return run()
+   return report('lb')
    ```
 
-2. A declaration before its line
+2. A class before its line
 
    ```javascript
-   return greet('Ada')
-   function greet(name) {
-     return `Hello, ${name}`
+   const origin = new Point(0, 0)
+   class Point {
+     constructor(x, y) {
+       this.x = x
+       this.y = y
+     }
    }
+   return origin.x
    ```
 
-3. An expression before its line
+3. A var inside an if
 
    ```javascript
-   return greet('Ada')
-   var greet = name => `Hello, ${name}`
+   function pick(flag) {
+     if (flag) {
+       var choice = 'yes'
+     }
+     return choice
+   }
+   return `${pick(true)} ${pick(false)}`
    ```
 
 4. A var read early
@@ -172,16 +179,14 @@ Each check runs the snippet for real and compares.
    return seen
    ```
 
-5. A shadowing const
+5. A let in a for header
 
    ```javascript
-   const limit = 10
-   function check(value) {
-     if (value > limit) return 'over'
-     const limit = 5
-     return 'fine'
+   const readers = []
+   for (let i = 0; i < 3; i++) {
+     readers.push(() => i)
    }
-   return check(20)
+   return readers[0]() + readers[2]()
    ```
 
 6. typeof in the dead zone
@@ -194,12 +199,13 @@ Each check runs the snippet for real and compares.
    }
    ```
 
-7. Temporal, not positional
+7. Called too early
 
    ```javascript
    const report = () => `total: ${total}`
+   const early = report()
    const total = 42
-   return report()
+   return early
    ```
 
 ## file predictions.js
@@ -208,13 +214,13 @@ Each check runs the snippet for real and compares.
 // What each snippet returns, or the name of the error it throws, e.g. 'ReferenceError'.
 // Replace every '?'.
 export const predictions = [
-  '?', // 1. show is called from run
-  '?', // 2. greet is called above its declaration
-  '?', // 3. greet is a var holding an arrow
+  '?', // 1. format is called from inside report
+  '?', // 2. Point is constructed above its class
+  '?', // 3. choice is declared inside the if
   '?', // 4. total is read before its var line
-  '?', // 5. check reads limit above its own const
+  '?', // 5. readers close over the loop's i
   '?', // 6. typeof of a let above its line
-  '?', // 7. report mentions total, declared below it
+  '?', // 7. report is called before total's line
 ]
 ```
 
@@ -222,32 +228,35 @@ export const predictions = [
 
 ```javascript
 export const predictions = [
-  'outer', // 1. Scope follows the source text
-  'Hello, Ada', // 2. A function declaration is hoisted
-  'TypeError', // 3. The var exists but holds undefined
+  '3kg', // 1. format was written next to the outer unit
+  'ReferenceError', // 2. A class hoists like let
+  'yes undefined', // 3. The var belongs to the whole function
   undefined, // 4. var hoists as undefined
-  'ReferenceError', // 5. The inner const shadows from the top of the function
+  2, // 5. A let in the header is a fresh binding per iteration
   'ReferenceError', // 6. typeof does not protect a name in its dead zone
-  'total: 42', // 7. The arrow is called after total's line has run
+  'ReferenceError', // 7. The arrow reads total when it is called
 ]
 ```
 
 ## explanation
 
-Snippet 1 is lexical scope: `show` was written next to the outer `label`, so that is what it
-reads, whoever calls it.
+Snippet 1 is lexical scope. `report` has a parameter called `unit`, but `format` was written at
+the top level, next to the outer `unit`, so that is the one it reads, whoever calls it.
 
-Snippets 2 to 4 are the hoisting table. A function declaration is callable before its line. A
-`var` exists before its line but holds `undefined`, so reading it gives `undefined` and calling
-it is a `TypeError`: the name was found, the value is not a function.
+Snippets 2 to 4 are the hoisting table. A `class` is hoisted like `let`: the name exists from the
+top of the scope but is in its dead zone until the declaration runs, so constructing it early
+throws, unlike a function declaration. A `var` ignores the `if` block and belongs to the whole
+function, so `pick(false)` still finds `choice`, holding `undefined`. Reading a `var` before its
+line gives `undefined` for the same reason.
 
-Snippets 5 and 6 are the dead zone. The inner `const limit` owns the name `limit` for the whole
-function body, so the comparison above it cannot see the outer `10`, and throws. `typeof` is no
-escape: it returns `"undefined"` for a name that was never declared, but a `let` in its dead zone
-has been declared, and reading it throws.
+Snippet 5 is the per-iteration binding. Each pass through a `for (let …)` loop gets a new `i`, so
+the first reader keeps `0` and the third keeps `2`. With `var` there would be one `i`, left at `3`,
+and the sum would be `6`.
 
-Snippet 7 is why the zone is temporal. The arrow mentions `total`, but only reads it when called,
-and by then `total` is initialised.
+Snippets 6 and 7 are the dead zone. `typeof` returns `"undefined"` for a name that was never
+declared, but a `let` in its dead zone has been declared, and reading it throws. The arrow in
+snippet 7 is fine to write before `total`; what matters is when it runs, and it runs before
+`total`'s line.
 
 ## check there is one prediction per snippet
 
@@ -257,21 +266,18 @@ Seven snippets, seven answers.
 assert.strictEqual(predictions.length, 7)
 ```
 
-## check snippet 1: lexical scope
+## check snippet 1: a shadowing parameter
 
-Scope follows the source text, not the caller.
+format was written next to the outer unit, so report's parameter never reaches it.
 
 ```javascript
 const snippet = () => {
-  const label = 'outer'
-  function show() {
-    return label
+  const unit = 'kg'
+  const format = n => `${n}${unit}`
+  function report(unit) {
+    return format(3)
   }
-  function run() {
-    const label = 'inner'
-    return show()
-  }
-  return run()
+  return report('lb')
 }
 let actual
 try {
@@ -282,16 +288,20 @@ try {
 assert.strictEqual(predictions[0], actual, 'snippet 1')
 ```
 
-## check snippet 2: a declaration before its line
+## check snippet 2: a class before its line
 
-A function declaration is hoisted, body and all.
+A class hoists like let, into the dead zone, not like a function declaration.
 
 ```javascript
 const snippet = () => {
-  return greet('Ada')
-  function greet(name) {
-    return `Hello, ${name}`
+  const origin = new Point(0, 0)
+  class Point {
+    constructor(x, y) {
+      this.x = x
+      this.y = y
+    }
   }
+  return origin.x
 }
 let actual
 try {
@@ -302,14 +312,19 @@ try {
 assert.strictEqual(predictions[1], actual, 'snippet 2')
 ```
 
-## check snippet 3: an expression before its line
+## check snippet 3: a var inside an if
 
-The var exists but holds undefined, and undefined is not a function.
+The var belongs to the whole function, so it exists even when the if does not run.
 
 ```javascript
 const snippet = () => {
-  return greet('Ada')
-  var greet = name => `Hello, ${name}`
+  function pick(flag) {
+    if (flag) {
+      var choice = 'yes'
+    }
+    return choice
+  }
+  return `${pick(true)} ${pick(false)}`
 }
 let actual
 try {
@@ -339,19 +354,17 @@ try {
 assert.strictEqual(predictions[3], actual, 'snippet 4')
 ```
 
-## check snippet 5: a shadowing const
+## check snippet 5: a let in a for header
 
-The inner const shadows from the top of the function, so the read is in its dead zone.
+A let in the header is a fresh binding per iteration, so the readers see 0 and 2.
 
 ```javascript
 const snippet = () => {
-  const limit = 10
-  function check(value) {
-    if (value > limit) return 'over'
-    const limit = 5
-    return 'fine'
+  const readers = []
+  for (let i = 0; i < 3; i++) {
+    readers.push(() => i)
   }
-  return check(20)
+  return readers[0]() + readers[2]()
 }
 let actual
 try {
@@ -383,15 +396,16 @@ try {
 assert.strictEqual(predictions[5], actual, 'snippet 6')
 ```
 
-## check snippet 7: temporal, not positional
+## check snippet 7: called too early
 
-The arrow is called after total's line has run.
+The arrow reads total when it is called, and that call happens inside the dead zone.
 
 ```javascript
 const snippet = () => {
   const report = () => `total: ${total}`
+  const early = report()
   const total = 42
-  return report()
+  return early
 }
 let actual
 try {
@@ -409,9 +423,10 @@ Only a function declaration is usable before its line. `var` gives `undefined`; 
 
 ## hint after 2
 
-Calling `undefined` is a `TypeError`. Reading a `let` or `const` in its dead zone is a
-`ReferenceError`, and `typeof` does not change that.
+`var` is scoped to the function, not the block, and a `let` in a `for` header is new on every
+iteration.
 
 ## hint after 3
 
-An inner declaration shadows the outer name from the top of its scope, not from its own line.
+A function reads a name when it is called, not when it is written. Called inside the dead zone,
+it throws.
