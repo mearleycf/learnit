@@ -11,10 +11,10 @@ way one is written decides how it hoists, what `this` it gets and whether it can
 ## Four ways to write one
 
 ```javascript
-function area(w, h) { return w * h }          // declaration
-const area = function (w, h) { return w * h }  // expression
-const area = (w, h) => w * h                   // arrow
-const shape = { area(w, h) { return w * h } }  // method shorthand
+function areaDecl(w, h) { return w * h }          // declaration
+const areaExpr = function (w, h) { return w * h }  // expression
+const areaArrow = (w, h) => w * h                  // arrow
+const shape = { area(w, h) { return w * h } }      // method shorthand
 ```
 
 | Form | Hoisted | Own `this` | `new` works | `arguments` |
@@ -116,8 +116,8 @@ different object.
 Two traps with the syntax:
 
 ```javascript
-const make = () => { id: 1 }       // undefined: the braces are a block, `id:` a label
-const make = () => ({ id: 1 })     // { id: 1 }
+const makeBroken = () => { id: 1 }     // undefined: the braces are a block, `id:` a label
+const makeFixed = () => ({ id: 1 })    // { id: 1 }
 
 function total() {
   return          // automatic semicolon insertion ends the statement here
