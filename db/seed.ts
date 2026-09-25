@@ -1,6 +1,9 @@
+import { resolve } from 'node:path'
+
 import { sectionContentSchema } from '@schemas/sections.schema'
 
 import { client, db } from './client'
+import { loadCourses } from './content/load'
 import {
   chapters,
   courses,
@@ -12,12 +15,19 @@ import {
   student_progress,
   users,
 } from './schema'
-import { courseData } from './seed_config/seed/courses/index'
 import { seedDate, seedUlid } from './seed_config/seed/deterministic'
 import { localFeedback, localNotes, localProgress, localUser } from './seed_config/seed/local-user'
 import type { ExerciseDifficulty } from './seed_config/types/seed-types'
 
 const DIFFICULTIES: ExerciseDifficulty[] = ['easy', 'medium', 'hard']
+
+/**
+ * Where authored content lives.
+ *
+ * Resolved from the working directory rather than this module's URL: under
+ * Vitest the module is served over http, and `fileURLToPath` rejects it.
+ */
+const CONTENT_ROOT = resolve(process.cwd(), 'content')
 
 /**
  * Normalises and validates a section's authored content.
@@ -173,6 +183,8 @@ const seedLocalUser = async ({ sectionIndex, exerciseBySection, courseIdBySlug }
  * seed files.
  */
 export const seedDb = async (): Promise<void> => {
+  const courseConfigs = await loadCourses(CONTENT_ROOT)
+
   console.info('Clearing existing data...')
   await db.delete(student_progress)
   await db.delete(student_exercise_progress)
@@ -196,7 +208,7 @@ export const seedDb = async (): Promise<void> => {
   const exerciseBySection = new Map<string, string>()
   const courseIdBySlug = new Map<string, string>()
 
-  for (const course of courseData.courses) {
+  for (const course of courseConfigs) {
     const courseKey = `course:${course.slug}`
     const courseId = seedUlid(courseKey)
     courseIdBySlug.set(course.slug, courseId)
@@ -293,7 +305,7 @@ export const seedDb = async (): Promise<void> => {
   await seedLocalUser({ sectionIndex, exerciseBySection, courseIdBySlug })
 
   console.info(
-    `Seeded ${courseData.courses.length} courses, ${chapterCount} chapters, ` +
+    `Seeded ${courseConfigs.length} courses, ${chapterCount} chapters, ` +
       `${sectionCount} sections, ${exerciseCount} exercises.`,
   )
   console.info(`${authoredCount} of ${sectionCount} sections have authored content; the rest are NULL.`)

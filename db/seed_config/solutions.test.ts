@@ -1,3 +1,5 @@
+import { resolve } from 'node:path'
+
 import { installDomStub } from '@lib/exercise-runner/dom-stub'
 import { prepare } from '@lib/exercise-runner/jsx'
 import { linkModules } from '@lib/exercise-runner/link'
@@ -12,7 +14,7 @@ import type { TestCase } from '@lib/exercise-runner/types'
 // here for a reason it never fails in the app.
 import { describe, expect, it } from 'vitest'
 
-import { courseData } from './seed/courses/index'
+import { loadCourses } from '../content/load'
 import type { ExerciseConfig } from './types/seed-types'
 
 type CodeFile = { filename: string; content: string; language?: string }
@@ -23,7 +25,9 @@ type CodeFile = { filename: string; content: string; language?: string }
  * Only exercises carrying real checks are included; the placeholder seeds have
  * empty payloads and nothing to assert.
  */
-const authoredExercises = courseData.courses.flatMap(course =>
+const courseConfigs = await loadCourses(resolve(process.cwd(), 'content'))
+
+const authoredExercises = courseConfigs.flatMap(course =>
   course.chapters.flatMap((chapter, chapterIndex) =>
     chapter.sections.flatMap((section, sectionIndex) => {
       const exercise = section.exercise

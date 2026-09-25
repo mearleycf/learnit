@@ -21,11 +21,8 @@ export const localUser = {
  */
 export const localProgress = {
   'javascript-fundamentals': {
-    completed: [
-      { chapter: 1, section: 1 },
-      { chapter: 1, section: 2 },
-    ],
-    current: { chapter: 1, section: 3 },
+    completed: [{ chapter: 1, section: 1 }],
+    current: { chapter: 1, section: 2 },
     /** Attempts against the one authored exercise. */
     exercises: [{ chapter: 1, section: 2, attempts: 3, score: 80, completed: true }],
   },
@@ -48,21 +45,22 @@ export const localNotes = [
     course: 'javascript-fundamentals',
     chapter: 1,
     section: 1,
-    quote: 'The engine reads your program top to bottom and does what it says.',
-    markdown: 'Worth remembering: nothing runs in parallel here. Ordering bugs are usually my own.',
+    quote: 'a bug from 1995 that cannot be fixed without breaking the web',
+    markdown: 'So the null check has to come first, always. `value === null` before anything else.',
   },
   {
     course: 'javascript-fundamentals',
     chapter: 1,
     section: 1,
-    markdown: 'Check whether `console.log` survives into production builds, or whether it gets stripped.',
+    markdown:
+      'Check whether `Object.prototype.toString.call` is worth it anywhere in my own code, or just library code.',
   },
   {
     course: 'javascript-fundamentals',
     chapter: 1,
-    section: 3,
-    quote: 'Prefer const by default and reach for let only when you need to reassign.',
-    markdown: 'This is the rule I keep breaking. `const` first, then loosen it only when the reassign is real.',
+    section: 2,
+    quote: 'Number.isNaN(NaN)',
+    markdown: 'The global `isNaN` coerces first, so `isNaN("abc")` is true. `Number.isNaN` does not. Use the latter.',
   },
 ]
 
@@ -79,7 +77,7 @@ export const localFeedback = [
     section: 1,
     status: 'submitted' as const,
     category: 'typo_or_grammar' as const,
-    markdown: 'The sentence about semicolons reads oddly. "JavaScript inserts them for you" could use a comma.',
+    markdown: 'The arrow comments in the first code block line up in the editor but not in the rendered page.',
     rating: 4,
   },
   {
@@ -88,7 +86,7 @@ export const localFeedback = [
     section: 1,
     status: 'assigned' as const,
     category: 'clarity_improvement' as const,
-    markdown: 'Worth saying explicitly that the console is opened with the browser dev tools, not the terminal.',
+    markdown: 'Worth saying why `typeof` reports "function", given functions are objects. The aside is easy to miss.',
     rating: 3,
     assigned: true,
   },
@@ -98,10 +96,11 @@ export const localFeedback = [
     section: 2,
     status: 'in_progress' as const,
     category: 'incorrect_content' as const,
-    markdown: 'The fifth check calls describeProgress(false), but the starter signature takes no arguments.',
+    markdown:
+      'The `toNumber` check expects null for an empty string, but the instructions only mention `Number("")` being 0.',
     rating: 2,
     assigned: true,
-    adminNotes: 'Real bug. Either the starter takes an optional parameter or the check should set isEnrolled.',
+    adminNotes: 'Fair. The instruction should state the return contract, not just the surprise.',
   },
   {
     course: 'javascript-fundamentals',
@@ -115,24 +114,24 @@ export const localFeedback = [
     github: 'https://github.com/mearleycf/learnit/issues/141',
   },
   {
-    course: 'javascript-fundamentals',
+    course: 'python-fundamentals',
     chapter: 1,
-    section: 3,
+    section: 1,
     status: 'resolved' as const,
     category: 'technical_issue' as const,
-    markdown: 'The recap key points were rendering as one run-on paragraph.',
+    markdown: 'The first Python run sat on "starting" for about eight seconds with no indication it was alive.',
     rating: 5,
     assigned: true,
-    adminNotes: 'Fixed when the recap moved to a real list.',
+    adminNotes: 'Pyodide boot. Fixed by showing the runtime-loading state instead of a bare spinner.',
   },
   {
-    course: 'javascript-fundamentals',
+    course: 'python-fundamentals',
     chapter: 1,
-    section: 3,
+    section: 6,
     status: 'no_action_required' as const,
     category: 'general_feedback' as const,
-    markdown: 'Could the recap come before the exercise instead of after?',
+    markdown: 'Could the recap come before the exercises instead of after?',
     rating: 4,
-    adminNotes: 'Recap after the exercise is deliberate: it summarises what the exercise just taught.',
+    adminNotes: 'Recap after the exercises is deliberate: it summarises what they just taught.',
   },
 ]
