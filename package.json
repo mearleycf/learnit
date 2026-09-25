@@ -33,10 +33,10 @@
     "pyodide:copy": "node scripts/copy-pyodide.mjs",
     "react:build": "node scripts/build-react.mjs",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org five-star-code --project learnit ./dist/ && sentry-cli sourcemaps upload --org five-star-code --project learnit ./dist/",
-    "test": "vitest",
+    "test": "yarn react:build && vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:run": "vitest run",
+    "test:run": "yarn react:build && vitest run",
     "test:ui": "vitest --ui",
     "version": "yarn create-sentry-release && git push --follow-tags"
   },

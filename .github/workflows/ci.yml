@@ -21,6 +21,14 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      # Pyodide and the React bundles are gitignored, and both the solutions
+      # test and the end-to-end suite need them. `dev` and `build` do this
+      # themselves; a bare `astro build` does not.
+      - name: Prepare runtime assets
+        run: |
+          yarn pyodide:copy
+          yarn react:build
+
       - name: Lint
         run: yarn lint
 
