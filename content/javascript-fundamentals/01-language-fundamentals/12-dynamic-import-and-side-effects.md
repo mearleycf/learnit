@@ -17,8 +17,18 @@ expression you can call anywhere, with any string, that loads a module when you 
 const { marked } = await import('marked')
 ```
 
-The examples here use `await`, which pauses until the module has loaded. Promises and
-`async`/`await` get their own sections in chapter 2; this one needs only that much.
+The examples here use `await`, which pauses until the module has loaded. The exercise also uses
+the two methods every promise has: `.then` runs a function on the value once it arrives and
+returns a new promise of the result, and `.catch` runs one if the promise rejects.
+
+```javascript
+import('./chart.js').then(module => module.default)   // a promise of the default export
+import('./chart.js').catch(error => console.warn(error))
+```
+
+A promise can be stored and handed to several callers; each one that awaits it gets the same
+result once it settles. Promises and `async`/`await` get their own sections in chapter 2; this one
+needs only that much.
 
 ### import() returns a promise of the namespace
 
@@ -222,11 +232,12 @@ has put there since. The `.catch` also marks the rejection as handled, so the ca
 reports as an unhandled rejection; the caller still sees the failure through the promise it was
 given.
 
-`loadLocale` is the rule from 1.9 about where `try` stops reaching, with a promise. The starter returned the
-promise from inside the `try` without awaiting it, so the `try` had already finished by the time
-the import failed, and the rejection went straight past the `catch` to the caller. `await` inside
+`loadLocale` is the rule from 1.9 about where `try` stops reaching, with a promise. The starter
+returned the promise from inside the `try` without awaiting it, so the `try` had already finished
+by the time the import failed, and the rejection went straight past the `catch` to the caller. `await` inside
 the `try` brings the rejection back into it. The `lang === 'en'` guard is the base case: without
-it, a missing English file would recurse until the stack ran out.
+it, a missing English file would retry `en` forever, until the run times out. Each retry follows
+an `await`, so the stack never grows and nothing overflows to stop it.
 
 ## check load resolves to the default export
 
@@ -350,6 +361,8 @@ let error
 try {
   await loadLocale('de', async () => {
     calls++
+    // Stops a missing base case from retrying forever, so this check fails by name.
+    if (calls > 3) return { messages: 'looped' }
     throw failure
   })
 } catch (caught) {
