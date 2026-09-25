@@ -158,18 +158,19 @@ assert.strictEqual(error.cause, original)
 
 ## check parseQuantity accepts a whole number
 
-A clean numeric string becomes a number.
+A clean numeric string becomes a number, down to the smallest allowed.
 
 ```javascript
 assert.strictEqual(parseQuantity('3'), 3)
+assert.strictEqual(parseQuantity('1'), 1)
 ```
 
 ## check parseQuantity rejects bad input with a ValidationError
 
-Empty, fractional, zero and text all fail, naming the field.
+Empty, blank, fractional, zero, negative and text all fail, naming the field.
 
 ```javascript
-for (const input of ['', '2.5', '0', 'lots']) {
+for (const input of ['', '  ', '2.5', '0', '-1', 'lots']) {
   let caught = null
   try {
     parseQuantity(input)
@@ -186,7 +187,12 @@ for (const input of ['', '2.5', '0', 'lots']) {
 Each known failure gets its own message.
 
 ```javascript
-assert.strictEqual(describeFailure(() => parseQuantity('')), 'Check the quantity field')
+assert.strictEqual(
+  describeFailure(() => {
+    throw new ValidationError('quantity', 'Expected a whole number')
+  }),
+  'Check the quantity field',
+)
 assert.strictEqual(
   describeFailure(() => {
     throw new NotFoundError('Order', 12)
@@ -198,14 +204,19 @@ assert.strictEqual(describeFailure(() => 1), 'OK')
 
 ## check describeFailure rethrows what it does not recognise
 
-A bug is not a validation problem.
+A bug is not a validation problem. The same error must come back out, not a replacement.
 
 ```javascript
-assert.throws(() =>
+const bug = new TypeError('Cannot read properties of undefined')
+let caught = null
+try {
   describeFailure(() => {
-    null.length
-  }),
-)
+    throw bug
+  })
+} catch (error) {
+  caught = error
+}
+assert.strictEqual(caught, bug, 'expected the original error to be rethrown')
 ```
 
 ## hint after 1
