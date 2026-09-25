@@ -25,5 +25,6 @@ unless you narrow it. Modules resolve as URLs, run once, and export live binding
   `finally`.
 - Give failures their own `Error` subclass so callers branch with `instanceof`, not on a message.
 - Import specifiers are URLs: `'./format.js'` needs its extension outside a bundler.
-- An ESM import is a live, read-only binding. A CommonJS `require` hands you a copy.
+- An ESM import is a live, read-only binding. Destructuring a CommonJS `require` copies values off
+  a shared object.
 - Each module evaluates once. Keep its top level to declarations and export the work as functions.

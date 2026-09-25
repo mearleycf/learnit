@@ -27,7 +27,7 @@ module.exports = { load }
 | Syntax | `import` / `export` | `require()` / `module.exports` |
 | When dependencies load | Before any code runs, from a static graph | When `require` is called, one at a time |
 | Loading | Asynchronous | Synchronous |
-| What you import | A live binding | A copy of the value at `require` time |
+| What you import | A live binding | Properties of one shared, cached `module.exports` object; destructuring copies them |
 | Strict mode | Always | Only with `'use strict'` |
 | Top-level `await` | Yes | No |
 | `this` at the top level | `undefined` | `module.exports` |
@@ -113,5 +113,6 @@ New code should be ESM. You write CJS now mostly when a tool's config file deman
 - ESM is static: the whole graph is known and linked before code runs. CJS loads as it goes.
 - Relative specifiers need their extension outside a bundler.
 - `"type": "module"`, `.mjs` and `.cjs` decide which system a file uses.
-- An ESM import is a live, read-only binding. A CJS `require` gives you a copy.
+- An ESM import is a live, read-only binding. `require` returns the shared `module.exports`
+  object, and destructuring it copies the values out.
 - A package's `exports` field is its public API; nothing else in it can be imported.
