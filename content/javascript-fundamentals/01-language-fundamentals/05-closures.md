@@ -83,9 +83,8 @@ variables changed.
 
 ## What it costs
 
-A closure keeps its whole scope reachable, not just the names it uses. Engines optimise away
-variables no inner function mentions, but anything a closure *does* mention stays alive as long
-as the closure does.
+Engines do not keep a whole scope alive for a closure. Variables that no inner function mentions
+are optimised away; anything a closure *does* mention stays alive as long as the closure does.
 
 ```javascript
 function attach(element) {
@@ -100,6 +99,24 @@ That listener pins `rows` in memory until the listener is removed or the element
 The fix is to capture only what you need, here `const count = rows.length`, so the large array
 can go.
 
+There is a catch. Closures created in the same scope share one set of captured variables, so a
+value captured by *any* of them is retained by every sibling that outlives the scope:
+
+```javascript
+function attach(element) {
+  const rows = loadTenThousandRows()
+  const count = rows.length
+  const ids = () => rows.map(row => row.id)   // mentions rows, never escapes
+  element.addEventListener('click', () => {
+    console.log(`clicked, ${count} rows`)       // mentions only count
+  })
+}
+```
+
+The listener never touches `rows`, but `ids` does, and the two share their captured scope. As long
+as the listener lives, `rows` does too. When a closure outlives its scope, check what its siblings
+mention, not just what it mentions itself.
+
 Leaks of this kind share a shape: something long-lived (a listener, a timer, a cache, a global)
 holds a closure, and the closure holds something large. Removing the listener or clearing the
 timer releases the lot.
@@ -110,4 +127,4 @@ timer releases the lot.
 - It holds variables by reference. Later assignments are visible.
 - Each call to the outer function makes a fresh, independent scope.
 - Closures give real privacy, and are how most JavaScript state is hidden.
-- A long-lived closure keeps whatever it mentions alive with it.
+- A long-lived closure keeps alive whatever it, or any sibling from the same scope, mentions.
