@@ -201,7 +201,8 @@ test('an endless loop times out instead of hanging the page', async ({ page }) =
   await page.locator('[data-role="editor"]').fill('while (true) {}\nexport const typeOf = () => "x"')
   await page.getByRole('button', { name: 'Run checks' }).click()
 
-  await expect(page.locator('[data-role="summary"]')).toContainText('Timed out', { timeout: 15_000 })
+  // The run budget is 5 s plus 2 s for each of this exercise's 7 checks, so 19 s.
+  await expect(page.locator('[data-role="summary"]')).toContainText('Timed out', { timeout: 30_000 })
   // The page is still interactive after the worker was killed.
   await expect(page.getByRole('button', { name: 'Run checks' })).toBeEnabled()
 })

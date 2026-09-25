@@ -53,7 +53,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/content/` | Reads `content/` into the shape the seeder consumes. `parse.ts` splits frontmatter and `## heading` blocks |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
-| `src/lib/exercise-runner/` | Runs student code. `run.ts`, `link.ts`, `capture.ts` and `dom-stub.ts` are pure and unit tested |
+| `src/lib/exercise-runner/` | Runs student code. `run.ts`, `link.ts`, `capture.ts`, `dom-stub.ts` and `limits.ts` are pure and unit tested |
 | `src/components/` | Astro components |
 | `src/pages/` | Routes. `/notes` and `/feedback` are the cross-course views |
 
@@ -93,12 +93,17 @@ headings the loader reads:
 | `## html <name>` | Markup for the live preview. Omit it and the exercise gets no preview button |
 | `## solution` | The worked solution for the entry file |
 | `## explanation` | Prose shown with the solution |
-| `## check <name>` | Prose description, then the fenced assertion |
+| `## check <name>` | Prose description, then the fenced assertion. It may `await` (JavaScript and Python); a check still pending after 2 s fails as timed out |
 | `## hint after <n>` | Unlocks at `n` attempts. A fenced block becomes a code hint, prose a text hint |
 
 Only the **first** fence under a heading is that block's code; later ones are examples inside prose
 and are dropped. Fences in the instructions, before the first heading, are kept as examples. A lesson body is raw markdown and is not split this way, so it may hold as many
 fences and `##` headings as it likes.
+
+A JavaScript check is the body of an async function in strict mode, with `assert` and every export
+of the entry file in scope by name, so `assert.strictEqual(await fetchUser(1), 'Ada')` works as
+written. A Python check runs with the student's module unpacked into scope and may `await` at top
+level: `assert (await later(3)) == 3`.
 
 ## Markdown has two paths
 
@@ -126,17 +131,23 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: 33 sections across three courses, 15 of 16 exercises written. Python and
-Advanced React are complete. **JavaScript is being rewritten from nothing** against its full
-syllabus: the old twelve sections were pitched at someone who had never seen `console.log` and
-were deleted rather than migrated. What is there now is chapter 1 (types, coercion, modules) plus
-one DOM exercise in the browser chapter, and JavaScript 1.4 is a deliberate stub. Python lessons
-are written for a JavaScript developer, comparing the two throughout.
+Authored content: Python and Advanced React are complete. **JavaScript is being rewritten from
+nothing** against its full syllabus: the old twelve sections were pitched at someone who had never
+seen `console.log` and were deleted rather than migrated. It is now a 101-section skeleton over
+chapters 1 to 5, five of them written; the rest are stubs, filled in place as chapters are authored.
+Syllabus areas 6 to 9 (testing, security, performance tooling, dev workflow) are left out on
+purpose. If they arrive, they are new chapters `06` to `09`, never inserted before existing ones.
+`yarn db:seed` prints current coverage. Python lessons are written for a JavaScript developer,
+comparing the two throughout.
 
 Exercises run client-side in a Web Worker. **JavaScript, Python and React.** The entry file's
 `language` picks the runner: `worker.ts` for JavaScript, `python-worker.ts` for Python. The Worker is a crash and
 infinite-loop guard, not a security boundary; it does not need to be, since the only author
 of that code is the person running it.
+
+The Worker is killed after the language base (5 s JavaScript, 20 s React, 60 s Python) plus each
+check's timeout (`runBudget` in `limits.ts`), so hanging promises each report their own timeout; a
+synchronous endless loop is caught later on exercises with many checks (#186).
 
 Python runs on Pyodide, served from `public/pyodide`, which `scripts/copy-pyodide.mjs` copies
 out of node_modules before dev and build. Those 15 MB are gitignored and excluded from

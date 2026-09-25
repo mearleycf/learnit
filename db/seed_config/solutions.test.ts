@@ -58,7 +58,7 @@ installDomStub(globalThis as unknown as Record<string, unknown>)
 
 type Pyodide = {
   FS: { mkdirTree: (path: string) => void; writeFile: (path: string, data: string) => void }
-  runPython: (code: string) => string
+  runPythonAsync: (code: string) => Promise<string>
 }
 
 /** Pyodide is slow to start, so one runtime is shared across every Python check. */
@@ -104,7 +104,7 @@ const runPython = async (files: CodeFile[], entry: string, tests: TestCase[]) =>
   for (const file of filesToWrite(files.map(f => ({ filename: f.filename, content: f.content })))) {
     py.FS.writeFile(file.path, file.content)
   }
-  return JSON.parse(py.runPython(buildHarness(entry, tests))) as HarnessResult
+  return JSON.parse(await py.runPythonAsync(buildHarness(entry, tests))) as HarnessResult
 }
 
 describe('authored exercises', () => {
@@ -145,7 +145,7 @@ describe('authored exercises', () => {
 
         const entryUrl = linkModules(prepared, entry, dataUrl)
         const module = (await import(/* @vite-ignore */ entryUrl)) as Record<string, unknown>
-        const result = runTests({ ...helpers, ...module }, tests)
+        const result = await runTests({ ...helpers, ...module }, tests)
 
         const failures = result.outcomes.filter(outcome => !outcome.passed)
         expect(failures.map(f => `${f.name}: ${f.message}`)).toEqual([])
@@ -167,7 +167,7 @@ describe('authored exercises', () => {
 
         const entryUrl = linkModules(prepared, entry, dataUrl)
         const module = (await import(/* @vite-ignore */ entryUrl)) as Record<string, unknown>
-        const result = runTests({ ...helpers, ...module }, tests)
+        const result = await runTests({ ...helpers, ...module }, tests)
 
         expect(result.passed, 'the starter already passes every check').toBeLessThan(result.total)
       })

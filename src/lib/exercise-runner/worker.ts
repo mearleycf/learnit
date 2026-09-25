@@ -89,7 +89,7 @@ self.onmessage = async (event: MessageEvent<RunRequest>) => {
     })
 
     const module = (await import(/* @vite-ignore */ entryUrl)) as Record<string, unknown>
-    const result: RunResult = runTests({ ...helpers, ...module }, tests, {
+    const result: RunResult = await runTests({ ...helpers, ...module }, tests, {
       onCheckStart: capture.setCheck,
       logs: capture.entries,
     })

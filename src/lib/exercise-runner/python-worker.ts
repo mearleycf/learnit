@@ -11,7 +11,7 @@ const PYODIDE_URL = '/pyodide/'
 
 type Pyodide = {
   FS: { mkdirTree: (path: string) => void; writeFile: (path: string, data: string) => void }
-  runPython: (code: string) => string
+  runPythonAsync: (code: string) => Promise<string>
 }
 
 /**
@@ -68,7 +68,7 @@ self.onmessage = async (event: MessageEvent<PythonRunRequest>) => {
     py.FS.mkdirTree(EXERCISE_DIR)
     for (const file of filesToWrite(files)) py.FS.writeFile(file.path, file.content)
 
-    const raw = py.runPython(buildHarness(entry, tests))
+    const raw = await py.runPythonAsync(buildHarness(entry, tests))
     const harness = JSON.parse(raw) as HarnessResult
 
     if (harness.loadError) {

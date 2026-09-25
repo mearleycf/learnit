@@ -1,5 +1,6 @@
 import { type Assert, AssertionError, assert } from './assert'
 import type { LogEntry } from './capture'
+import { CHECK_TIMEOUT_MS } from './limits'
 import type { RunResult, TestCase, TestOutcome } from './types'
 
 /** Identifiers a check may not shadow, because they are the check's own scope. */
@@ -23,36 +24,81 @@ const describeError = (error: unknown): string => {
 }
 
 /**
- * Runs each check against the student's exports.
+ * Builds a check as an async function, so its body may `await`.
+ *
+ * A body with no `await` still runs synchronously up to its end, so a
+ * synchronous check behaves as it always did; only its result arrives as a
+ * promise.
+ */
+const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor as new (
+  ...args: string[]
+) => (...args: unknown[]) => Promise<unknown>
+
+class CheckTimeout extends Error {}
+
+/**
+ * Settles with the check, or rejects once `ms` passes.
+ *
+ * This only catches a promise that never settles. A synchronous infinite loop
+ * never yields to the timer; the run timeout from `runBudget` in `limits.ts`,
+ * which `client.ts` applies by killing the Worker, is still the guard for that.
+ */
+const withTimeout = (promise: Promise<unknown>, ms: number): Promise<unknown> => {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise((_resolve, reject) => {
+    timer = setTimeout(
+      () => reject(new CheckTimeout(`Timed out after ${ms / 1000} seconds. Check for a promise that never settles.`)),
+      ms,
+    )
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
+
+/**
+ * Runs each check against the student's exports, one at a time, in order.
  *
  * Every check runs even when an earlier one fails, so the student sees the
- * full picture rather than only the first problem. A check that throws
- * anything at all counts as a failure; an AssertionError reports its own
- * message, everything else is labelled with its error type.
+ * full picture rather than only the first problem. A check that throws or
+ * rejects counts as a failure; an AssertionError reports its own message,
+ * everything else is labelled with its error type. A check that is still
+ * waiting after its timeout fails with a timeout message and the next one
+ * starts.
+ *
+ * Checks run strictly in sequence, so console output after an `await` still
+ * belongs to the check `onCheckStart` last named. The exception is a check
+ * that timed out: its abandoned promise may log later, under whichever check
+ * is running by then.
  *
  * This is deliberately free of any browser or Node API so it can be unit
  * tested directly and reused inside a Worker unchanged.
  */
-export const runTests = (
+export const runTests = async (
   exports: Record<string, unknown>,
   tests: TestCase[],
-  options: { assertImpl?: Assert; onCheckStart?: (index: number) => void; logs?: LogEntry[] } = {},
-): RunResult => {
-  const { assertImpl = assert, onCheckStart, logs = [] } = options
+  options: {
+    assertImpl?: Assert
+    onCheckStart?: (index: number) => void
+    logs?: LogEntry[]
+    checkTimeoutMs?: number
+  } = {},
+): Promise<RunResult> => {
+  const { assertImpl = assert, onCheckStart, logs = [], checkTimeoutMs = CHECK_TIMEOUT_MS } = options
   const names = injectableNames(exports)
   const values = names.map(name => exports[name])
 
-  const outcomes: TestOutcome[] = tests.map((test, index) => {
+  const outcomes: TestOutcome[] = []
+  for (const [index, test] of tests.entries()) {
     onCheckStart?.(index)
     try {
-      // eslint-disable-next-line no-new-func -- the check body is authored content, not user input
-      const fn = new Function('assert', ...names, `"use strict";\n${test.testFunction}`)
-      fn(assertImpl, ...values)
-      return { name: test.name, description: test.description, passed: true, message: null }
+      // The check body is authored content, not user input.
+      const fn = new AsyncFunction('assert', ...names, `"use strict";\n${test.testFunction}`)
+      await withTimeout(fn(assertImpl, ...values), test.timeout ?? checkTimeoutMs)
+      outcomes.push({ name: test.name, description: test.description, passed: true, message: null })
     } catch (error) {
-      return { name: test.name, description: test.description, passed: false, message: describeError(error) }
+      const message = error instanceof CheckTimeout ? error.message : describeError(error)
+      outcomes.push({ name: test.name, description: test.description, passed: false, message })
     }
-  })
+  }
 
   return {
     outcomes,
