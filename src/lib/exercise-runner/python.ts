@@ -93,6 +93,14 @@ try:
                 "passed": False,
                 "message": str(_e) or "Assertion failed",
             })
+        except asyncio.CancelledError:
+            # A BaseException, so it would escape the clause below and fail
+            # the whole run as a load error.
+            _outcomes.append({
+                "name": _check["name"],
+                "passed": False,
+                "message": "CancelledError: the awaited task was cancelled",
+            })
         except Exception as _e:
             _outcomes.append({
                 "name": _check["name"],

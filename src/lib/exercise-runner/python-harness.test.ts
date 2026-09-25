@@ -33,6 +33,11 @@ async def never():
 
 def double(n):
     return n * 2
+
+async def cancelled():
+    task = asyncio.ensure_future(asyncio.sleep(1))
+    task.cancel()
+    await task
 `
 
 const check = (name: string, testFunction: string, timeout?: number): TestCase => ({
@@ -80,5 +85,14 @@ describe('python harness', () => {
     expect(result.outcomes[0]?.message).toMatch(/^Timed out after 0\.05 seconds\./)
     expect(result.outcomes[1]?.passed).toBe(true)
     expect(result.loadError).toBeNull()
+  }, 60_000)
+
+  it('fails a check that ends in CancelledError, without losing the other checks', async () => {
+    const result = await run([check('cancelled', 'await cancelled()'), check('after', 'assert True')])
+    expect(result.loadError).toBeNull()
+    expect(result.outcomes.map(o => [o.passed, o.message])).toEqual([
+      [false, 'CancelledError: the awaited task was cancelled'],
+      [true, null],
+    ])
   }, 60_000)
 })

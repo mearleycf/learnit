@@ -40,8 +40,8 @@ class CheckTimeout extends Error {}
  * Settles with the check, or rejects once `ms` passes.
  *
  * This only catches a promise that never settles. A synchronous infinite loop
- * never yields to the timer; the per-run timeout in `client.ts`, which kills
- * the Worker, is still the guard for that.
+ * never yields to the timer; the run timeout from `runBudget` in `limits.ts`,
+ * which `client.ts` applies by killing the Worker, is still the guard for that.
  */
 const withTimeout = (promise: Promise<unknown>, ms: number): Promise<unknown> => {
   let timer: ReturnType<typeof setTimeout> | undefined
