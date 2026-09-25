@@ -10,7 +10,6 @@ files:
     language: javascript
 ---
 
-
 A closure is a function together with the scope it was created in. Every function in JavaScript
 is one; the term only earns its keep when the function outlives that scope.
 
@@ -130,7 +129,7 @@ timer releases the lot.
 
 ### What to take away
 
-- A function remembers the scope it was written in, and keeps it alive.
+- A function remembers the scope it was written in, and keeps alive what it mentions.
 - It holds variables by reference. Later assignments are visible.
 - Each call to the outer function makes a fresh, independent scope.
 - Closures give real privacy, and are how most JavaScript state is hidden.
@@ -245,8 +244,7 @@ exactly what `once` usually wraps: an initialiser, a listener setup, a warning.
 
 `makeHandlers` changes one keyword. With `var` there is one `i` for the whole function, every
 arrow closes over it, and by the time any runs the loop has left it at `count`. A `let` in a `for`
-header gets a fresh binding per iteration, so each arrow closes over its own `i`. The arrows are
-identical in both versions; only the number of variables changed.
+header gets a fresh binding per iteration, so each arrow closes over its own `i`.
 
 ## check next counts up from zero
 

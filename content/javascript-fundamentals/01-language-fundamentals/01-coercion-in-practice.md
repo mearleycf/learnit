@@ -32,7 +32,7 @@ Three of those lines are lies worth knowing.
 for null with `value === null`.
 
 `typeof fn === "function"` is a convenience: functions are objects, and this is the one case where
-`typeof` reports something other than the real type.
+`typeof` is more specific than the real type.
 
 `typeof NaN === "number"` is correct by the spec, since `NaN` is a value of the number type, and
 useless in practice: a "number" you cannot do arithmetic with.

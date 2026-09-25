@@ -140,8 +140,9 @@ try {
 
 The same goes for a promise you create but do not `await`: its rejection is not thrown into the
 surrounding `try`. It surfaces as an unhandled rejection instead, which Node treats as fatal by
-default and browsers report on `window`'s `unhandledrejection` event. Promises and the event loop
-get their own chapters; the rule for now is that `try` only sees what happens before it exits.
+default and browsers report on `window`'s `unhandledrejection` event. Promises (chapter 2) and the
+event loop (chapter 4) come later; the rule for now is that `try` only sees what happens before it
+exits.
 
 ### What throwing costs
 

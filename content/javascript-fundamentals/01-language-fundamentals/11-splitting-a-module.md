@@ -135,7 +135,7 @@ Three modules. **format.js** and **tracker.js** are written and read only; **pro
 yours.
 
 `format.js` exports `percent(part, whole)` and `pluralise(count, word)`. Import both rather than
-rewriting them — that is the point of splitting a module.
+rewriting them: that is the point of splitting a module.
 
 In **progress.js**:
 
