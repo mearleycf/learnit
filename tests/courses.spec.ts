@@ -651,9 +651,9 @@ test('the code editor is named after the file it shows', async ({ page }) => {
 })
 
 test('an unwritten exercise says so instead of showing instructions alone', async ({ page }) => {
-  // JavaScript 1.6 is a stub: its frontmatter declares the shape, and the body
+  // JavaScript 4.18 is a stub: its frontmatter declares the shape, and the body
   // that would carry the starter, checks and hints has not been written.
-  await page.goto('/courses/javascript-fundamentals/1/6')
+  await page.goto('/courses/javascript-fundamentals/4/18')
   await expect(page.getByText('This exercise has not been written yet.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Run checks' })).toHaveCount(0)
   // The misleading instructions block is gone with it.
