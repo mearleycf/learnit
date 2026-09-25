@@ -54,6 +54,16 @@ const toExercise = (data: Record<string, unknown>, body: string, path: string): 
   const solution = block('solution')
   if (!solution) throw new ContentError(`${path}: no "## solution" block`)
 
+  // Markup for the live preview. Only exercises that render into a page carry
+  // it; a pure-logic exercise omits the blocks and gets no preview button.
+  const markup = blocks
+    .filter(candidate => candidate.heading.startsWith('html '))
+    .map(candidate => ({
+      filename: candidate.heading.slice('html '.length),
+      content: candidate.code,
+      isHidden: false,
+    }))
+
   // Checks and hints are headed blocks, not frontmatter: the assertion is
   // JavaScript, which YAML mangles.
   const checks = blocks
@@ -81,11 +91,27 @@ const toExercise = (data: Record<string, unknown>, body: string, path: string): 
     difficulty: (optionalString(data, 'difficulty') ?? 'medium') as ExerciseConfig['difficulty'],
     instructions: intro,
     code_files: { files, defaultView: requireString(data, 'entry', path) },
+    ...(markup.length > 0
+      ? { browser_html: { files: markup, defaultView: optionalString(data, 'preview') ?? markup[0]?.filename } }
+      : {}),
     tests: { tests: checks.map(check => ({ ...check, expectedOutput: null })) },
     hints: { hints },
     default_solution: { content: solution.code, explanation: block('explanation')?.prose ?? '' },
   }
 }
+
+/** An exercise whose shape is declared but whose content is unwritten. */
+const stubExercise = (data: Record<string, unknown>): ExerciseConfig => ({
+  seedSequence: 1,
+  exercise_display_number: optionalNumber(data, 'number') ?? 1,
+  estimated_time_minutes: optionalNumber(data, 'minutes') ?? 20,
+  difficulty: (optionalString(data, 'difficulty') ?? 'medium') as ExerciseConfig['difficulty'],
+  instructions: '',
+  code_files: {},
+  tests: {},
+  hints: {},
+  default_solution: {},
+})
 
 /** Splits a recap body into its summary paragraph and the key points beneath it. */
 const toRecap = (body: string) => {
@@ -113,13 +139,28 @@ const loadSection = async (dir: string, file: string, displayNumber: number): Pr
     access_level: (optionalString(data, 'access') ?? 'purchased') as SectionConfig['access_level'],
   }
 
+  // A stub: frontmatter gives the shape, the body has not been written. The
+  // seeder stores NULL for it so the gap stays visible in the data, and an
+  // exercise stub gets no exercise row rather than orphan instructions.
+  const stub = body === ''
+
   if (type === 'lesson') {
-    return { ...base, content_type: 'lesson', content: { content_type: 'lesson', lesson: { markdown: body } } }
+    if (stub) return { ...base, content_type: 'lesson', content: null }
+    const references = (data.references ?? []) as string[]
+    const lesson = { markdown: body, ...(references.length > 0 ? { references } : {}) }
+    return { ...base, content_type: 'lesson', content: { content_type: 'lesson', lesson } }
   }
   if (type === 'recap') {
+    if (stub) return { ...base, content_type: 'recap', content: null }
     return { ...base, content_type: 'recap', content: { content_type: 'recap', recap: toRecap(body) } }
   }
   if (type === 'exercise') {
+    // A stub exercise still gets a row, with empty payloads. The section page
+    // reads those as "not written yet" and hides the workspace, rather than
+    // rendering instructions pointing at an editor that is not there.
+    if (data.files === undefined) {
+      return { ...base, content_type: 'exercise', content: { content_type: 'exercise' }, exercise: stubExercise(data) }
+    }
     return {
       ...base,
       content_type: 'exercise',

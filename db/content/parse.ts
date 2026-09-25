@@ -60,6 +60,7 @@ export const splitSections = (body: string): { intro: string; blocks: NamedBlock
   let fence: string | null = null
   let language: string | null = null
   let seenFence = false
+  let capturing = false
   let code: string[] = []
   let prose: string[] = []
 
@@ -68,6 +69,7 @@ export const splitSections = (body: string): { intro: string; blocks: NamedBlock
     blocks.push({ heading, language, code: code.join('\n'), prose: prose.join('\n').trim() })
     language = null
     seenFence = false
+    capturing = false
     code = []
     prose = []
   }
@@ -78,7 +80,8 @@ export const splitSections = (body: string): { intro: string; blocks: NamedBlock
     if (fence !== null) {
       if (line.trimEnd() === fence) {
         fence = null
-      } else {
+        capturing = false
+      } else if (capturing) {
         code.push(line)
       }
       continue
@@ -87,7 +90,8 @@ export const splitSections = (body: string): { intro: string; blocks: NamedBlock
     if (fenceMatch) {
       fence = '```'
       // Only the first fence under a heading is the block's code; later ones
-      // are examples inside prose.
+      // are examples inside prose and are dropped rather than appended.
+      capturing = !seenFence
       if (!seenFence) {
         seenFence = true
         language = fenceMatch[1] || null
