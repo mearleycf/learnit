@@ -175,9 +175,14 @@ Student work is saved to `student_exercise_progress.solution`, keyed by filename
 they type. localStorage is a per-browser fallback; the server copy wins on load. Reset clears
 both. Hints are gated on `showAfterAttempts` and unlock as the attempt count rises.
 
-End-to-end tests share one libSQL file and saved work is durable, so Playwright runs serially
-(`fullyParallel: false`, one worker) and tests needing a clean editor call `openExercise`,
-which resets before starting.
+End-to-end tests run against their own database, `e2e.db`, and their own dev server on port 4322.
+`playwright.config.ts` migrates and seeds it on start with `content/` plus the fixture course in
+`tests/fixtures/content` (`SEED_EXTRA_CONTENT`), which never reaches `local.db`. Tests use that
+fixture course (paths in `tests/support/content.ts`) instead of pinning a real section, so
+authoring or renumbering a chapter cannot break them; what must come from a real course, such as
+seeded progress totals, is read from `content/` and the seed config at test time. Saved work is
+durable within a run, so Playwright runs serially (`fullyParallel: false`, one worker) and tests
+needing a clean editor call `openExercise`, which resets before starting.
 
 Astro actions work from forms (`?_action=`), but the `/_actions/[...path]` RPC route is not
 registered in this setup. Anything called from client script needs a plain API route under
