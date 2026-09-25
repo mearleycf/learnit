@@ -126,12 +126,14 @@ Local-only, single user. No auth, by decision.
 All nine tables are seeded.
 
 `getCurrentUser()` in `src/utils/progress.ts` returns the one seeded user. That is the seam to replace if auth ever arrives.
-Authored content: 33 sections across three courses, 15 of 16 exercises written. Python and
-Advanced React are complete. **JavaScript is being rewritten from nothing** against its full
-syllabus: the old twelve sections were pitched at someone who had never seen `console.log` and
-were deleted rather than migrated. What is there now is chapter 1 (types, coercion, modules) plus
-one DOM exercise in the browser chapter, and JavaScript 1.4 is a deliberate stub. Python lessons
-are written for a JavaScript developer, comparing the two throughout.
+Authored content: Python and Advanced React are complete. **JavaScript is being rewritten from
+nothing** against its full syllabus: the old twelve sections were pitched at someone who had never
+seen `console.log` and were deleted rather than migrated. It is now a 101-section skeleton over
+chapters 1 to 5, five of them written; the rest are stubs, filled in place as chapters are authored.
+Syllabus areas 6 to 9 (testing, security, performance tooling, dev workflow) are left out on
+purpose. If they arrive, they are new chapters `06` to `09`, never inserted before existing ones.
+`yarn db:seed` prints current coverage. Python lessons are written for a JavaScript developer,
+comparing the two throughout.
 
 Exercises run client-side in a Web Worker. **JavaScript, Python and React.** The entry file's
 `language` picks the runner: `worker.ts` for JavaScript, `python-worker.ts` for Python. The Worker is a crash and

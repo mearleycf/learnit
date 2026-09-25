@@ -47,8 +47,8 @@ default is a file-backed database at `./local.db`.
 | `DATABASE_URL`        | libSQL URL; defaults to `file:./local.db` |
 | `DATABASE_AUTH_TOKEN` | Auth token for a hosted (Turso) database  |
 
-Seed data is authored under `db/seed_config/seed/courses/`, with longer prose in
-`db/seed_config/seed/content/`. Seed files carry content only. The seeder derives IDs, foreign
+Course content is authored as markdown under `content/<course>/<nn>-chapter/<nn>-section.md`, and
+`db/content/` reads it into the shape the seeder consumes. Content files carry content only. The seeder derives IDs, foreign
 keys, sort order, display numbers and timestamps.
 
 Seeding is **deterministic**: every run produces byte-identical rows, so you can link to a fixture,
@@ -60,8 +60,8 @@ Section content is validated against `sectionContentSchema` before insert, and a
 aborts the seed naming the section. A section with no authored content stores `NULL` rather than an
 empty object, so the gap is visible. The seeder reports how many sections are authored on each run.
 
-Content coverage is deliberately incremental. Chapter 1 of JavaScript Fundamentals is fully
-authored, and the remaining 36 sections are structural only.
+Content coverage is deliberately incremental. Courses are scaffolded as stubs first (frontmatter,
+no body) and filled in place; `yarn db:seed` prints current coverage.
 
 ## Scripts
 
