@@ -1,5 +1,5 @@
+import { CHECK_TIMEOUT_MS } from './limits'
 import type { SourceFile } from './link'
-import { CHECK_TIMEOUT_MS } from './run'
 import type { TestCase } from './types'
 
 /**

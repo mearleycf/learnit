@@ -78,6 +78,18 @@ test('a check that never settles fails on its own, and the run still reports', a
   expect(result.outcomes[1]?.passed).toBe(true)
 })
 
+test('three checks that never settle each report their own timeout, not a run timeout', async ({ page }) => {
+  const result = await run(page, [{ filename: 'index.js', content: JS }], 'index.js', [
+    check('hangs 1', 'await never()'),
+    check('hangs 2', 'await never()'),
+    check('hangs 3', 'await never()'),
+  ])
+
+  expect(result.loadError).toBeNull()
+  expect(result.outcomes.map(o => o.passed)).toEqual([false, false, false])
+  for (const outcome of result.outcomes) expect(outcome.message).toMatch(/^Timed out after 2 seconds\./)
+})
+
 test('console output after an await belongs to the check that logged it', async ({ page }) => {
   const result = await run(page, [{ filename: 'index.js', content: JS }], 'index.js', [
     check('first', "console.log('a1'); await later(null); console.log('a2')"),

@@ -1,5 +1,6 @@
 import { type Assert, AssertionError, assert } from './assert'
 import type { LogEntry } from './capture'
+import { CHECK_TIMEOUT_MS } from './limits'
 import type { RunResult, TestCase, TestOutcome } from './types'
 
 /** Identifiers a check may not shadow, because they are the check's own scope. */
@@ -21,9 +22,6 @@ const describeError = (error: unknown): string => {
   if (error instanceof Error) return `${error.name}: ${error.message}`
   return String(error)
 }
-
-/** How long one check may wait on a promise before it fails, unless it sets its own `timeout`. */
-export const CHECK_TIMEOUT_MS = 2_000
 
 /**
  * Builds a check as an async function, so its body may `await`.
