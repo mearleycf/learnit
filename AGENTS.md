@@ -53,7 +53,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/content/` | Reads `content/` into the shape the seeder consumes. `parse.ts` splits frontmatter and `## heading` blocks |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
-| `src/lib/exercise-runner/` | Runs student code. `run.ts`, `link.ts`, `capture.ts` and `dom-stub.ts` are pure and unit tested |
+| `src/lib/exercise-runner/` | Runs student code. `run.ts`, `link.ts`, `capture.ts`, `dom-stub.ts` and `limits.ts` are pure and unit tested |
 | `src/components/` | Astro components |
 | `src/pages/` | Routes. `/notes` and `/feedback` are the cross-course views |
 
@@ -100,6 +100,11 @@ Only the **first** fence under a heading is that block's code; later ones are ex
 and are dropped. A lesson body is raw markdown and is not split this way, so it may hold as many
 fences and `##` headings as it likes.
 
+A JavaScript check is the body of an async function in strict mode, with `assert` and every export
+of the entry file in scope by name, so `assert.strictEqual(await fetchUser(1), 'Ada')` works as
+written. A Python check runs with the student's module unpacked into scope and may `await` at top
+level: `assert (await later(3)) == 3`.
+
 ## Markdown has two paths
 
 Astro's markdown processor does **not** sanitise. Raw HTML, `<script>` and `onerror` all pass
@@ -137,6 +142,10 @@ Exercises run client-side in a Web Worker. **JavaScript, Python and React.** The
 `language` picks the runner: `worker.ts` for JavaScript, `python-worker.ts` for Python. The Worker is a crash and
 infinite-loop guard, not a security boundary; it does not need to be, since the only author
 of that code is the person running it.
+
+The Worker is killed after the language base (5 s JavaScript, 20 s React, 60 s Python) plus each
+check's timeout (`runBudget` in `limits.ts`), so hanging promises each report their own timeout; a
+synchronous endless loop is caught later on exercises with many checks (#186).
 
 Python runs on Pyodide, served from `public/pyodide`, which `scripts/copy-pyodide.mjs` copies
 out of node_modules before dev and build. Those 15 MB are gitignored and excluded from
