@@ -517,7 +517,8 @@ test('the dashboard offers somewhere to pick up', async ({ page }) => {
 
 test('the dashboard shows progress and how much is written', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByText('29 of 101 sections written')).toBeVisible()
+  // The written count moves with every authored section, so only its shape is pinned.
+  await expect(page.getByText(/^\d+ of 101 sections written$/)).toBeVisible()
   // Every course has content now, so nothing reports as entirely unwritten.
   await expect(page.getByText('nothing to read yet')).toHaveCount(0)
 })
