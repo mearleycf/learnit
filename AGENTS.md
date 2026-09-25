@@ -49,7 +49,7 @@ Not installed, deliberately: React, ESLint, Prettier, Effect, `@astrojs/db`. Do 
 | `db/schema.ts` | Drizzle tables. Source of truth; migrations are generated, never hand-written |
 | `db/client.ts` | libSQL connection, reads `DATABASE_URL` |
 | `db/seed.ts` | Seeder. Derives IDs, FKs, sort order, display numbers, timestamps |
-| `content/<course>/<nn>-chapter/<nn>-section.md` | Every course, as markdown on disk. The only place content lives |
+| `content/<course>/<nn>-chapter/<nn>-section.md` | Every real course, as markdown on disk. The only place course content lives; the e2e fixture course is in `tests/fixtures/content` |
 | `db/content/` | Reads `content/` into the shape the seeder consumes. `parse.ts` splits frontmatter and `## heading` blocks |
 | `src/schemas/` | Zod schemas mirroring the tables |
 | `src/utils/courses.ts` | Data access for pages |
