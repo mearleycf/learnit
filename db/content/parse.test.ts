@@ -81,6 +81,21 @@ describe('splitSections', () => {
   it('handles a body with no headings', () => {
     expect(splitSections('just prose').blocks).toEqual([])
   })
+
+  it('keeps a fence in the intro as part of the intro', () => {
+    const split = splitSections(
+      'Shape:\n\n```javascript\n{ a: 1 }\n```\n\nThen.\n\n## file a.js\n\n```javascript\nstarter\n```',
+    )
+    expect(split.intro).toBe('Shape:\n\n```javascript\n{ a: 1 }\n```\n\nThen.')
+    expect(split.blocks[0]?.code).toBe('starter')
+    expect(split.blocks[0]?.language).toBe('javascript')
+  })
+
+  it('does not treat a ## inside an intro fence as a heading', () => {
+    const split = splitSections('```\n## not a heading\n```\n\n## one')
+    expect(split.intro).toBe('```\n## not a heading\n```')
+    expect(split.blocks.map(b => b.heading)).toEqual(['one'])
+  })
 })
 
 describe('requireString', () => {
