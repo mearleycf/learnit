@@ -165,6 +165,9 @@ copilot-instructions.md
 # local libSQL database created by drizzle-kit / yarn db:seed
 local.db
 local.db-journal
+# the end-to-end suite's own database, seeded by playwright.config.ts
+e2e.db
+e2e.db-journal
 *.db-shm
 *.db-wal
 
