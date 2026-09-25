@@ -109,7 +109,7 @@ And wrong for methods themselves, where there is no enclosing `this` worth havin
 ```javascript
 const account = {
   balance: 10,
-  read: () => this.balance,   // module scope this: undefined
+  read: () => this.balance,   // this is undefined at module scope: account.read() throws
 }
 ```
 
