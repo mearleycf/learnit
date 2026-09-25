@@ -148,6 +148,20 @@ assert.strictEqual(original.list[0].id, 1)
 assert.ok(Array.isArray(copy.list), 'an array should stay an array')
 ```
 
+## check deepCopy copies a top-level array and leaves its input alone
+
+An array in, a separate array out, and the original exactly as it was.
+
+```javascript
+const original = [{ id: 1 }, [2, 3]]
+const copy = deepCopy(original)
+assert.ok(Array.isArray(copy), 'an array should stay an array')
+assert.notStrictEqual(copy, original)
+assert.notStrictEqual(copy[0], original[0])
+assert.deepStrictEqual(copy, [{ id: 1 }, [2, 3]])
+assert.deepStrictEqual(original, [{ id: 1 }, [2, 3]])
+```
+
 ## check deepCopy copies a Date as a Date
 
 Same moment, different object.
