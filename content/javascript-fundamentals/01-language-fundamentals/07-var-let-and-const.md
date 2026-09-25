@@ -14,7 +14,7 @@ change, `var` never. This section is why, and what `const` does and does not pro
 | Redeclare in the same scope | Allowed | SyntaxError | SyntaxError |
 | Reassign | Yes | Yes | TypeError |
 | Top-level in a script creates a global property | Yes | No | No |
-| New binding per loop iteration | No | Yes | Yes, for `for…of` |
+| New binding per loop iteration | No | Yes | Yes, for `for…of` and `for…in` |
 
 ## Function scope leaks out of blocks
 
