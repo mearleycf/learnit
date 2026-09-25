@@ -11,6 +11,9 @@ expression you can call anywhere, with any string, that loads a module when you 
 const { marked } = await import('marked')
 ```
 
+The examples here use `await`, which pauses until the module has loaded. Promises and
+`async`/`await` get their own sections in chapter 2; this one needs only that much.
+
 ## import() returns a promise of the namespace
 
 `import(specifier)` returns a promise that resolves to the module namespace object: every named
