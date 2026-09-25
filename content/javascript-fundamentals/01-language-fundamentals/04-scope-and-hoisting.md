@@ -48,7 +48,7 @@ binding is usable before its line runs.
 
 | Declaration | Scope | Before its line |
 | --- | --- | --- |
-| `function f() {}` | Function | Fully usable, body and all |
+| `function f() {}` | Function; the block, if declared inside one in strict code or a module | Fully usable, body and all |
 | `var x` | Function | Exists, holds `undefined` |
 | `let x`, `const x` | Block | Exists, but reading it throws |
 | `class C {}` | Block | Exists, but reading it throws |
