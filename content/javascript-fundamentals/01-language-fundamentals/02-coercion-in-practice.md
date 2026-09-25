@@ -1,19 +1,64 @@
 ---
 type: exercise
 title: Coercion in Practice
-description: Predict and control JavaScript's conversions instead of being surprised by them
+description: The seven primitives, what typeof actually reports, and helpers that make JavaScript's conversions explicit
 entry: coercion.js
-minutes: 20
+access: free
+minutes: 25
 difficulty: medium
 files:
   - name: coercion.js
     language: javascript
 ---
 
+JavaScript has seven primitive types and one everything-else.
+
+```javascript
+typeof 'text'        // "string"
+typeof 42            // "number"
+typeof 10n           // "bigint"
+typeof true          // "boolean"
+typeof undefined     // "undefined"
+typeof Symbol()      // "symbol"
+typeof null          // "object"  ← wrong, and permanent
+typeof {}            // "object"
+typeof (() => {})    // "function"  ← also not a type
+typeof NaN           // "number"  ← "not a number" is a number
+```
+
+Three of those lines are lies worth knowing.
+
+`typeof null === "object"` is a bug from 1995 that cannot be fixed without breaking the web. Test
+for null with `value === null`.
+
+`typeof fn === "function"` is a convenience: functions are objects, and this is the one case where
+`typeof` reports something other than the real type.
+
+`typeof NaN === "number"` is correct by the spec, since `NaN` is a value of the number type, and
+useless in practice: a "number" you cannot do arithmetic with.
+
+### Checking a type properly
+
+`typeof` answers most questions. For the rest:
+
+```javascript
+Array.isArray([])                                  // true
+Number.isNaN(NaN)                                  // true, unlike the global isNaN
+Object.prototype.toString.call(null)               // "[object Null]"
+```
+
+The global `isNaN` converts its argument to a number first, so `isNaN('abc')` is `true`.
+`Number.isNaN` does not convert, and is true only for `NaN` itself.
+
+`Object.prototype.toString` is the only mechanism that distinguishes every built-in, which is why
+you still see it in library code.
+
+### The exercise
+
 Three helpers that make JavaScript's conversions explicit rather than implicit.
 
-1. `typeOf(value)` behaves like `typeof`, except it returns `"null"` for null and `"array"` for
-   an array. Everything else reports as `typeof` does.
+1. `typeOf(value)` behaves like `typeof`, except it returns `"null"` for null, `"array"` for an
+   array and `"nan"` for `NaN`. Everything else reports as `typeof` does.
 2. `toNumber(value)` converts a numeric string to a number, and returns `null` for anything that
    is not a number. Note that `Number('')` is `0` and `Number(null)` is `0`, which is almost
    never what a caller wants.
@@ -23,7 +68,7 @@ Three helpers that make JavaScript's conversions explicit rather than implicit.
 ## file coercion.js
 
 ```javascript
-// 1. Like typeof, but "null" for null and "array" for an array.
+// 1. Like typeof, but "null" for null, "array" for an array and "nan" for NaN.
 export function typeOf(value) {
   return typeof value
 }
@@ -45,6 +90,7 @@ export function isEmpty(value) {
 export function typeOf(value) {
   if (value === null) return 'null'
   if (Array.isArray(value)) return 'array'
+  if (Number.isNaN(value)) return 'nan'
   return typeof value
 }
 
@@ -68,7 +114,8 @@ export function isEmpty(value) {
 
 The null check has to come first in `typeOf`, because `typeof null` is `"object"` and would
 otherwise win. `Array.isArray` is the only reliable array test; `instanceof Array` fails across
-realms such as an iframe.
+realms such as an iframe. `Number.isNaN` is the right NaN test because it does not convert: the
+global `isNaN('abc')` is `true`, which would report every non-numeric string as `"nan"`.
 
 `toNumber` guards the empty string and null explicitly, because both coerce to `0` rather than
 `NaN`. That single behaviour is behind a great many form bugs, where a blank field silently
@@ -94,13 +141,26 @@ typeof [] is also "object".
 assert.strictEqual(typeOf([1, 2]), 'array')
 ```
 
+## check typeOf reports NaN as nan
+
+typeof NaN is "number", which is true and unhelpful.
+
+```javascript
+assert.strictEqual(typeOf(NaN), 'nan')
+assert.strictEqual(typeOf(0 / 0), 'nan')
+```
+
 ## check typeOf still handles the ordinary cases
 
-Strings, numbers and functions report as themselves.
+Strings, numbers, functions and undefined report as themselves. A string that is not numeric is
+still a string, not NaN.
 
 ```javascript
 assert.strictEqual(typeOf('x'), 'string')
+assert.strictEqual(typeOf('abc'), 'string')
 assert.strictEqual(typeOf(1), 'number')
+assert.strictEqual(typeOf(undefined), 'undefined')
+assert.strictEqual(typeOf({}), 'object')
 assert.strictEqual(typeOf(() => {}), 'function')
 ```
 
@@ -143,9 +203,8 @@ assert.strictEqual(isEmpty(false), false)
 
 ## hint after 1
 
-```javascript
-Array.isArray(value) ? 'array' : typeof value
-```
+Test for `null` first, then `Array.isArray(value)`, then `Number.isNaN(value)`, and only then
+fall back to `typeof value`.
 
 ## hint after 2
 

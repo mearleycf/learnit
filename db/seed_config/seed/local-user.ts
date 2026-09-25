@@ -24,7 +24,7 @@ export const localProgress = {
     completed: [{ chapter: 1, section: 1 }],
     current: { chapter: 1, section: 2 },
     /** Attempts against the one authored exercise. */
-    exercises: [{ chapter: 1, section: 2, attempts: 3, score: 80, completed: true }],
+    exercises: [{ chapter: 1, section: 1, attempts: 3, score: 80, completed: true }],
   },
   'python-fundamentals': {
     completed: [],
@@ -58,7 +58,7 @@ export const localNotes = [
   {
     course: 'javascript-fundamentals',
     chapter: 1,
-    section: 2,
+    section: 1,
     quote: 'Number.isNaN(NaN)',
     markdown: 'The global `isNaN` coerces first, so `isNaN("abc")` is true. `Number.isNaN` does not. Use the latter.',
   },
@@ -93,7 +93,7 @@ export const localFeedback = [
   {
     course: 'javascript-fundamentals',
     chapter: 1,
-    section: 2,
+    section: 1,
     status: 'in_progress' as const,
     category: 'incorrect_content' as const,
     markdown:
@@ -105,7 +105,7 @@ export const localFeedback = [
   {
     course: 'javascript-fundamentals',
     chapter: 1,
-    section: 2,
+    section: 1,
     status: 'pending_publication' as const,
     category: 'feature_request' as const,
     markdown: 'It would help to see which check failed rather than just a count.',
