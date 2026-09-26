@@ -104,8 +104,9 @@ a minifier renames the class to `t`.
 a repository wrap a database error in a `NotFoundError` without the original disappearing.
 
 `parseQuantity` guards the empty string for the reason covered in the coercion section:
-`Number('')` is `0`, and `Number('  ')` is too. `Number.isInteger` rejects `NaN`, `Infinity` and
-`2.5` in one call.
+`Number('')` is `0`, and `Number('  ')` is too. Here `quantity < 1` would reject that `0` anyway,
+but the guard keeps the function correct if the minimum ever becomes `0`, as it effectively is in
+1.1's `toNumber`. `Number.isInteger` rejects `NaN`, `Infinity` and `2.5` in one call.
 
 `describeFailure` is the point of the exercise. It checks the classes it knows and rethrows
 everything else. The starter's version returns any message it finds, so a `TypeError` from a bug
@@ -200,6 +201,25 @@ assert.strictEqual(
   'Order not found',
 )
 assert.strictEqual(describeFailure(() => 1), 'OK')
+```
+
+## check describeFailure handles a subclass of a known error
+
+instanceof follows the class hierarchy. Comparing name strings does not.
+
+```javascript
+class MissingUserError extends NotFoundError {
+  constructor(id) {
+    super('User', id)
+    this.name = 'MissingUserError'
+  }
+}
+assert.strictEqual(
+  describeFailure(() => {
+    throw new MissingUserError(3)
+  }),
+  'User not found',
+)
 ```
 
 ## check describeFailure rethrows what it does not recognise
