@@ -1,6 +1,6 @@
 ---
 title: Language Fundamentals
-estimated_time: 4 hours
+estimated_time: "5.5 hours"
 ---
 
-Types, coercion, scope, functions and modules. Everything else rests on these.
+Types and equality, scope and closures, functions and this, errors and modules. Everything else rests on these.

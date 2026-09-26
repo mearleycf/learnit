@@ -97,7 +97,7 @@ headings the loader reads:
 | `## hint after <n>` | Unlocks at `n` attempts. A fenced block becomes a code hint, prose a text hint |
 
 Only the **first** fence under a heading is that block's code; later ones are examples inside prose
-and are dropped. A lesson body is raw markdown and is not split this way, so it may hold as many
+and are dropped. Fences in the instructions, before the first heading, are kept as examples. A lesson body is raw markdown and is not split this way, so it may hold as many
 fences and `##` headings as it likes.
 
 A JavaScript check is the body of an async function in strict mode, with `assert` and every export

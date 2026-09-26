@@ -77,6 +77,16 @@ export const splitSections = (body: string): { intro: string; blocks: NamedBlock
   for (const line of lines) {
     const fenceMatch = /^```(\w*)\s*$/.exec(line)
 
+    // The intro is prose rendered as markdown, so a fence there is an example
+    // to keep verbatim, not a block's code. Tracking it still stops a `##`
+    // inside it from reading as a heading.
+    if (heading === null && (fence !== null || fenceMatch)) {
+      intro.push(line)
+      if (fence === null) fence = '```'
+      else if (line.trimEnd() === fence) fence = null
+      continue
+    }
+
     if (fence !== null) {
       if (line.trimEnd() === fence) {
         fence = null
