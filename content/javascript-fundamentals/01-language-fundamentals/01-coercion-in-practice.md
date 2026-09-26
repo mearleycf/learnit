@@ -166,10 +166,13 @@ assert.strictEqual(typeOf(() => {}), 'function')
 
 ## check toNumber parses a numeric string
 
-A clean numeric string becomes a number.
+A clean numeric string becomes a number, including zero, and a number stays itself.
 
 ```javascript
 assert.strictEqual(toNumber('42'), 42)
+assert.strictEqual(toNumber('0'), 0)
+assert.strictEqual(toNumber('3.5'), 3.5)
+assert.strictEqual(toNumber(7), 7)
 ```
 
 ## check toNumber rejects anything that is not a number
@@ -179,7 +182,11 @@ Returns null rather than NaN, so the caller can branch on it.
 ```javascript
 assert.strictEqual(toNumber('abc'), null)
 assert.strictEqual(toNumber(''), null)
+assert.strictEqual(toNumber('  '), null)
+assert.strictEqual(toNumber('12px'), null)
 assert.strictEqual(toNumber(null), null)
+assert.strictEqual(toNumber(true), null)
+assert.strictEqual(toNumber(NaN), null)
 ```
 
 ## check isEmpty treats empty string, array and object as empty
@@ -199,6 +206,17 @@ This is where a bare truthiness check goes wrong.
 ```javascript
 assert.strictEqual(isEmpty(0), false)
 assert.strictEqual(isEmpty(false), false)
+```
+
+## check isEmpty does not treat content or null as empty
+
+A string, array or object with anything in it is not empty, and null is not an empty object.
+
+```javascript
+assert.strictEqual(isEmpty('x'), false)
+assert.strictEqual(isEmpty([0]), false)
+assert.strictEqual(isEmpty({ a: 1 }), false)
+assert.strictEqual(isEmpty(null), false)
 ```
 
 ## hint after 1
