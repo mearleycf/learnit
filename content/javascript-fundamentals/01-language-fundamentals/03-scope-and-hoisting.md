@@ -108,8 +108,8 @@ function check(value) {
 With `var` the same code would silently compare against `undefined` and return `'fine'` for
 every input. The dead zone turns a wrong answer into a crash, which is the better failure.
 
-It is *temporal*, not positional. A function may mention a `let` declared below it, as long as
-the function is not called until after that line has run:
+It is *temporal*, not positional. A function may mention a `let` or `const` declared below it, as
+long as the function is not called until after that line has run:
 
 ```javascript
 const report = () => `total: ${total}`
@@ -120,7 +120,7 @@ report()    // "total: 42"
 ### What to take away
 
 - Names resolve by where the code is written. The call stack is irrelevant.
-- Function declarations are callable before their line. Nothing else is.
+- Function declarations and imports are usable before their line; nothing else is.
 - `var` before its line reads `undefined`. `let`, `const` and `class` throw.
 - A block-scoped name shadows the outer one from the top of the block, so the dead zone can catch
   a reference you thought pointed outwards.
@@ -199,13 +199,15 @@ Each check runs the snippet for real and compares.
    }
    ```
 
-7. Called too early
+7. A hoisted function called too early
 
    ```javascript
-   const report = () => `total: ${total}`
-   const early = report()
-   const total = 42
-   return early
+   function label(name) {
+     return `${prefix}${name}`
+   }
+   const first = label('item')
+   const prefix = '#'
+   return first
    ```
 
 ## file predictions.js
@@ -220,7 +222,7 @@ export const predictions = [
   '?', // 4. total is read before its var line
   '?', // 5. readers close over the loop's i
   '?', // 6. typeof of a let above its line
-  '?', // 7. report is called before total's line
+  '?', // 7. label is called before prefix's line
 ]
 ```
 
@@ -234,7 +236,7 @@ export const predictions = [
   undefined, // 4. var hoists as undefined
   2, // 5. A let in the header is a fresh binding per iteration
   'ReferenceError', // 6. typeof does not protect a name in its dead zone
-  'ReferenceError', // 7. The arrow reads total when it is called
+  'ReferenceError', // 7. label is hoisted and callable
 ]
 ```
 
@@ -254,9 +256,10 @@ the first reader keeps `0` and the third keeps `2`. With `var` there would be on
 and the sum would be `6`.
 
 Snippets 6 and 7 are the dead zone. `typeof` returns `"undefined"` for a name that was never
-declared, but a `let` in its dead zone has been declared, and reading it throws. The arrow in
-snippet 7 is fine to write before `total`; what matters is when it runs, and it runs before
-`total`'s line.
+declared, but a `let` in its dead zone has been declared, and reading it throws. In snippet 7,
+`label` is a function declaration, so calling it early is allowed; but it reads `prefix` when it
+runs, and it runs before `prefix`'s line. Hoisting makes the function available, not the names it
+uses.
 
 ## check there is one prediction per snippet
 
@@ -396,16 +399,18 @@ try {
 assert.strictEqual(predictions[5], actual, 'snippet 6')
 ```
 
-## check snippet 7: called too early
+## check snippet 7: a hoisted function called too early
 
-The arrow reads total when it is called, and that call happens inside the dead zone.
+label is hoisted and callable, but it reads prefix when it runs, and it runs inside the dead zone.
 
 ```javascript
 const snippet = () => {
-  const report = () => `total: ${total}`
-  const early = report()
-  const total = 42
-  return early
+  function label(name) {
+    return `${prefix}${name}`
+  }
+  const first = label('item')
+  const prefix = '#'
+  return first
 }
 let actual
 try {
