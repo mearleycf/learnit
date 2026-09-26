@@ -23,7 +23,7 @@ export const localProgress = {
   'javascript-fundamentals': {
     completed: [{ chapter: 1, section: 1 }],
     current: { chapter: 1, section: 2 },
-    /** Attempts against the one authored exercise. */
+    /** Attempts against 1.1, the first exercise. */
     exercises: [{ chapter: 1, section: 1, attempts: 3, score: 80, completed: true }],
   },
   'python-fundamentals': {
