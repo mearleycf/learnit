@@ -321,6 +321,17 @@ lookup('missing')
 assert.strictEqual(calls, 1)
 ```
 
+## check two memoised functions keep separate caches
+
+Each call to memoise gets its own Map, so the same argument can have different answers.
+
+```javascript
+const double = memoise(n => n * 2)
+const triple = memoise(n => n * 3)
+assert.strictEqual(double(2), 4)
+assert.strictEqual(triple(2), 6)
+```
+
 ## check once calls fn a single time and passes its arguments
 
 The second call's arguments are ignored.
@@ -334,6 +345,18 @@ const init = once((a, b) => {
 assert.strictEqual(init(2, 3), 5)
 assert.strictEqual(init(10, 10), 5)
 assert.strictEqual(calls, 1)
+```
+
+## check two once wrappers keep separate results
+
+Each call to once gets its own flag and result.
+
+```javascript
+const first = once(() => 'first')
+const second = once(() => 'second')
+assert.strictEqual(first(), 'first')
+assert.strictEqual(second(), 'second')
+assert.strictEqual(second(), 'second')
 ```
 
 ## check once does not call a function that returned nothing again
