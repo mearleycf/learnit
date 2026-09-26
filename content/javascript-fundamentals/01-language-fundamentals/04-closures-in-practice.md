@@ -231,9 +231,9 @@ Every piece of state lives in a `let` or `const` inside the outer function, so e
 `makeCounter`, `memoise` or `once` gets its own. Put `count` at the top of the module instead and
 every counter would share it, which is the bug the independence checks look for.
 
-`memoise` uses a `Map` rather than a plain object. Object keys are always strings, so `1` and
-`'1'` would collide, and an object argument would become `"[object Object]"`. A `Map` compares
-keys with SameValueZero, which also means `NaN` finds itself.
+`memoise` uses a `Map` rather than a plain object. A plain object turns every key into a string,
+so `1` and `'1'` would collide, and an object argument would become `"[object Object]"`. A `Map`
+compares keys with SameValueZero, which also means `NaN` finds itself.
 
 It asks `cache.has(arg)` rather than testing the stored value. `cache.get(arg) ?? fn(arg)` reads
 well and calls `fn` again every time the answer was `undefined` or `null`.

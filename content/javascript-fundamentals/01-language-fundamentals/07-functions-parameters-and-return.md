@@ -39,7 +39,7 @@ the function only. It is useful for recursion and it shows in stack traces.
 ### Parameters are optional by default
 
 JavaScript never checks how many arguments you passed. Missing ones are `undefined`; extra ones
-are dropped.
+are ignored by the named parameters (they are still in `arguments`).
 
 ```javascript
 const greet = (name, greeting) => `${greeting}, ${name}`

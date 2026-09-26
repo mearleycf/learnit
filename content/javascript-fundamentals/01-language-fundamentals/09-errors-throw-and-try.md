@@ -80,8 +80,8 @@ try {
 }
 ```
 
-The thing caught is typed `unknown` in TypeScript for a reason. It may not be an `Error` at all if
-some library threw a string, so check before reading `.message`.
+The thing caught is typed `unknown` in strict TypeScript for a reason. It may not be an `Error` at
+all if some library threw a string, so check before reading `.message`.
 
 If you do not need the value, the binding is optional: `catch { … }`.
 

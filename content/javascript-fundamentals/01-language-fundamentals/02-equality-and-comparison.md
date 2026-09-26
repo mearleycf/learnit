@@ -45,7 +45,8 @@ null >= 0         // true   (relational operators do not use step 2)
 ```
 
 `true == 'true'` being false is the one that ships bugs. Anyone comparing a query-string flag with
-`== true` gets false for every value except `'1'`.
+`== true` gets false for `'true'`, and true only for strings that convert to the number 1, such as
+`'1'`.
 
 ### The one == worth keeping
 

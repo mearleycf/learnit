@@ -71,8 +71,9 @@ surface: it maps subpaths like `'zod/v4'` to files, can give different files to 
 `require`, and makes every unlisted file unreachable.
 
 Which system a `.js` file uses is decided by the nearest `package.json`. `"type": "module"` makes
-`.js` mean ESM; without it, `.js` means CJS. `.mjs` is always ESM and `.cjs` always CommonJS,
-whatever the package says.
+`.js` mean ESM; without it, `.js` means CJS, though current Node retries a `.js` file as ESM if it
+finds `import` or `export` syntax. Set `"type"` rather than rely on that. `.mjs` is always ESM and
+`.cjs` always CommonJS, whatever the package says.
 
 ### Live bindings
 
